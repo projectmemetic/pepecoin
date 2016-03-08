@@ -1,0 +1,64 @@
+Pepecoin X11 Proof of Work Block Reward Schedule
+------------------------------------------------
+```
+
+Block 1 to 800 - 1500 Coins
+Block 800 to 1200 - 1200 Coins
+Block 1200 to 1800 - 1050 Coins
+Block 1800 to 2800 - 900 Coins
+Block 2800 to 4000 - 750 Coins
+Block 4000 to 6580 - 600 Coins
+Block 6580 to 9160 - 400 Coins
+Block 9160 to 11740 - 500 Coins
+Block 11740 to 14320 - 200 Coins
+Block 14320 to 16900 - 300 Coins
+Block 16900 to 19480 - 100 Coins
+Block 19480 to 22060 - 200 Coins
+Block 22060 to 24640 - 90 Coins
+Block 24640 to 27220 - 130 Coins
+Block 27220 to 29800 - 80 Coins
+Block 29800 to 32380 - 100 Coins
+Block 32380 to 34960 - 70 Coins
+Block 34960 to 37540 - 100 Coins
+Block 37540 to 40120 - 60 Coins
+Block 40120 to 42700 - 100 Coins
+Block 42700 to 45280 - 50 Coins
+Block 45280 to 47860 - 100 Coins
+Block 47860 to 50440 - 40 Coins
+Block 50440 to 53020 - 100 Coins
+Block 53020 to 55600 - 40 Coins
+Block 55600 to 58180 - 100 Coins
+Block 58180 to 60760 - 40 Coins
+Block 60760 to 63340 - 100 Coins
+Block 63340 to 65920 - 40 Coins
+Block 65920 to 68500 - 100 Coins
+Block 68500 to 71080 - 40 Coins
+Block 71080 to 73660 - 90 Coins
+Block 73660 to 76240 - 30 Coins
+Block 76240 to 78820 - 80 Coins
+Block 78820 to 81400 - 30 Coins
+Block 81400 to 83980 - 70 Coins
+Block 83980 to 86560 - 30 Coins
+Block 86560 to 89140 - 60 Coins
+Block 89140 to 91720 - 30 Coins
+Block 91720 to 94300 - 50 Coins
+Block 94300 to 96880 - 30 Coins
+Block 96880 to 99460 - 50 Coins
+Block 99460 to 102040 - 30 Coins
+Block 102040 to 104620 - 50 Coins
+Block 104620 to 107200 - 20 Coins
+Block 107200 to 109780 - 40 Coins
+Block 109780 to 112360 - 20 Coins
+Block 112360 to 114940 - 30 Coins
+Block 114940 to 117520 - 20 Coins
+Block 117520 to 120100 - 25 Coins
+Block 120100 to 122680 - 15 Coins
+Block 122680 to 125260 - 20 Coins
+Block 125260 to 127840 - 15 Coins
+Block 127840 to 130420 - 20 Coins
+
+POW End Block 130420
+
+Total coins from 1 Yr. POW  ~ 16m
+
+```
