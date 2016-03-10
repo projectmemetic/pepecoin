@@ -37,9 +37,8 @@ Block   1 - 99 - PEPE Development Fund and Checkpointing
 
 * Block 100 Public Launch *
 
-Block   1	 	 to     99   - Tendies Fund (3.5%) 
-Block	100	 	 to 	900	 - 	1500	 PEPE
-Block	900	 	 to 	1300	 - 	1200	 PEPE
+Block	100	 to 	900	 - 	1500	 PEPE
+Block	900	 to 	1300	 - 	1200	 PEPE
 Block	1300	 to 	1900	 - 	1050	 PEPE
 Block	1900	 to 	2900	 - 	900	 PEPE
 Block	2900	 to 	4100	 - 	750	 PEPE
@@ -92,6 +91,11 @@ Block	120200	 to 	122780	 - 	15	 PEPE
 Block	122780	 to 	125360	 - 	20	 PEPE
 Block	125360	 to 	127940	 - 	15	 PEPE
 Block	127940	 to 	130420	 - 	20	 PEPE
+
+								TOTAL
+
+
+								16066300
 
 
 POW End Block 130420 Approx 3 Months
