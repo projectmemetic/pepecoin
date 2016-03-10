@@ -30,6 +30,9 @@ namespace Checkpoints
         (0,	Params().HashGenesisBlock() )
         (14, uint256("0xeb1a88f40f84c13d061a4ededd50f03977cb815f459b44f0acf8bbc3593cd57e"))
         (38, uint256("0xdb2420ff33b119de3bf0eda27c3e4653aa13a63b21009fb2412b3e45dce9a136"))
+        (776, uint256("0x19fae8ae0a8c77a239ab8551b57f02cf0ac584a6eaab2b4cc9195745839b24b6"))
+        (1863, uint256("0xb9ca005de3783c7be996fc95901394dd08a2213e480015f32ef671e9ed47c7b1"))
+        (2578, uint256("0x2984f39527006fe0206a0ae76717f7f193b3007e61cb39e9befab3902c74bb2b"))
 
     ;
 
