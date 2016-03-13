@@ -39,43 +39,6 @@ void ShutdownRPCMining()
     delete pMiningKey; pMiningKey = NULL;
 }
 
-Value getsubsidy(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() > 1)
-        throw runtime_error(
-            "getsubsidy [nTarget]\n"
-            "Returns proof-of-work subsidy value for the specified value of target.");
-
-    return (int64_t)GetProofOfWorkReward(pindexBest->nHeight, 0);
-}
-
-Value getstakesubsidy(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() != 1)
-        throw runtime_error(
-            "getstakesubsidy <hex string>\n"
-            "Returns proof-of-stake subsidy value for the specified coinstake.");
-
-    RPCTypeCheck(params, list_of(str_type));
-
-    vector<unsigned char> txData(ParseHex(params[0].get_str()));
-    CDataStream ssData(txData, SER_NETWORK, PROTOCOL_VERSION);
-    CTransaction tx;
-    try {
-        ssData >> tx;
-    }
-    catch (std::exception &e) {
-        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "TX decode failed");
-    }
-
-    uint64_t nCoinAge;
-    int64_t nCoinValue;
-    CTxDB txdb("r");
-    if (!tx.GetCoinAge(txdb, pindexBest, nCoinAge, nCoinValue))
-        throw JSONRPCError(RPC_MISC_ERROR, "GetCoinAge failed");
-
-    return (uint64_t)GetProofOfStakeReward(pindexBest->pprev, nCoinAge, 0, nCoinValue);
-}
 
 Value getmininginfo(const Array& params, bool fHelp)
 {
@@ -93,13 +56,12 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("currentblocksize",(uint64_t)nLastBlockSize));
     obj.push_back(Pair("currentblocktx",(uint64_t)nLastBlockTx));
 
-    diff.push_back(Pair("proof-of-work",        GetDifficulty()));
-    diff.push_back(Pair("proof-of-stake",       GetDifficulty(GetLastBlockIndex(pindexBest, true))));
-    obj.push_back(Pair("difficulty",    diff));
+    //diff.push_back(Pair("proof-of-work",        GetDifficulty()));
+    //diff.push_back(Pair("proof-of-stake",       GetDifficulty(GetLastBlockIndex(pindexBest, true))));
+    //diff.push_back(Pair("search-interval",      (int)nLastCoinStakeSearchInterval));
+    obj.push_back(Pair("difficulty",    GetDifficulty(GetLastBlockIndex(pindexBest, true))));
 
-    // obj.push_back(Pair("difficulty",    GetDifficulty(GetLastBlockIndex(pindexBest, true))));
-
-    obj.push_back(Pair("blockvalue",    (int64_t)GetProofOfWorkReward(pindexBest->pprev, 0)));
+    // obj.push_back(Pair("blockvalue",    (int64_t)GetProofOfStakeReward(pindexBest->pprev, 0, 0, nCoinValue)));  variable - calculate in future
     obj.push_back(Pair("netmhashps",     GetPoWMHashPS()));
     obj.push_back(Pair("netstakeweight", GetPoSKernelPS()));
     obj.push_back(Pair("errors",        GetWarnings("statusbar")));

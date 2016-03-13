@@ -33,13 +33,13 @@ PEPE Masternodes can stake coins that are held in MN.
 Pepecoin X11 Proof of Work Block Reward Schedule
 ------------------------------------------------
 ```
-Block   1 - 99 - PEPE Development Fund and Checkpointing
+Block   1 - 99 - 3.5% "Tendies Fund" PEPE Development Fund and Checkpointing Blocks
 
 * Block 100 Public Launch *
 
-Block	100	 to 	900	 - 	1500	 PEPE
-Block	900	 to 	1300	 - 	1200	 PEPE
-Block	1300	 to 	1900	 - 	1050	 PEPE
+Block	100	   to 	900	 - 	  1500 PEPE
+Block	900	   to 	1300	 - 	1200 PEPE
+Block	1300	 to 	1900	 - 	1050 PEPE
 Block	1900	 to 	2900	 - 	900	 PEPE
 Block	2900	 to 	4100	 - 	750	 PEPE
 Block	4100	 to 	6680	 - 	600	 PEPE
@@ -80,32 +80,30 @@ Block	91820	 to 	94400	 - 	50	 PEPE
 Block	94400	 to 	96980	 - 	30	 PEPE
 Block	96980	 to 	99560	 - 	50	 PEPE
 Block	99560	 to 	102140	 - 	30	 PEPE
-Block	102140	 to 	104720	 - 	50	 PEPE
-Block	104720	 to 	107300	 - 	20	 PEPE
-Block	107300	 to 	109880	 - 	40	 PEPE
-Block	109880	 to 	112460	 - 	20	 PEPE
-Block	112460	 to 	115040	 - 	30	 PEPE
-Block	115040	 to 	117620	 - 	20	 PEPE
-Block	117620	 to 	120200	 - 	25	 PEPE
-Block	120200	 to 	122780	 - 	15	 PEPE
-Block	122780	 to 	125360	 - 	20	 PEPE
-Block	125360	 to 	127940	 - 	15	 PEPE
-Block	127940	 to 	130420	 - 	20	 PEPE
+Block	102140 to 	104720	 - 	50	 PEPE
+Block	104720 to 	107300	 - 	20	 PEPE
+Block	107300 to 	109880	 - 	40	 PEPE
+Block	109880 to 	112460	 - 	20	 PEPE
+Block	112460 to 	115040	 - 	30	 PEPE
+Block	115040 to 	117620	 - 	20	 PEPE
+Block	117620 to 	120200	 - 	25	 PEPE
+Block	120200 to 	122780	 - 	15	 PEPE
+Block	122780 to 	125360	 - 	20	 PEPE
+Block	125360 to 	127940	 - 	15	 PEPE
+Block	127940 to 	130420	 - 	20	 PEPE
 
-								TOTAL
-
-
-								16066300
+								TOTAL POW 16,066,300
 
 
 POW End Block 130420 Approx 3 Months
+
+POS Start Block 9000
 
 Total from 1 Yr. POW: 16,066,300 PEPE
 
 3.5% Development fund: 562,390 PEPE
 
 Total PEPE in POW & Fund: 16,628,690 PEPE
-
 
 
 
@@ -117,10 +115,10 @@ Pepe Stake Rate (PSR) %  POSV Reward Schedule
 
 | PEPE Amount    | Stake % Year 1|  Year 2  |  Year 3+ |
 |:-------------|:-------------:|------------:|------------:|
- |0 to 10000    |    3.0%|  2.0% | 1.0% |
- |10,000+        |    4.0%| 3.0% | 2.0% |
- |50,000+        |    5.0%|4.0%|3.0%|
- |100,000+       |    6.0%|5.0%|4.0%|
+ |0 to 10000    |  3.0%|  2.0% | 1.0% |
+ |10,000+       |   4.0%| 3.0% | 2.0% |
+ |50,000+    | 5.0%|4.0%|3.0%|
+ |100,000+    |    6.0%|5.0%|4.0%|
 
 
 ----------------------------------
