@@ -37,9 +37,9 @@ Block   1 - 99 - 3.5% "Tendies Fund" PEPE Development Fund and Checkpointing Blo
 
 * Block 100 Public Launch *
 
-Block	100	   to 	900	 - 	  1500 PEPE
-Block	900	   to 	1300	 - 	1200 PEPE
-Block	1300	 to 	1900	 - 	1050 PEPE
+Block	100	 to 	900	 - 	1500 	 PEPE
+Block	900	 to 	1300	 - 	1200 	 PEPE
+Block	1300	 to 	1900	 - 	1050 	 PEPE
 Block	1900	 to 	2900	 - 	900	 PEPE
 Block	2900	 to 	4100	 - 	750	 PEPE
 Block	4100	 to 	6680	 - 	600	 PEPE
@@ -92,7 +92,7 @@ Block	122780 to 	125360	 - 	20	 PEPE
 Block	125360 to 	127940	 - 	15	 PEPE
 Block	127940 to 	130420	 - 	20	 PEPE
 
-								TOTAL POW 16,066,300
+				TOTAL POW 16,066,300
 
 
 POW End Block 130420 Approx 3 Months
@@ -106,7 +106,6 @@ Total from 1 Yr. POW: 16,066,300 PEPE
 Total PEPE in POW & Fund: 16,628,690 PEPE
 
 
-
 ```
 
 
@@ -115,11 +114,10 @@ Pepe Stake Rate (PSR) %  POSV Reward Schedule
 
 | PEPE Amount    | Stake % Year 1|  Year 2  |  Year 3+ |
 |:-------------|:-------------:|------------:|------------:|
- |0 to 10000    |  3.0%|  2.0% | 1.0% |
- |10,000+       |   4.0%| 3.0% | 2.0% |
- |50,000+    | 5.0%|4.0%|3.0%|
- |100,000+    |    6.0%|5.0%|4.0%|
-
+ |0 to 10000  |  3.0%|  2.0% | 1.0% |
+ |10,000+     |  4.0%| 3.0% | 2.0% |
+ |50,000+  | 5.0% | 4.0% | 3.0% |
+ |100,000+ |    6.0% | 5.0% | 4.0% |
 
 ----------------------------------
 
@@ -135,10 +133,17 @@ Proof of Sadfrog (POSF)
  - PepeLife technology ensures PEPE holders contribute to the health of the network at least once each month to earn the highest possible rewards, and incentivises running full nodes and/or keeping wallets open to increase PEPE network security.
 
  -------------------------------
-
 Additional Information
 ------------------------------
+
 PepeCoin uses libsecp256k1, libgmp, Boost1.55, OR Boost1.57, Openssl1.01p, Berkeley DB 4.8, QT5 to compile
+
+Ubuntu / Debian Build Dependencies
+
+sudo apt-get install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils
+
+sudo apt-get install libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev libboost-thread-dev libminiupnpc-dev libgmp3-dev
+
 
 ```
 
