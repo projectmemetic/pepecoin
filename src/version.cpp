@@ -8,10 +8,10 @@
 // Name of client reported in the 'version' message. Report the same name
 // for both bitcoind and bitcoin-qt, to make it harder for attackers to
 // target servers or GUI users specifically.
-const std::string CLIENT_NAME("Phoenix");
+const std::string CLIENT_NAME("-Tadpole");
 
 // Client version number
-#define CLIENT_VERSION_SUFFIX   "-reee"
+#define CLIENT_VERSION_SUFFIX   "-BabyPepe"
 
 
 // The following part of the code determines the CLIENT_BUILD variable.
