@@ -345,7 +345,7 @@ void OverviewPage::updateDarksendProgress()
         ui->darksendProgress->setValue(0);
         ui->darksendProgress->setToolTip(tr("No inputs detected"));
         // when balance is zero just show info from settings
-        strAnonymizeTransferAmount = strAnonymizeTransferAmount.remove(strAnonymizeTransferAmount.indexOf("."), BitcoinUnits::decimals(nDisplayUnit) + 1);
+        // strAnonymizeTransferAmount = strAnonymizeTransferAmount.remove(strAnonymizeTransferAmount.indexOf("."), BitcoinUnits::decimals(nDisplayUnit) + 1);
         strAmountAndRounds = strAnonymizeTransferAmount + " / " + tr("%n Rounds", "", nDarksendRounds);
 
         ui->labelAmountRounds->setToolTip(tr("No inputs detected"));
@@ -381,7 +381,7 @@ void OverviewPage::updateDarksendProgress()
     if(nMaxToAnonymize >= nAnonymizeTransferAmount * COIN) {
         ui->labelAmountRounds->setToolTip(tr("Found enough compatible inputs to anonymize %1")
                                           .arg(strAnonymizeTransferAmount));
-        strAnonymizeTransferAmount = strAnonymizeTransferAmount.remove(strAnonymizeTransferAmount.indexOf("."), BitcoinUnits::decimals(nDisplayUnit) + 1);
+        // strAnonymizeTransferAmount = strAnonymizeTransferAmount.remove(strAnonymizeTransferAmount.indexOf("."), BitcoinUnits::decimals(nDisplayUnit) + 1);
         strAmountAndRounds = strAnonymizeTransferAmount + " / " + tr("%n Rounds", "", nDarksendRounds);
     } else {
         QString strMaxToAnonymize = BitcoinUnits::formatHtmlWithUnit(nDisplayUnit, nMaxToAnonymize, false, BitcoinUnits::separatorAlways);
@@ -389,7 +389,7 @@ void OverviewPage::updateDarksendProgress()
                                              "will anonymize <span style='color:red;'>%2</span> instead")
                                           .arg(strAnonymizeTransferAmount)
                                           .arg(strMaxToAnonymize));
-        strMaxToAnonymize = strMaxToAnonymize.remove(strMaxToAnonymize.indexOf("."), BitcoinUnits::decimals(nDisplayUnit) + 1);
+        // strMaxToAnonymize = strMaxToAnonymize.remove(strMaxToAnonymize.indexOf("."), BitcoinUnits::decimals(nDisplayUnit) + 1);
         strAmountAndRounds = "<span style='color:red;'>" +
                 QString(BitcoinUnits::factor(nDisplayUnit) == 1 ? "" : "~") + strMaxToAnonymize +
                 " / " + tr("%n Rounds", "", nDarksendRounds) + "</span>";
