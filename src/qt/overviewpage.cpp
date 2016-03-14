@@ -346,7 +346,7 @@ void OverviewPage::updateDarksendProgress()
         ui->darksendProgress->setToolTip(tr("No inputs detected"));
         // when balance is zero just show info from settings
         // strAnonymizeTransferAmount = strAnonymizeTransferAmount.remove(strAnonymizeTransferAmount.indexOf("."), BitcoinUnits::decimals(nDisplayUnit) + 1);
-        strAmountAndRounds = " 0 " + " / " + tr("%n Rounds", "", nDarksendRounds);
+        strAmountAndRounds = strAnonymizeTransferAmount + " / " + tr("%n Rounds", "", nDarksendRounds);
 
         ui->labelAmountRounds->setToolTip(tr("No inputs detected"));
         ui->labelAmountRounds->setText(strAmountAndRounds);
