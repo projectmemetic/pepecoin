@@ -686,5 +686,4 @@ Value submitblock(const Array& params, bool fHelp)
 
     return Value::null;
 }
-Status API Training Shop Blog About Pricing
-© 2016 GitHub, Inc. Terms Privacy Security Contact Help
+
