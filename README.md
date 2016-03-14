@@ -37,9 +37,9 @@ Block   1 - 99 - 3.5% "Tendies Fund" PEPE Development Fund and Checkpointing Blo
 
 * Block 100 Public Launch *
 
-Block	100	 to 	900	 - 	1500 	 PEPE
-Block	900	 to 	1300	 - 	1200 	 PEPE
-Block	1300	 to 	1900	 - 	1050 	 PEPE
+Block	100	   to 	900	 - 	  1500 PEPE
+Block	900	   to 	1300	 - 	1200 PEPE
+Block	1300	 to 	1900	 - 	1050 PEPE
 Block	1900	 to 	2900	 - 	900	 PEPE
 Block	2900	 to 	4100	 - 	750	 PEPE
 Block	4100	 to 	6680	 - 	600	 PEPE
@@ -97,13 +97,13 @@ Block	127940 to 	130420	 - 	20	 PEPE
 
 POW End Block 130420 Approx 3 Months
 
-POS Start Block 9000
-
 Total from 1 Yr. POW: 16,066,300 PEPE
 
 3.5% Development fund: 562,390 PEPE
 
 Total PEPE in POW & Fund: 16,628,690 PEPE
+
+Note: POS Begins at block 9000 and will replace ~ 50% POW blocks.
 
 
 ```
