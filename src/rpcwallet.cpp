@@ -468,7 +468,7 @@ Value sendtoaddress(const Array& params, bool fHelp)
     if (sNarr.length() > 24)
         throw std::runtime_error("Narration must be 24 characters or less.");
 
-    // std::string strError = pwalletMain->SendMoneyToDestination(address.Get(), nAmount, sNarr, wtx);  transaction issues fix`
+    std::string strError = pwalletMain->SendMoneyToDestination(address.Get(), nAmount, sNarr, wtx);  // transaction issues fix
 
     if (strError != "")
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
