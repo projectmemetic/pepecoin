@@ -474,7 +474,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
           {
                 //ProcessBlock successful for PoS. now FixSpentCoins.
                 int nMismatchSpent;
-                CAmount nBalanceInQuestion;
+                int64_t nBalanceInQuestion;
                 wallet.FixSpentCoins(nMismatchSpent, nBalanceInQuestion);
                 if (nMismatchSpent != 0)
                 {
