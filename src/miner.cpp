@@ -75,7 +75,7 @@ public:
 uint64_t nLastBlockTx = 0;
 uint64_t nLastBlockSize = 0;
 int64_t nLastCoinStakeSearchInterval = 0;
- 
+
 // We want to sort transactions by priority and fee, so:
 typedef boost::tuple<double, double, CTransaction*> TxPriority;
 class TxPriorityCompare
@@ -470,6 +470,18 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
         // Process this block the same as if we had received it from another node
         if (!ProcessBlock(NULL, pblock))
             return error("CheckWork() : ProcessBlock, block not accepted");
+        else
+          {
+                //ProcessBlock successful for PoS. now FixSpentCoins.
+                int nMismatchSpent;
+                CAmount nBalanceInQuestion;
+                wallet.FixSpentCoins(nMismatchSpent, nBalanceInQuestion);
+                if (nMismatchSpent != 0)
+                {
+                    LogPrintf("PoS mismatched spent coins = %d and balance affects = %d \n", nMismatchSpent, nBalanceInQuestion);
+                }
+          }
+
     }
 
     return true;
