@@ -5,6 +5,9 @@ release/
 *.exe
 object_script.pepecoin-qt.*
 src/pepecoind
+pepecoin-qt
+Makefile
+qrc_bitcoin.cpp
 #################
 ## Eclipse
 #################
