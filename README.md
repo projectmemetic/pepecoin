@@ -3,6 +3,7 @@ PepeCoin (PEPE)
 -------------------------------------------
 A Hybrid Proof of Work / Proof of Stake / Pepe Stake Rate Cryptocurrency
 
+http://pepecoin.net
 
  - Default port 29377 and RPC port 29376
 
