@@ -1884,6 +1884,7 @@ bool CWallet::SelectCoinsMinConfByCoinAge(int64_t nTargetValue, unsigned int nSp
 {
     setCoinsRet.clear();
     nValueRet = 0;
+    nCoinsRet.clear();
 
     vector<pair<COutput, uint64_t> > mCoins;
     BOOST_FOREACH(const COutput& out, vCoins)
