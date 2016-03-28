@@ -70,7 +70,7 @@
                <cursorShape>WhatsThisCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>The displayed information may be out of date. Your wallet automatically synchronizes with the PepeCoin network after a connection is established, but this process has not completed yet.</string>
+               <string>The displayed information may be out of date. Your wallet automatically synchronizes with the Memetic network after a connection is established, but this process has not completed yet.</string>
               </property>
               <property name="styleSheet">
                <string notr="true">QLabel { color: red; }</string>
@@ -538,7 +538,7 @@
               </font>
              </property>
              <property name="text">
-              <string notr="true">0 PEPE</string>
+              <string notr="true">0 MEME</string>
              </property>
             </widget>
            </item>
@@ -1123,7 +1123,7 @@
            <item>
             <widget class="QLabel" name="labelDarksendSyncStatus">
              <property name="toolTip">
-              <string>The displayed information may be out of date. Your wallet automatically synchronizes with the PepeCoin network after a connection is established, but this process has not completed yet.</string>
+              <string>The displayed information may be out of date. Your wallet automatically synchronizes with the Memetic network after a connection is established, but this process has not completed yet.</string>
              </property>
              <property name="styleSheet">
               <string notr="true">QLabel { color: red; }</string>
@@ -1228,7 +1228,7 @@
                <cursorShape>WhatsThisCursor</cursorShape>
               </property>
               <property name="toolTip">
-               <string>The displayed information may be out of date. Your wallet automatically synchronizes with the PepeCoin network after a connection is established, but this process has not completed yet.</string>
+               <string>The displayed information may be out of date. Your wallet automatically synchronizes with the Memetic network after a connection is established, but this process has not completed yet.</string>
               </property>
               <property name="styleSheet">
                <string notr="true">QLabel { color: red; }</string>

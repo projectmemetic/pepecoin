@@ -1,4 +1,4 @@
-Pepecoin X11 Proof of Work Block Reward Schedule
+Memetic X11 Proof of Work Block Reward Schedule
 ------------------------------------------------
 ```
 

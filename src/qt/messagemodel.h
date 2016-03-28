@@ -67,7 +67,7 @@ struct MessageTableEntry
     }
 };
 
-/** Interface to PepeCoin Secure Messaging from Qt view code. */
+/** Interface to Memetic Secure Messaging from Qt view code. */
 class MessageModel : public QAbstractTableModel
 {
     Q_OBJECT

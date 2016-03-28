@@ -7,23 +7,23 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleGetInfoString</key>
-	<string>pepecoin-Qt</string>
+	<string>memetic-Qt</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleExecutable</key>
-	<string>pepecoin-Qt</string>
+	<string>memetic-Qt</string>
 	<key>CFBundleIdentifier</key>
-	<string>co.pepecoin.pepecoin-Qt</string>
+	<string>co.memetic.memetic-Qt</string>
         <key>CFBundleURLTypes</key>
         <array>
           <dict>
             <key>CFBundleTypeRole</key>
             <string>Editor</string>
             <key>CFBundleURLName</key>
-            <string>co.pepecoin.PepeCoinPayment</string>
+            <string>co.memetic.MemeticPayment</string>
             <key>CFBundleURLSchemes</key>
             <array>
-              <string>pepecoin</string>
+              <string>memetic</string>
             </array>
           </dict>
         </array>

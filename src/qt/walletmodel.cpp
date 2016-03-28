@@ -761,7 +761,7 @@ WalletModel::UnlockContext::~UnlockContext()
 
 void WalletModel::UnlockContext::CopyFrom(const UnlockContext& rhs)
 {
-    // PepeCoin context; old object no longer relocks wallet
+    // Memetic context; old object no longer relocks wallet
     *this = rhs;
     rhs.relock = false;
 }

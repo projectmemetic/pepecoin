@@ -8,7 +8,7 @@
 // Copyright (c) 2014 DashCoin Developers
 // Copyright (c) 2014 NetCoin Developers
 // Copyright (c) 2015 Transfercoin Developer
-// Copyright (c) 2015-2016 PepeCoin Developers
+// Copyright (c) 2015-2016 Memetic Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -87,7 +87,7 @@ map<uint256, set<uint256> > mapOrphanTransactionsByPrev;
 // Constant stuff for coinbase transactions we create:
 CScript COINBASE_FLAGS;
 
-const string strMessageMagic = "PepeCoin Signed Message:\n";
+const string strMessageMagic = "Memetic Signed Message:\n";
 
 std::set<uint256> setValidatedTx;
 
@@ -1309,7 +1309,7 @@ int64_t nSubsidy = 20 * COIN;
   }
   else if(nHeight < 4)
   {
-    nSubsidy = 281169 * COIN; // PEPE development tendies fund, two 281195 blocks total 562390 PEPE or 3.5% of POW
+    nSubsidy = 281169 * COIN; // MEME development tendies fund, two 281195 blocks total 562390 MEME or 3.5% of POW
   }
   else if(nHeight < 100)  // confirm tendies fund
   {
@@ -1536,13 +1536,13 @@ int64_t nSubsidy = 20 * COIN;
 }
 
 /*
-  // PEPE STAKE RATE CALCULATION
+  // MEME STAKE RATE CALCULATION
   // Original credit to: madprofezzor@gmail.com
 
   // returns an integer between 0 and PIR_PHASES-1 representing which PIR phase the supplied block height falls into
 
-  Pepe Stake Rate (PSR) %
-| PEPE Amount    | Stake % Year 1|  Year 2  |  Year 3+ |
+  Memetic Stake Rate (PSR) %
+| MEME Amount    | Stake % Year 1|  Year 2  |  Year 3+ |
 |:-------------|:-------------:|------------:|------------:|
  |0 to 10000    |    3.0% | 2.0% | 1.0% |
  |10,000+        |    4.0%| 3.0% | 2.0% |
@@ -3470,7 +3470,7 @@ struct CImportingNow
 
 void ThreadImport(std::vector<boost::filesystem::path> vImportFiles)
 {
-    RenameThread("pepecoin-loadblk");
+    RenameThread("memetic-loadblk");
 
     CImportingNow imp;
 

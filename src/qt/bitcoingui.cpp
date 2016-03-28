@@ -96,7 +96,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     nWeight(0)
 {
     resize(900, 520);
-    setWindowTitle(tr("PepeCoin") + " - " + tr("Wallet"));
+    setWindowTitle(tr("Memetic") + " - " + tr("Wallet"));
     qApp->setStyleSheet("QMainWindow { background-image:url(:images/bkg);border:none; }");
 
 #ifndef Q_OS_MAC
@@ -106,8 +106,8 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     //setUnifiedTitleAndToolBarOnMac(true);
     QApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
 #endif
-    setObjectName("pepecoin");
-    setStyleSheet("#pepecoin { background-color: qradialgradient(cx: -0.8, cy: 0, fx: -0.8, fy: 0, radius: 1.4, stop: 0 #dedede, stop: 1 #efefef);  }");
+    setObjectName("memetic");
+    setStyleSheet("#memetic { background-color: qradialgradient(cx: -0.8, cy: 0, fx: -0.8, fy: 0, radius: 1.4, stop: 0 #dedede, stop: 1 #efefef);  }");
     // Accept D&D of URIs
     setAcceptDrops(true);
 
@@ -288,7 +288,7 @@ void BitcoinGUI::createActions()
     tabGroup->addAction(receiveCoinsAction);
 
     sendCoinsAction = new QAction(QIcon(":/icons/send"), tr("&Send"), this);
-    sendCoinsAction->setToolTip(tr("Send coins to a PepeCoin address"));
+    sendCoinsAction->setToolTip(tr("Send coins to a Memetic address"));
     sendCoinsAction->setCheckable(true);
     sendCoinsAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_3));
     tabGroup->addAction(sendCoinsAction);
@@ -352,14 +352,14 @@ void BitcoinGUI::createActions()
     quitAction->setToolTip(tr("Quit application"));
     quitAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
     quitAction->setMenuRole(QAction::QuitRole);
-    aboutAction = new QAction(tr("&About PepeCoin"), this);
-    aboutAction->setToolTip(tr("Show information about PepeCoin"));
+    aboutAction = new QAction(tr("&About Memetic"), this);
+    aboutAction->setToolTip(tr("Show information about Memetic"));
     aboutAction->setMenuRole(QAction::AboutRole);
     aboutQtAction = new QAction(tr("About &Qt"), this);
     aboutQtAction->setToolTip(tr("Show information about Qt"));
     aboutQtAction->setMenuRole(QAction::AboutQtRole);
     optionsAction = new QAction(tr("&Options..."), this);
-    optionsAction->setToolTip(tr("Modify configuration options for PepeCoin"));
+    optionsAction->setToolTip(tr("Modify configuration options for Memetic"));
     optionsAction->setMenuRole(QAction::PreferencesRole);
     toggleHideAction = new QAction(QIcon(":/icons/bitcoin"), tr("&Show / Hide"), this);
     encryptWalletAction = new QAction(tr("&Encrypt Wallet..."), this);
@@ -510,7 +510,7 @@ void BitcoinGUI::setClientModel(ClientModel *clientModel)
 #endif
             if(trayIcon)
             {
-                trayIcon->setToolTip(tr("PepeCoin client") + QString(" ") + tr("[testnet]"));
+                trayIcon->setToolTip(tr("Memetic client") + QString(" ") + tr("[testnet]"));
                 trayIcon->setIcon(QIcon(":/icons/toolbar_testnet"));
                 toggleHideAction->setIcon(QIcon(":/icons/toolbar_testnet"));
             }
@@ -591,7 +591,7 @@ void BitcoinGUI::createTrayIcon()
     trayIcon = new QSystemTrayIcon(this);
     trayIconMenu = new QMenu(this);
     trayIcon->setContextMenu(trayIconMenu);
-    trayIcon->setToolTip(tr("PepeCoin client"));
+    trayIcon->setToolTip(tr("Memetic client"));
     trayIcon->setIcon(QIcon(":/icons/toolbar"));
     connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
             this, SLOT(trayIconActivated(QSystemTrayIcon::ActivationReason)));
@@ -662,7 +662,7 @@ void BitcoinGUI::setNumConnections(int count)
     default: icon = fUseBlackTheme ? ":/icons/black/connect_4" : ":/icons/connect_4"; break;
     }
     labelConnectionsIcon->setPixmap(QIcon(icon).pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
-    labelConnectionsIcon->setToolTip(tr("%n active connection(s) to PepeCoin network", "", count));
+    labelConnectionsIcon->setToolTip(tr("%n active connection(s) to Memetic network", "", count));
 }
 
 void BitcoinGUI::setNumBlocks(int count)
@@ -748,7 +748,7 @@ void BitcoinGUI::setNumBlocks(int count)
 
 void BitcoinGUI::message(const QString &title, const QString &message, bool modal, unsigned int style)
 {
-    QString strTitle = tr("PepeCoin") + " - ";
+    QString strTitle = tr("Memetic") + " - ";
     // Default to information icon
     int nMBoxIcon = QMessageBox::Information;
     int nNotifyIcon = Notificator::Information;
@@ -1052,7 +1052,7 @@ void BitcoinGUI::dropEvent(QDropEvent *event)
         if (nValidUrisFound)
             gotoSendCoinsPage();
         else
-            notificator->notify(Notificator::Warning, tr("URI handling"), tr("URI can not be parsed! This can be caused by an invalid PepeCoin address or malformed URI parameters."));
+            notificator->notify(Notificator::Warning, tr("URI handling"), tr("URI can not be parsed! This can be caused by an invalid Memetic address or malformed URI parameters."));
     }
 
     event->acceptProposedAction();
@@ -1067,7 +1067,7 @@ void BitcoinGUI::handleURI(QString strURI)
         gotoSendCoinsPage();
     }
     else
-        notificator->notify(Notificator::Warning, tr("URI handling"), tr("URI can not be parsed! This can be caused by an invalid PepeCoin address or malformed URI parameters."));
+        notificator->notify(Notificator::Warning, tr("URI handling"), tr("URI can not be parsed! This can be caused by an invalid Memetic address or malformed URI parameters."));
 }
 
 void BitcoinGUI::setEncryptionStatus(int status)

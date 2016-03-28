@@ -1,7 +1,7 @@
 // Copyright (c) 2014 BlackCoin Developers
 // Copyright (c) 2014 DashCoin Developers
 // Copyright (c) 2015 Transfercoin Developer
-// Copyright (c) 2015-2016 PepeCoin Developers
+// Copyright (c) 2015-2016 Memetic Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -111,14 +111,14 @@ public:
         assert(genesis.hashMerkleRoot == uint256("0xf8d91b2c93bd7222515770b67f20d3380edf8292548daeb3b0ce82fd5764dcac"));
 
 
-        base58Prefixes[PUBKEY_ADDRESS] = list_of(55); // pepecoin addresses start with P
+        base58Prefixes[PUBKEY_ADDRESS] = list_of(55); // memetic addresses start with P
         base58Prefixes[SCRIPT_ADDRESS] = list_of(85);
         base58Prefixes[SECRET_KEY] =     list_of(153);
         base58Prefixes[STEALTH_ADDRESS] = list_of(40);
         base58Prefixes[EXT_PUBLIC_KEY] = list_of(0x04)(0x88)(0xB2)(0x1E);
         base58Prefixes[EXT_SECRET_KEY] = list_of(0x04)(0x88)(0xAD)(0xE4);
 
-        vSeeds.push_back(CDNSSeedData("First",  "seed.pepecoin.net"));
+        vSeeds.push_back(CDNSSeedData("First",  "seed.memetic.net"));
         convertSeeds(vFixedSeeds, pnSeed, ARRAYLEN(pnSeed), nDefaultPort);
 
         nPoolMaxTransactions = 3;

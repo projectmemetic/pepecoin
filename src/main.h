@@ -8,7 +8,7 @@
 // Copyright (c) 2014 DashCoin Developers
 // Copyright (c) 2014 NetCoin Developers
 // Copyright (c) 2015 Transfercoin Developer
-// Copyright (c) 2015-2016 PepeCoin Developers
+// Copyright (c) 2015-2016 Memetic Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -79,11 +79,11 @@ static const int64_t MIN_RELAY_TX_FEE = MIN_TX_FEE;
 /** No amount larger than this (in satoshi) is valid */
 static const int64_t MAX_MONEY = 16628690 * COIN; // 16,628,690 POW Coins
 
-// Pepe Stake Rate PSR / PIR : Staking rewards are variable depending on the number of coins held.
+// Memetic Stake Rate PSR / PIR : Staking rewards are variable depending on the number of coins held.
 
 static const int PIR_LEVELS = 4; // number of entries in PIR_THRESHOLDS
 static const int64_t PIR_PHASEBLOCKS = 365 * 24 * 60; // one year for each phase
-static const int PIR_PHASES = 3; // pepe - three POS reward phases
+static const int PIR_PHASES = 3; // Memetic - three POS reward phases
 
 static const int64_t PIR_THRESHOLDS[PIR_LEVELS] = {
     0,
@@ -92,7 +92,7 @@ static const int64_t PIR_THRESHOLDS[PIR_LEVELS] = {
     100000
 };
 
-// pepe stake rate thresholds - % paid at each phase and level
+// Memetic stake rate thresholds - % paid at each phase and level
 
 static const int64_t PIR_RATES[PIR_PHASES][PIR_LEVELS] = {
         {3,4,5,6},
