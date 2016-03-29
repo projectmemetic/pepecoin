@@ -11,7 +11,7 @@
 const std::string CLIENT_NAME("-Rebrand");
 
 // Client version number
-#define CLIENT_VERSION_SUFFIX   "-Peperebrand"
+#define CLIENT_VERSION_SUFFIX   "-Rebrand"
 
 
 // The following part of the code determines the CLIENT_BUILD variable.

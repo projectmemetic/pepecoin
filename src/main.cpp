@@ -8,7 +8,8 @@
 // Copyright (c) 2014 DashCoin Developers
 // Copyright (c) 2014 NetCoin Developers
 // Copyright (c) 2015 Transfercoin Developer
-// Copyright (c) 2015-2016 Memetic Developers
+// Copyright (c) 2015-2016 PepeCoin Developers
+// Copyright (c) 2016 The Memetic Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -87,7 +88,7 @@ map<uint256, set<uint256> > mapOrphanTransactionsByPrev;
 // Constant stuff for coinbase transactions we create:
 CScript COINBASE_FLAGS;
 
-const string strMessageMagic = "Memetic Signed Message:\n";
+const string strMessageMagic = "PepeCoin Signed Message:\n";
 
 std::set<uint256> setValidatedTx;
 
@@ -1059,7 +1060,7 @@ int CMerkleTx::GetBlocksToMaturity() const
 {
     if (!(IsCoinBase() || IsCoinStake()))
         return 0;
-    return max(0, (nCoinbaseMaturity+1) - GetDepthInMainChain());
+    return max(0, nCoinbaseMaturity - GetDepthInMainChain());
 }
 
 
@@ -1309,7 +1310,7 @@ int64_t nSubsidy = 20 * COIN;
   }
   else if(nHeight < 4)
   {
-    nSubsidy = 281169 * COIN; // MEME development tendies fund, two 281195 blocks total 562390 MEME or 3.5% of POW
+    nSubsidy = 281169 * COIN; // PEPE development tendies fund, two 281195 blocks total 562390 PEPE or 3.5% of POW
   }
   else if(nHeight < 100)  // confirm tendies fund
   {
@@ -1536,13 +1537,13 @@ int64_t nSubsidy = 20 * COIN;
 }
 
 /*
-  // MEME STAKE RATE CALCULATION
+  // PEPE STAKE RATE CALCULATION
   // Original credit to: madprofezzor@gmail.com
 
   // returns an integer between 0 and PIR_PHASES-1 representing which PIR phase the supplied block height falls into
 
-  Memetic Stake Rate (PSR) %
-| MEME Amount    | Stake % Year 1|  Year 2  |  Year 3+ |
+  Pepe Stake Rate (PSR) %
+| PEPE Amount    | Stake % Year 1|  Year 2  |  Year 3+ |
 |:-------------|:-------------:|------------:|------------:|
  |0 to 10000    |    3.0% | 2.0% | 1.0% |
  |10,000+        |    4.0%| 3.0% | 2.0% |
@@ -1598,8 +1599,81 @@ int64_t nSubsidy = 20 * COIN;
 
   }
 
-
   int64_t GetProofOfStakeReward(const CBlockIndex* pindexPrev, int64_t nCoinAge, int64_t nFees, int64_t nCoinValue)
+  {
+        if((!TestNet() && pindexPrev->nHeight < PEPE_STAKE_V2_SWITCH_HEIGHT) ||
+            (TestNet() && pindexPrev->nHeight < PEPE_STAKE_V2_SWITCH_HEIGHT_TESTNET))
+        {
+            return GetProofOfStakeRewardV1(pindexPrev, nCoinAge, nFees, nCoinValue);
+        }
+        else
+        {
+            return GetProofOfStakeRewardV2(pindexPrev, nCoinAge, nFees, nCoinValue);
+        }
+  }
+
+  // PEPE stake fix
+  // Simplified code to make it easier to understand, debug and maintain
+  int64_t GetProofOfStakeRewardV2(const CBlockIndex* pindexPrev, int64_t nCoinAge, int64_t nFees, int64_t nCoinValue)
+  {
+        int64_t nHeight = pindexPrev->nHeight;
+        int64_t nRewardCoinYear = 1 * CENT; // 1% per year
+
+        // PEPE Stake Reward table
+        // Amount       Year 1      Year 2      Year 3+
+        // 0-10,000      3%          2%          1%
+        // 10,000+       4%          3%          2%
+        // 50,000+       5%          4%          3%
+        // 100,000+      6%          5%          4%
+
+        // What phase/year is the block in?
+        int64_t blocksInAYear = 60 * 24 * 365;  // 60s blocks, 24 hours in a day, 365 days in a year
+        int64_t nStakeStartHeight = Params().POSStartBlock(); // POS started at block 9000 on mainnet, 20 on testnet
+        int nBlockYear = (int)((nHeight - nStakeStartHeight)/blocksInAYear);
+        if(nBlockYear == 1)
+        {
+            // get rate based on amount
+            if(nCoinValue <= 10000 * COIN)
+                nRewardCoinYear = 3 * CENT; // 3% per year
+            else if(nCoinValue <= 50000 * COIN)
+                nRewardCoinYear = 4 * CENT; // 4% per year
+            else if(nCoinValue < 100000 * COIN)
+                nRewardCoinYear = 5 * CENT; // 5% per year
+            else
+                nRewardCoinYear = 6 * CENT; // 6% per year
+        }
+        else if(nBlockYear == 2)
+        {
+            // get rate based on amount
+            if(nCoinValue <= 10000 * COIN)
+                nRewardCoinYear = 2 * CENT; // 2% per year
+            else if(nCoinValue <= 50000 * COIN)
+                nRewardCoinYear = 3 * CENT; // 3% per year
+            else if(nCoinValue < 100000 * COIN)
+                nRewardCoinYear = 4 * CENT; // 4% per year
+            else
+                nRewardCoinYear = 5 * CENT; // 5% per year
+        }
+        else // year 3+
+        {
+            // get rate based on amount
+            if(nCoinValue <= 10000 * COIN)
+                nRewardCoinYear = 1 * CENT; // 1% per year
+            else if(nCoinValue <= 50000 * COIN)
+                nRewardCoinYear = 2 * CENT; // 2% per year
+            else if(nCoinValue < 100000 * COIN)
+                nRewardCoinYear = 3 * CENT; // 3% per year
+            else
+                nRewardCoinYear = 4 * CENT; // 4% per year
+        }
+
+        // Now calculate the reward
+        int64_t nSubsidy = nCoinAge * nRewardCoinYear * 33 / (365 * 33 + 8); //integer equivalent of nCoinAge * nRewardCoinYear / 365.2424242..
+
+        return nSubsidy + nFees;
+  }
+
+  int64_t GetProofOfStakeRewardV1(const CBlockIndex* pindexPrev, int64_t nCoinAge, int64_t nFees, int64_t nCoinValue)
   {
 
       int64_t nHeight = pindexPrev->nHeight;
@@ -2878,7 +2952,7 @@ bool CBlock::AcceptBlock()
     if (IsProofOfWork() && nHeight > STOP_POW_BLOCK )
         return DoS(100, error("AcceptBlock() : reject proof-of-work at height %d", nHeight));
 
-    if (IsProofOfStake() && nHeight < START_POS_BLOCK )
+    if (IsProofOfStake() && nHeight < Params().POSStartBlock() )
         return DoS(100, error("AcceptBlock() : reject proof-of-stake at height <= %d", nHeight));
 
     // Check coinbase timestamp
@@ -3470,7 +3544,7 @@ struct CImportingNow
 
 void ThreadImport(std::vector<boost::filesystem::path> vImportFiles)
 {
-    RenameThread("memetic-loadblk");
+    RenameThread("pepecoin-loadblk");
 
     CImportingNow imp;
 
