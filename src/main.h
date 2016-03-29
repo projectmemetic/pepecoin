@@ -53,7 +53,7 @@ class CNode;
 class CReserveKey;
 class CWallet;
 
-static const int64_t PEPE_STAKE_V2_SWITCH_HEIGHT = 20000;
+static const int64_t PEPE_STAKE_V2_SWITCH_HEIGHT = 32000;
 static const int64_t PEPE_STAKE_V2_SWITCH_HEIGHT_TESTNET = 10;
 
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
