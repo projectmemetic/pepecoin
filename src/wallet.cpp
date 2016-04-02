@@ -3812,7 +3812,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
     CScript payee;
     CTxIn vin;
-    bool hasPayment = true;
+    bool hasPayment = false;
     if(bMasterNodePayment) {
         //spork
         if(!masternodePayments.GetBlockPayee(pindexPrev->nHeight+1, payee, vin)){
@@ -3840,7 +3840,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     }
 
     int64_t blockValue = nCredit;
-    int64_t masternodePayment = GetMasternodePayment(pindexPrev->nHeight+1, nReward);
+    int64_t masternodePayment = 0; //GetMasternodePayment(pindexPrev->nHeight+1, nReward);
 
 
     // Set output amount
