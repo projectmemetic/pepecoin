@@ -37,7 +37,7 @@ static const int64_t DARKSEND_POOL_MAX = (9999.99*COIN);
 
 static const int64_t TARGET_SPACING = 60;
 
-static const int STOP_POW_BLOCK = 130420;
+static const int STOP_POW_BLOCK = 70000;
 static const int START_POS_BLOCK = 9000;
 
 
