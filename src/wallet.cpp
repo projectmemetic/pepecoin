@@ -3847,16 +3847,6 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     // start masternode payments
     bool bMasterNodePayment = false; // note was false, set true to test  set to false until MN start 4/14/06
 
-    if ( Params().NetworkID() == CChainParams::TESTNET ){
-        if (GetTime() > START_MASTERNODE_PAYMENTS_TESTNET ){
-            bMasterNodePayment = true;
-        }
-    }else{
-        if (GetTime() > START_MASTERNODE_PAYMENTS){
-            bMasterNodePayment = true;
-        }
-    }
-
     CScript payee;
     CTxIn vin;
     bool hasPayment = false;
