@@ -3,7 +3,7 @@ Memetic (MEME)
 -------------------------------------------
 A Hybrid Proof of Work / Proof of Stake / Memetic Stake Rate Cryptocurrency
 
-http://memetic.net
+http://memeticproject.com
 
  - Default port 29377 and RPC port 29376
 
