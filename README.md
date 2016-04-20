@@ -8,7 +8,7 @@ http://memeticproject.com
  - Default port 29377 and RPC port 29376
 
  - 60 seconds block time POW
- - ~3 Months Proof of Work mining distribution ~16m MEME
+ - ~3 Months Proof of Work mining distribution ~14.5m MEME
  - X11 mining algorithm
  - Memetic Stake Rate PSR / POS enable at block 9000
  - POW End at block 70,000
