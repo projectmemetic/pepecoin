@@ -36,44 +36,16 @@ Block   58280    to     60860    -  40   MEME
 Block   60860    to     63440    -  100  MEME
 Block   63440    to     66020    -  40   MEME
 Block   66020    to     68600    -  100  MEME
-Block   68600    to     71180    -  40   MEME
-Block   71180    to     73760    -  90   MEME
-Block   73760    to     76340    -  30   MEME
-Block   76340    to     78920    -  80   MEME
-Block   78920    to     81500    -  30   MEME
-Block   81500    to     84080    -  70   MEME
-Block   84080    to     86660    -  30   MEME
-Block   86660    to     89240    -  60   MEME
-Block   89240    to     91820    -  30   MEME
-Block   91820    to     94400    -  50   MEME
-Block   94400    to     96980    -  30   MEME
-Block   96980    to     99560    -  50   MEME
-Block   99560    to     102140   -  30   MEME
-Block   102140   to     104720   -  50   MEME
-Block   104720   to     107300   -  20   MEME
-Block   107300   to     109880   -  40   MEME
-Block   109880   to     112460   -  20   MEME
-Block   112460   to     115040   -  30   MEME
-Block   115040   to     117620   -  20   MEME
-Block   117620   to     120200   -  25   MEME
-Block   120200   to     122780   -  15   MEME
-Block   122780   to     125360   -  20   MEME
-Block   125360   to     127940   -  15   MEME
-Block   127940   to     130420   -  20   MEME
-
-                          TOTAL
-                            16066300
+Block   68600    to     70000    -  40   MEME
 
 
-POW End Block 130420 Approx 3 Months
+POW End Block 70,000
 
-Total from 1 Yr. POW: 16,066,300 MEME
+Total from 1 Yr. POW: Approx 11.5m MEME
 
-3.5% Development fund: 562,390 MEME
+Development fund: 562,390 MEME
 
-Total MEME in POW & Fund: 16,066,300 MEME
-
-Note: POS Begins at block 9000 and will replace ~ 50% POW blocks.
+Total MEME in POW & Fund: Approx 12m MEME
 
 
 ```

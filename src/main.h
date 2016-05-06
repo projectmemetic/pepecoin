@@ -37,7 +37,7 @@ static const int64_t DARKSEND_POOL_MAX = (9999.99*COIN);
 
 static const int64_t TARGET_SPACING = 60;
 
-static const int STOP_POW_BLOCK = 130420;
+static const int STOP_POW_BLOCK = 71489;  //change from 70000 to 71489 and increase protocol version to resolve the fork issue;
 static const int START_POS_BLOCK = 9000;
 
 
