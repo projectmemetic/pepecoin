@@ -38,6 +38,7 @@
 #include "messagepage.h"
 #include "blockbrowser.h"
 #include "tradingdialog.h"
+#include "proofofmeme.h"
 
 #ifdef Q_OS_MAC
 #include "macdockiconhandler.h"
@@ -143,6 +144,8 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     tradingDialogPage = new tradingDialog(this);
     tradingDialogPage->setObjectName("tradingDialog");
 
+    proofOfMemePage = new ProofOfMeme(this);
+
     signVerifyMessageDialog = new SignVerifyMessageDialog(this);
 
     masternodeManagerPage = new MasternodeManager(this);
@@ -159,6 +162,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     centralStackedWidget->addWidget(messagePage);
     centralStackedWidget->addWidget(blockBrowser);
     centralStackedWidget->addWidget(tradingDialogPage);
+    centralStackedWidget->addWidget(proofOfMemePage);
 
     QWidget *centralWidget = new QWidget();
     QVBoxLayout *centralLayout = new QVBoxLayout(centralWidget);
@@ -331,6 +335,11 @@ void BitcoinGUI::createActions()
     showBackupsAction = new QAction(QIcon(":/icons/browse"), tr("Show Auto&Backups"), this);
     showBackupsAction->setStatusTip(tr("S"));
 
+    proofOfMemeAction = new QAction(tr("&Proof of Meme"), this);
+    proofOfMemeAction ->setToolTip(tr("Timestamp Memes"));
+    proofOfMemeAction ->setCheckable(true);
+    tabGroup->addAction(proofOfMemeAction);
+
     connect(TradingAction, SIGNAL(triggered()), this, SLOT(gotoTradingPage()));
     connect(blockAction, SIGNAL(triggered()), this, SLOT(gotoBlockBrowser()));
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
@@ -347,6 +356,8 @@ void BitcoinGUI::createActions()
     connect(masternodeManagerAction, SIGNAL(triggered()), this, SLOT(gotoMasternodeManagerPage()));
     connect(messageAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(messageAction, SIGNAL(triggered()), this, SLOT(gotoMessagePage()));
+    connect(proofOfMemeAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(proofOfMemeAction, SIGNAL(triggered()), this, SLOT(gotoProofOfMemePage()));
 
     quitAction = new QAction(tr("E&xit"), this);
     quitAction->setToolTip(tr("Quit application"));
@@ -455,6 +466,7 @@ void BitcoinGUI::createToolBars()
 
     //QMenu *toolbarMenu = new QMenu();
     toolbar->addAction(overviewAction);
+    toolbar->addAction(proofOfMemeAction);
     toolbar->addAction(receiveCoinsAction);
     toolbar->addAction(sendCoinsAction);
     toolbar->addAction(historyAction);
@@ -938,6 +950,15 @@ void BitcoinGUI::gotoBlockBrowser()
 {
     blockAction->setChecked(true);
     centralStackedWidget->setCurrentWidget(blockBrowser);
+
+    exportAction->setEnabled(false);
+    disconnect(exportAction, SIGNAL(triggered()), 0, 0);
+}
+
+void BitcoinGUI::gotoProofOfMemePage()
+{
+    proofOfMemeAction->setChecked(true);
+    centralStackedWidget->setCurrentWidget(proofOfMemePage);
 
     exportAction->setEnabled(false);
     disconnect(exportAction, SIGNAL(triggered()), 0, 0);
