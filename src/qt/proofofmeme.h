@@ -30,6 +30,7 @@ private slots:
     void on_filePushButton_clicked();
     void on_createPushButton_clicked();
     void on_checkButton_clicked();
+    void on_checkTxButton_clicked();
 };
 
 #endif // PROOFOFMEME_H

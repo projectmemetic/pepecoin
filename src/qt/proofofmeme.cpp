@@ -84,9 +84,16 @@ std::vector<char> memeContents((std::istreambuf_iterator<char>(memeFile)),
       std::string sNarr;
       std::string strError = pwalletMain->SendMoneyToDestination(baddr.Get(), nAmount, sNarr, wtx);  // transaction issues fix
 
-      if (strError != "")
+     if(strError != "")
+     {
+        QMessageBox infobox;
+        infobox.setText(QString::fromStdString(strError));
+        infobox.exec();
+     }
+
         ui->txLineEdit->setText(QString::fromStdString(wtx.GetHash().GetHex()));
-    }
+     }
+    
 
 }
 
@@ -112,6 +119,15 @@ std::vector<char> memeContents((std::istreambuf_iterator<char>(memeFile)),
     std::string bexp = "http://chain.blockpioneers.info/meme/api/v1.php?method=isaddress&address=";
     //open url
     QString link = QString::fromStdString(bexp + addr);
+    QDesktopServices::openUrl(QUrl(link));
+}
+
+void ProofOfMeme::on_checkTxButton_clicked()
+{
+  //go to block explorer
+    std::string bexp = "http://chain.blockpioneers.info/meme/api/v1.php?method=gettransaction&txid=";
+    //open url
+    QString link = QString::fromStdString(bexp + ui->txLineEdit->text().toStdString());
     QDesktopServices::openUrl(QUrl(link));
 }
 

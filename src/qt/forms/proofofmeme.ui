@@ -118,11 +118,28 @@
         <widget class="QLineEdit" name="txLineEdit"/>
        </item>
        <item>
-        <widget class="QLabel" name="label_5">
-         <property name="text">
-          <string>Save the address and transaction hash for easy reference in the future.</string>
+        <layout class="QHBoxLayout" name="horizontalLayout_5">
+         <property name="bottomMargin">
+          <number>20</number>
          </property>
-        </widget>
+         <item>
+          <widget class="QPushButton" name="checkTxButton">
+           <property name="text">
+            <string>Check Transaction</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_5">
+           <property name="text">
+            <string>Save the address and transaction hash for easy reference in the future.</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <spacer name="verticalSpacer">
