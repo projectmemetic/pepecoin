@@ -2897,6 +2897,30 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend, 
     return true;
 }
 
+bool CWallet::CreateTransactionWall(CScript scriptPubKey, int64_t nValue, std::string& sNarr, CWalletTx& wtxNew, CReserveKey& reservekey, int64_t& nFeeRet, std::string msg, const CCoinControl* coinControl)
+{
+    vector< pair<CScript, int64_t> > vecSend;
+    vecSend.push_back(make_pair(scriptPubKey, nValue));
+
+    CScript scriptWall = CScript() << OP_RETURN << vector<unsigned char>(msg.begin(), msg.end());
+    vecSend.push_back(make_pair(scriptWall, 0));
+
+
+    // -- CreateTransaction won't place change between value and narr output.
+    //    narration output will be for preceding output
+
+    int nChangePos;
+    std::string strFailReason;
+    bool rv = CreateTransaction(vecSend, wtxNew, reservekey, nFeeRet, nChangePos, strFailReason, coinControl);
+    if(!strFailReason.empty())
+    {
+        LogPrintf("CreateTransaction(): ERROR: %s\n", strFailReason);
+        return false;
+    }
+    // -- narration will be added to mapValue later in FindStealthTransactions From CommitTransaction
+    return rv;
+}
+
 bool CWallet::CreateTransaction(CScript scriptPubKey, int64_t nValue, std::string& sNarr, CWalletTx& wtxNew, CReserveKey& reservekey, int64_t& nFeeRet, const CCoinControl* coinControl)
 {
     vector< pair<CScript, int64_t> > vecSend;
