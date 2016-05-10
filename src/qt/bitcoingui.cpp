@@ -33,7 +33,7 @@
 #include "main.h"
 #include "init.h"
 #include "ui_interface.h"
-#include "masternodemanager.h"
+
 #include "messagemodel.h"
 #include "messagepage.h"
 #include "blockbrowser.h"
@@ -148,7 +148,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
 
     signVerifyMessageDialog = new SignVerifyMessageDialog(this);
 
-    masternodeManagerPage = new MasternodeManager(this);
+    
     messagePage = new MessagePage(this);
 
     centralStackedWidget = new QStackedWidget(this);
@@ -158,7 +158,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     centralStackedWidget->addWidget(addressBookPage);
     centralStackedWidget->addWidget(receiveCoinsPage);
     centralStackedWidget->addWidget(sendCoinsPage);
-    centralStackedWidget->addWidget(masternodeManagerPage);
+    
     centralStackedWidget->addWidget(messagePage);
     centralStackedWidget->addWidget(blockBrowser);
     centralStackedWidget->addWidget(tradingDialogPage);
@@ -309,10 +309,6 @@ void BitcoinGUI::createActions()
     addressBookAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
     tabGroup->addAction(addressBookAction);
 
-    masternodeManagerAction = new QAction(QIcon(":/icons/bitcoin"), tr("&Masternodes"), this);
-    masternodeManagerAction->setToolTip(tr("Show Master Nodes status and configure your nodes."));
-    masternodeManagerAction->setCheckable(true);
-    tabGroup->addAction(masternodeManagerAction);
 
     messageAction = new QAction(QIcon(":/icons/edit"), tr("&Messages"), this);
     messageAction->setToolTip(tr("View and Send Encrypted messages"));
@@ -352,8 +348,7 @@ void BitcoinGUI::createActions()
     connect(historyAction, SIGNAL(triggered()), this, SLOT(gotoHistoryPage()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
-    connect(masternodeManagerAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
-    connect(masternodeManagerAction, SIGNAL(triggered()), this, SLOT(gotoMasternodeManagerPage()));
+    
     connect(messageAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(messageAction, SIGNAL(triggered()), this, SLOT(gotoMessagePage()));
     connect(proofOfMemeAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
@@ -457,7 +452,7 @@ void BitcoinGUI::createToolBars()
     toolbar->setStyleSheet("QToolButton { color: #ffffff; font-weight:bold;} QToolButton:hover { background-color: #3CB0E8 } QToolButton:checked { background-color: #164356 } QToolButton:pressed { background-color: #164356 } #tabs { color: #ffffff; background-color: qradialgradient(cx: -0.8, cy: 0, fx: -0.8, fy: 0, radius: 0.6, stop: 0 #404040, stop: 1 #101010);  }");
 
     QLabel* header = new QLabel();
-    header->setMinimumSize(142, 142);
+    header->setMinimumSize(172, 172);
     header->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     header->setPixmap(QPixmap(":/images/header"));
     header->setMaximumSize(180,180);
@@ -471,7 +466,7 @@ void BitcoinGUI::createToolBars()
     toolbar->addAction(sendCoinsAction);
     toolbar->addAction(historyAction);
     toolbar->addAction(addressBookAction);
-    toolbar->addAction(masternodeManagerAction);
+    
 
     if (!fLiteMode){
         toolbar->addAction(messageAction);
@@ -491,7 +486,7 @@ void BitcoinGUI::createToolBars()
     addToolBar(Qt::LeftToolBarArea, toolbar);
 
     foreach(QAction *action, toolbar->actions()) {
-        toolbar->widgetForAction(action)->setFixedWidth(142);
+        toolbar->widgetForAction(action)->setFixedWidth(172);
     }
 }
 
@@ -937,14 +932,7 @@ void BitcoinGUI::clearWidgets()
     }
 }
 
-void BitcoinGUI::gotoMasternodeManagerPage()
-{
-    masternodeManagerAction->setChecked(true);
-    centralStackedWidget->setCurrentWidget(masternodeManagerPage);
 
-    exportAction->setEnabled(false);
-    disconnect(exportAction, SIGNAL(triggered()), 0, 0);
-}
 
 void BitcoinGUI::gotoBlockBrowser()
 {
