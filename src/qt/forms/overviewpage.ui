@@ -596,6 +596,13 @@
        <item>
         <widget class="QListWidget" name="listWidget"/>
        </item>
+       <item>
+        <widget class="QPushButton" name="refreshButton">
+         <property name="text">
+          <string>Refresh</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </item>
     </layout>

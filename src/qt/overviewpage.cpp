@@ -160,6 +160,7 @@ OverviewPage::OverviewPage(QWidget *parent) :
         ui->labelImmature->setStyleSheet(whiteLabelQSS);
         ui->labelTotal->setStyleSheet(whiteLabelQSS);
     }
+
 }
 
 void OverviewPage::handleTransactionClicked(const QModelIndex &index)
@@ -210,6 +211,7 @@ void OverviewPage::setBalance(const CAmount& balance, const CAmount& stake, cons
 
     
         ui->listTransactions->update();
+
     
 }
 
@@ -396,3 +398,47 @@ QMessageBox infobox;
      }
 }
 
+void OverviewPage::on_refreshButton_clicked()
+{
+    getMessages();
+}
+
+void OverviewPage::getMessages()
+{
+    LogPrintf("getMessages\n");
+    ui->listWidget->clear();
+    //get messages from last 120 blocks
+    int i = 1200;
+    CBlockIndex* pindex = pindexBest;
+    while(i > 0 && pindex != NULL)
+    {
+        LogPrintf("entered while loop\n");
+        CBlock block;
+        if(pindex != NULL && block.ReadFromDisk(pindex))
+        {
+            LogPrintf("Read block from disk\n");
+            BOOST_FOREACH(const CTransaction& tx, block.vtx)
+            {
+                LogPrintf("getMessages found tx\n");
+                BOOST_FOREACH(const CTxOut vout, tx.vout)
+                {
+                    LogPrintf("getMessages found txout\n");
+                    if(vout.scriptPubKey.size() > 0 && vout.scriptPubKey[0] == OP_RETURN)
+                    {
+                        LogPrintf("found op_return\n");
+                        std::vector<unsigned char> vch(vout.scriptPubKey.begin()+1,vout.scriptPubKey.end());
+                        LogPrintf("casting to astring\n");
+                        //std::string astring(reinterpret_cast<char*>(&vch[0]), vch.size());
+                        std::string astring(vch.begin(), vch.end());
+                        
+                        LogPrintf("Messagestring %s", astring);
+                        ui->listWidget->addItem(QString::fromStdString(astring));
+                    }
+                }
+            }
+        } 
+
+        pindex = pindex->pprev;
+        i = i - 1;
+    }
+}
