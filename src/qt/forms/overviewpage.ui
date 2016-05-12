@@ -550,7 +550,11 @@
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
-        <widget class="QLineEdit" name="lineEdit"/>
+        <widget class="QLineEdit" name="lineEdit">
+         <property name="maxLength">
+          <number>40</number>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QPushButton" name="pushButton">
