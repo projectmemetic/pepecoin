@@ -160,6 +160,93 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool fPri
     return result;
 }
 
+Value getmessage(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1)
+        throw runtime_error(
+            "getmessage <blocknumber>\n"
+            "Returns messages if any in block <blocknumber>.");
+
+    int nHeight = params[0].get_int();
+    if (nHeight < 0 || nHeight > nBestHeight)
+        throw runtime_error("Block number out of range.");
+
+    Array a;
+
+    CBlockIndex* pblockindex = FindBlockByHeight(nHeight);
+    CBlock block;
+    if(pblockindex != NULL && block.ReadFromDisk(pblockindex))
+    {
+        BOOST_FOREACH(const CTransaction& tx, block.vtx)
+        {
+            BOOST_FOREACH(const CTxOut vout, tx.vout)
+            {
+                if(vout.scriptPubKey.size() > 0 && vout.scriptPubKey[0] == OP_RETURN)
+                {
+                    std::vector<unsigned char> vch(vout.scriptPubKey.begin()+2,vout.scriptPubKey.end());
+                    std::string astring(vch.begin(), vch.end());
+                    a.push_back(DateTimeStrFormat(tx.nTime) + ": " + astring);
+                }
+            }
+        }
+    }
+
+    return a;
+}
+
+Value getmessages(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 2)
+        throw runtime_error(
+            "getmessages <startblockheight> <endblockheight>\n"
+            "Returns messages if any in blocks from <startblockheight> to <endblockheight>.");
+
+    int nStartHeight = params[0].get_int();
+    if (nStartHeight < 0 || nStartHeight > nBestHeight)
+        throw runtime_error("Start slock height out of range.");
+
+    int nEndHeight = params[1].get_int();
+    if (nEndHeight < 1 || nEndHeight > nBestHeight)
+        throw runtime_error("End block height out of range.");
+
+    Array a;
+
+    CBlockIndex* pblockindex = FindBlockByHeight(nStartHeight);
+    while(pblockindex && pblockindex->nHeight <= nEndHeight)
+    {
+        Object o;
+        o.push_back(Pair("height", pblockindex->nHeight));
+        Array b;
+        CBlock block;
+        bool hasMessages = false;
+        if(pblockindex != NULL && block.ReadFromDisk(pblockindex))
+        {
+            BOOST_FOREACH(const CTransaction& tx, block.vtx)
+            {
+                BOOST_FOREACH(const CTxOut vout, tx.vout)
+                {
+                    if(vout.scriptPubKey.size() > 0 && vout.scriptPubKey[0] == OP_RETURN)
+                    {
+                        hasMessages = true;
+                        std::vector<unsigned char> vch(vout.scriptPubKey.begin()+2,vout.scriptPubKey.end());
+                        std::string astring(vch.begin(), vch.end());
+                        b.push_back(DateTimeStrFormat(tx.nTime) + ": " + astring);
+                    }
+                }
+            }
+        }
+
+        if(hasMessages)
+        {
+            o.push_back(Pair("messages", b));
+            a.push_back(o);
+        }
+
+        pblockindex = pblockindex->pnext;
+    }
+    return a;
+}
+
 Value getbestblockhash(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)

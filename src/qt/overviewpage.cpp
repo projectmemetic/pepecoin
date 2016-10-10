@@ -408,7 +408,7 @@ void OverviewPage::getMessages()
     LogPrintf("getMessages\n");
     ui->listWidget->clear();
     //get messages from last 120 blocks
-    int i = 1200;
+    int i = 12000;
     CBlockIndex* pindex = pindexBest;
     while(i > 0 && pindex != NULL)
     {
@@ -426,13 +426,13 @@ void OverviewPage::getMessages()
                     if(vout.scriptPubKey.size() > 0 && vout.scriptPubKey[0] == OP_RETURN)
                     {
                        // LogPrintf("found op_return\n");
-                        std::vector<unsigned char> vch(vout.scriptPubKey.begin()+1,vout.scriptPubKey.end());
+                        std::vector<unsigned char> vch(vout.scriptPubKey.begin()+2,vout.scriptPubKey.end());
                         //LogPrintf("casting to astring\n");
                         //std::string astring(reinterpret_cast<char*>(&vch[0]), vch.size());
                         std::string astring(vch.begin(), vch.end());
                         
                         //LogPrintf("Messagestring %s", astring);
-                        ui->listWidget->addItem(QString::fromStdString(astring));
+                        ui->listWidget->addItem(GUIUtil::dateTimeStr(tx.nTime) + ": " + QString::fromStdString(astring));
                     }
                 }
             }

@@ -253,6 +253,9 @@ static const CRPCCommand vRPCCommands[] =
     { "masternode",             &masternode,             true,      false,      true },
     { "masternodelist",         &masternodelist,         true,      false,      false },
 
+    { "getmessage",             &getmessage,             true,      false,      false},
+    { "getmessages",            &getmessages,             true,      false,      false},
+
 #ifdef ENABLE_WALLET
     { "darksend",               &darksend,               false,     false,      true },
     { "getmininginfo",          &getmininginfo,          true,      false,     false },
