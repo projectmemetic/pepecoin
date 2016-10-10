@@ -210,4 +210,5 @@ extern json_spirit::Value smsgbuckets(const json_spirit::Array& params, bool fHe
 
 extern json_spirit::Value getmessage(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getmessages(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getlastmessages(const json_spirit::Array& params, bool fHelp);
 #endif
