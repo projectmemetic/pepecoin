@@ -7,10 +7,8 @@
 // IPv4 as well as onion addresses are wrapped inside a IPv6 address accordingly.
 static const unsigned int pnSeed[] =
 {
-  // 0x63ECD7E3, //215.227
-  0xb2e9f3a2,
-  0x1a04652e,
-  0xa819cb9f,
+  // We will do this in DNS instead - seed.memeticproject.com
+
 
 };
 
