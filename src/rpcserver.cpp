@@ -255,6 +255,7 @@ static const CRPCCommand vRPCCommands[] =
 
     { "getmessage",             &getmessage,             true,      false,      false},
     { "getmessages",            &getmessages,             true,      false,      false},
+    { "getlastmessages",        &getlastmessages,        true,      false,      false},
 
 #ifdef ENABLE_WALLET
     { "darksend",               &darksend,               false,     false,      true },

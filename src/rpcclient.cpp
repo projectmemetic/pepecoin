@@ -103,6 +103,7 @@ public:
 
 static const CRPCConvertParam vRPCConvertParams[] =
 {
+    { "getlastmessages", 0 },
     { "getmessage", 0 },
     { "getmessages", 0 },
     { "getmessages", 1 },

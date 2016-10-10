@@ -247,6 +247,57 @@ Value getmessages(const Array& params, bool fHelp)
     return a;
 }
 
+Value getlastmessages(const Array& params, bool fHelp)
+{
+    if (fHelp)
+        throw runtime_error(
+            "getlastmessages [numblocks=500]\n"
+            "Returns messages for the last [numblocks] blocks or 500 blocks if not specified.");
+
+    int nBlocks = 500;
+    if(params.size() >= 1)
+        nBlocks = params[0].get_int();
+
+    Array a;
+
+    int i = 0;
+    CBlockIndex* pblockindex = pindexBest;
+    while(pblockindex && i < nBlocks)
+    {
+        Object o;
+        o.push_back(Pair("height", pblockindex->nHeight));
+        Array b;
+        CBlock block;
+        bool hasMessages = false;
+        if(pblockindex != NULL && block.ReadFromDisk(pblockindex))
+        {
+            BOOST_FOREACH(const CTransaction& tx, block.vtx)
+            {
+                BOOST_FOREACH(const CTxOut vout, tx.vout)
+                {
+                    if(vout.scriptPubKey.size() > 0 && vout.scriptPubKey[0] == OP_RETURN)
+                    {
+                        hasMessages = true;
+                        std::vector<unsigned char> vch(vout.scriptPubKey.begin()+2,vout.scriptPubKey.end());
+                        std::string astring(vch.begin(), vch.end());
+                        b.push_back(DateTimeStrFormat(tx.nTime) + ": " + astring);
+                    }
+                }
+            }
+        }
+
+        if(hasMessages)
+        {
+            o.push_back(Pair("messages", b));
+            a.push_back(o);
+        }
+
+        i++;
+        pblockindex = pblockindex->pprev;
+    }
+    return a;
+}
+
 Value getbestblockhash(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
