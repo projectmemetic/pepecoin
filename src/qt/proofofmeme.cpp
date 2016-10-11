@@ -19,6 +19,8 @@
 #include <QFileDialog>
 #include <QDesktopServices>
 
+#include <fstream>
+
 ProofOfMeme::ProofOfMeme(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ProofOfMeme)
@@ -46,12 +48,13 @@ void ProofOfMeme::on_createPushButton_clicked()
 {
     if(fileName == "")
     {
-  noMemeSelected();		
+  noMemeSelected();   
   return;
     }
 
     //read whole file
-    std::ifstream memeFile(fileName.toStdString(), std::ios::binary);
+    std::ifstream memeFile;
+    memeFile.open(fileName.toStdString().c_str(), std::ios::binary);
 std::vector<char> memeContents((std::istreambuf_iterator<char>(memeFile)),
                                std::istreambuf_iterator<char>());
 
@@ -101,12 +104,13 @@ void ProofOfMeme::on_checkButton_clicked()
 {
     if(fileName == "")
     {
-  noMemeSelected();		
+  noMemeSelected();   
   return;
     }
 
 //read whole file
-    std::ifstream memeFile(fileName.toStdString(), std::ios::binary);
+    std::ifstream memeFile;
+    memeFile.open(fileName.toStdString().c_str(), std::ios::binary);
 std::vector<char> memeContents((std::istreambuf_iterator<char>(memeFile)),
                                std::istreambuf_iterator<char>());
 
