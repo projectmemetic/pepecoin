@@ -2651,7 +2651,7 @@ bool CTransaction::GetCoinAge(CTxDB& txdb, const CBlockIndex* pindexPrev, uint64
     nCoinAge = 0;
     nCoinValue = 0;
     int nStakeMinConfirmations = 360;
-    if(pindexBest->nHeight > PEPE_STAKE_HALLOWEEN_SWITCH_HEIGHT)
+    if((pindexPrev->nHeight+1) > PEPE_STAKE_HALLOWEEN_SWITCH_HEIGHT)
         nStakeMinConfirmations = 60;
 
     if (IsCoinBase())
