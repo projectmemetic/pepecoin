@@ -1,14 +1,14 @@
-Memetic (MEME)
-===============
+Memetic (MEME) | (PEPE) PepeCoin
+==============================
 -------------------------------------------
 A Hybrid Proof of Work / Proof of Stake / Memetic Stake Rate Cryptocurrency
 
-http://memeticproject.com
+http://memeticproject.com (under construction)
 
  - Default port 29377 and RPC port 29376
 
- - 60 seconds block time POW
- - ~3 Months Proof of Work mining distribution ~14.5m MEME
+ - 60 seconds block time POW (over July 2016)
+ - ~3 Months Proof of Work mining distribution ended with 12m MEME
  - X11 mining algorithm
  - Memetic Stake Rate PSR / POS enable at block 9000
  - POW End at block 70,000
@@ -25,9 +25,6 @@ http://memeticproject.com
   - Additional security improvements
   - Staking rewards are variable depending on the number of MEME held (below)
 
-10% of stake, Masternodes Payouts begin 04 14 2016 0600
-
-MEME Masternodes can stake coins that are held in MN.
 
 -------------------------------------------
 
