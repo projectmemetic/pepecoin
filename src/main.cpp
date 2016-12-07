@@ -1531,6 +1531,11 @@ int64_t nSubsidy = 20 * COIN;
   {
     nSubsidy = 20 * COIN;
   }
+  else if(nHeight > RESTART_POW_BLOCK)
+  {
+    nSubsidy = 10 * COIN;
+    nSubsidy >>= (nHeight / 525600); // block reward halves roughly once a year (every 365 days at 1440 blocks per day)
+  }
   	return nSubsidy + nFees;
 
 }
@@ -2857,7 +2862,7 @@ bool CBlock::AcceptBlock()
     CBlockIndex* pindexPrev = (*mi).second;
     int nHeight = pindexPrev->nHeight+1;
 
-    if (IsProofOfWork() && nHeight > STOP_POW_BLOCK )
+    if (IsProofOfWork() && nHeight > STOP_POW_BLOCK && nHeight < RESTART_POW_BLOCK )
         return DoS(100, error("AcceptBlock() : reject proof-of-work at height %d", nHeight));
 
     if (IsProofOfStake() && nHeight < Params().POSStartBlock() )

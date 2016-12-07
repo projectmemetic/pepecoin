@@ -39,6 +39,7 @@ static const int64_t TARGET_SPACING = 60;
 
 static const int STOP_POW_BLOCK = 71489;  //change from 70000 to 71489 and increase protocol version to resolve the fork issue;
 static const int START_POS_BLOCK = 9000;
+static const int RESTART_POW_BLOCK = 300000; // When POW restarts
 
 
 #define INSTANTX_SIGNATURES_REQUIRED           10
