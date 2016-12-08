@@ -370,7 +370,7 @@ bool CheckKernel(CBlockIndex* pindexPrev, unsigned int nBits, int64_t nTime, con
         int nDepth;
 
         int nStakeMinConfirmations = 360; // 6 hours
-        if(block->nHeight >= PEPE_STAKE_HALLOWEEN_SWITCH_HEIGHT)
+        if(block.nHeight >= PEPE_STAKE_HALLOWEEN_SWITCH_HEIGHT)
             nStakeMinConfirmations = 60;
 
         if (IsConfirmedInNPrevBlocks(txindex, pindexPrev, nStakeMinConfirmations - 1, nDepth))
