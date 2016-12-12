@@ -407,8 +407,8 @@ void OverviewPage::getMessages()
 {
     LogPrintf("getMessages\n");
     ui->listWidget->clear();
-    //get messages from last 120 blocks
-    int i = 12000;
+    //get messages from last 200 blocks, cache this to disk in future because going back too far causes slowdowns
+    int i = 20000;
     CBlockIndex* pindex = pindexBest;
     while(i > 0 && pindex != NULL)
     {
