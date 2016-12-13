@@ -39,7 +39,7 @@ static const int64_t TARGET_SPACING = 60;
 
 static const int STOP_POW_BLOCK = 71489;  // change from 70000 to 71489 and increase protocol version to resolve the fork issue;
 static const int START_POS_BLOCK = 9000;
-static const int RESTART_POW_BLOCK = 310000;  // POW restarts at this block
+static const int RESTART_POW_BLOCK = 312000;  // POW restarts at this block
 
 
 #define INSTANTX_SIGNATURES_REQUIRED           10
@@ -54,7 +54,7 @@ class CNode;
 class CReserveKey;
 class CWallet;
 
-static const int64_t PEPE_STAKE_WINTER_SWITCH_HEIGHT = 305000;
+static const int64_t PEPE_STAKE_WINTER_SWITCH_HEIGHT = 314000;
 static const int64_t PEPE_STAKE_V2_SWITCH_HEIGHT = 32000;
 static const int64_t PEPE_STAKE_V2_SWITCH_HEIGHT_TESTNET = 10;
 
