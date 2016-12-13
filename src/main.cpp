@@ -1534,7 +1534,7 @@ int64_t nSubsidy = 20 * COIN;
   else if(nHeight > RESTART_POW_BLOCK)
   {
     nSubsidy = 10 * COIN;
-    nSubsidy >>= (nHeight / 131400); // block reward halves roughly once a year (every 365 days at 1440 blocks per day)
+    nSubsidy >>= (nHeight / 131400); // block reward halves roughly four times a year a year (every 365/4 days at 1440 blocks per day)
   }
   	return nSubsidy + nFees;
 
