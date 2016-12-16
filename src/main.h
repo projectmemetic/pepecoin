@@ -54,7 +54,7 @@ class CNode;
 class CReserveKey;
 class CWallet;
 
-static const int64_t PEPE_STAKE_WINTER_SWITCH_HEIGHT = 314000;
+static const int64_t PEPE_STAKE_WINTER_SWITCH_HEIGHT = 312000;
 static const int64_t PEPE_STAKE_V2_SWITCH_HEIGHT = 32000;
 static const int64_t PEPE_STAKE_V2_SWITCH_HEIGHT_TESTNET = 10;
 
