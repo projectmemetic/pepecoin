@@ -11,7 +11,7 @@
 const std::string CLIENT_NAME("Memetic-Core-1.8-61406");
 
 // Client version number
-#define CLIENT_VERSION_SUFFIX   "-SteakSauce"
+#define CLIENT_VERSION_SUFFIX   "-Shadilay"
 
 
 // The following part of the code determines the CLIENT_BUILD variable.
