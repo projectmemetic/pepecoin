@@ -800,10 +800,10 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CTransaction &tx, bool fLimitFree,
             }
         }
 
-        if (fRejectInsaneFee && nFees > MIN_RELAY_TX_FEE * 10000)
+        if (fRejectInsaneFee && nFees > MIN_RELAY_TX_FEE * 100000)          //increase min tx size for POS wallets with many small inputs
             return error("AcceptableInputs: : insane fees %s, %d > %d",
                          hash.ToString(),
-                         nFees, MIN_RELAY_TX_FEE * 10000);
+                         nFees, MIN_RELAY_TX_FEE * 100000);
 
         // Check against previous transactions
         // This is done last to help prevent CPU exhaustion denial-of-service attacks.
