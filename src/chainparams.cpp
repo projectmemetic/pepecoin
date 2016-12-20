@@ -128,7 +128,7 @@ public:
         strDarksendPoolDummyAddress = "0xPJJBpDg5LKJhAkqGDhG4Wuo9AUXBkz4SWY";
         nLastPOWBlock = 71489;  //change from 70000 to 71489 and increase protocol version to resolve the fork issue
         nPOSStartBlock = 9000;
-        nRestartPOWBlock = 312000; // when POW restarts
+        nRestartPOWBlock = 320000; // when POW restarts
     }
 
     virtual const CBlock& GenesisBlock() const { return genesis; }
@@ -184,7 +184,7 @@ public:
 
         nLastPOWBlock = 2000;
         nPOSStartBlock = 20;
-        nRestartPOWBlock = 312000; // when POW restarts
+        nRestartPOWBlock = 320000; // when POW restarts
     }
     virtual Network NetworkID() const { return CChainParams::TESTNET; }
 };
