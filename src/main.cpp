@@ -1674,7 +1674,17 @@ int64_t nSubsidy = 20 * COIN;
         // Now calculate the reward
         int64_t nSubsidy = nCoinAge * nRewardCoinYear * 33 / (365 * 33 + 8); //integer equivalent of nCoinAge * nRewardCoinYear / 365.2424242..
 
-        return nSubsidy + nFees;
+        if(nHeight > RESTART_POW_BLOCK)
+        {
+
+              if (nSubsidy > 10)
+                  nSubsidy = 10;
+
+              if (nSubsidy < 0.5)
+                  nSubsidy = 0.5;
+        }
+
+      return nSubsidy + nFees;
   }
 
   int64_t GetProofOfStakeRewardV1(const CBlockIndex* pindexPrev, int64_t nCoinAge, int64_t nFees, int64_t nCoinValue)
