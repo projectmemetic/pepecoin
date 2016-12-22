@@ -263,7 +263,7 @@ Value getworkex(const Array& params, bool fHelp)
     if (IsInitialBlockDownload())
         throw JSONRPCError(-10, "Memetic is downloading blocks...");
 
-    if (pindexBest->nHeight >= Params().LastPOWBlock() || pindexBest->nHeight < Params().RestartPOWBlock())
+    if (pindexBest->nHeight >= Params().LastPOWBlock() && pindexBest->nHeight < Params().RestartPOWBlock())
         throw JSONRPCError(RPC_MISC_ERROR, "No more PoW blocks");
 
     typedef map<uint256, pair<CBlock*, CScript> > mapNewBlock_t;
@@ -397,7 +397,7 @@ Value getwork(const Array& params, bool fHelp)
     if (IsInitialBlockDownload())
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Memetic is downloading blocks...");
 
-    if (pindexBest->nHeight >= Params().LastPOWBlock() || pindexBest->nHeight < Params().RestartPOWBlock())
+    if (pindexBest->nHeight >= Params().LastPOWBlock() && pindexBest->nHeight < Params().RestartPOWBlock())
         throw JSONRPCError(RPC_MISC_ERROR, "No more PoW blocks");
 
     typedef map<uint256, pair<CBlock*, CScript> > mapNewBlock_t;
@@ -549,7 +549,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
     //if (IsInitialBlockDownload())
     //    throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Memetic is downloading blocks...");
 
-    if (pindexBest->nHeight >= Params().LastPOWBlock() || pindexBest->nHeight < Params().RestartPOWBlock())
+    if (pindexBest->nHeight >= Params().LastPOWBlock() && pindexBest->nHeight < Params().RestartPOWBlock())
         throw JSONRPCError(RPC_MISC_ERROR, "No more PoW blocks");
 
     // Update block

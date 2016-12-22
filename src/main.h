@@ -37,9 +37,9 @@ static const int64_t DARKSEND_POOL_MAX = (9999.99*COIN);
 
 static const int64_t TARGET_SPACING = 60;
 
-static const int STOP_POW_BLOCK = 71489;  //change from 70000 to 71489 and increase protocol version to resolve the fork issue;
+static const int STOP_POW_BLOCK = 71489;  // change from 70000 to 71489 and increase protocol version to resolve the fork issue;
 static const int START_POS_BLOCK = 9000;
-static const int RESTART_POW_BLOCK = 300000; // When POW restarts
+static const int RESTART_POW_BLOCK = 320000;  // POW restarts at this block
 
 
 #define INSTANTX_SIGNATURES_REQUIRED           10
@@ -54,7 +54,7 @@ class CNode;
 class CReserveKey;
 class CWallet;
 
-static const int64_t PEPE_STAKE_HALLOWEEN_SWITCH_HEIGHT = 256000;
+static const int64_t PEPE_STAKE_WINTER_SWITCH_HEIGHT = 312000;
 static const int64_t PEPE_STAKE_V2_SWITCH_HEIGHT = 32000;
 static const int64_t PEPE_STAKE_V2_SWITCH_HEIGHT_TESTNET = 10;
 

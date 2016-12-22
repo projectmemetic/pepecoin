@@ -800,10 +800,10 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CTransaction &tx, bool fLimitFree,
             }
         }
 
-        if (fRejectInsaneFee && nFees > MIN_RELAY_TX_FEE * 10000)
+        if (fRejectInsaneFee && nFees > MIN_RELAY_TX_FEE * 100000)          //increase min tx size for POS wallets with many small inputs
             return error("AcceptableInputs: : insane fees %s, %d > %d",
                          hash.ToString(),
-                         nFees, MIN_RELAY_TX_FEE * 10000);
+                         nFees, MIN_RELAY_TX_FEE * 100000);
 
         // Check against previous transactions
         // This is done last to help prevent CPU exhaustion denial-of-service attacks.
@@ -1534,7 +1534,7 @@ int64_t nSubsidy = 20 * COIN;
   else if(nHeight > RESTART_POW_BLOCK)
   {
     nSubsidy = 10 * COIN;
-    nSubsidy >>= (nHeight / 525600); // block reward halves roughly once a year (every 365 days at 1440 blocks per day)
+    nSubsidy >>= (nHeight / 131400); // block reward halves roughly four times a year a year (every 365/4 days at 1440 blocks per day)
   }
   	return nSubsidy + nFees;
 
@@ -1674,7 +1674,17 @@ int64_t nSubsidy = 20 * COIN;
         // Now calculate the reward
         int64_t nSubsidy = nCoinAge * nRewardCoinYear * 33 / (365 * 33 + 8); //integer equivalent of nCoinAge * nRewardCoinYear / 365.2424242..
 
-        return nSubsidy + nFees;
+        if(nHeight > RESTART_POW_BLOCK)
+        {
+
+              if (nSubsidy > 10)
+                  nSubsidy = 10;
+
+              if (nSubsidy < 0.5)
+                  nSubsidy = 0.5;
+        }
+
+      return nSubsidy + nFees;
   }
 
   int64_t GetProofOfStakeRewardV1(const CBlockIndex* pindexPrev, int64_t nCoinAge, int64_t nFees, int64_t nCoinValue)
@@ -2656,7 +2666,7 @@ bool CTransaction::GetCoinAge(CTxDB& txdb, const CBlockIndex* pindexPrev, uint64
     nCoinAge = 0;
     nCoinValue = 0;
     int nStakeMinConfirmations = 360;
-    if((pindexPrev->nHeight+1) > PEPE_STAKE_HALLOWEEN_SWITCH_HEIGHT)
+    if((pindexPrev->nHeight+1) > PEPE_STAKE_WINTER_SWITCH_HEIGHT)
         nStakeMinConfirmations = 60;
 
     if (IsCoinBase())

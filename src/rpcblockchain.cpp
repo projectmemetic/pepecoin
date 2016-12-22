@@ -46,7 +46,7 @@ double GetDifficulty(const CBlockIndex* blockindex)
 
 double GetPoWMHashPS()
 {
-    if (pindexBest->nHeight >= Params().LastPOWBlock() || pindexBest->nHeight < Params().RestartPOWBlock())
+    if (pindexBest->nHeight >= Params().LastPOWBlock() && pindexBest->nHeight < Params().RestartPOWBlock())
         return 0;
 
     int nPoWInterval = 72;
@@ -251,10 +251,10 @@ Value getlastmessages(const Array& params, bool fHelp)
 {
     if (fHelp)
         throw runtime_error(
-            "getlastmessages [numblocks=500]\n"
-            "Returns messages for the last [numblocks] blocks or 500 blocks if not specified.");
+            "getlastmessages [numblocks=777]\n"
+            "Returns messages for the last [numblocks] blocks or 777 blocks if not specified.");
 
-    int nBlocks = 500;
+    int nBlocks = 777;
     if(params.size() >= 1)
         nBlocks = params[0].get_int();
 
