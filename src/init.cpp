@@ -834,7 +834,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     if(!LoadPepeMessages())
         return InitError(_("Error loading pepe messages"));
 
-    if(mapPepeMessages.count() == 0 && mapBlockIndex.count() > 0)
+    if(mapPepeMessages.size() == 0 && mapBlockIndex.size() > 0)
         RescanPepeMessages();
 
     // ********************************************************* Step 8: load wallet

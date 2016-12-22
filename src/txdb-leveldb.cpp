@@ -337,6 +337,7 @@ static CBlockIndex *InsertBlockIndex(uint256 hash)
 
 bool CTxDB::LoadPepeMessages()
 {
+    LogPrintf("Txdb LoadPepeMessages\n");
     if(mapPepeMessages.size() > 0) {
         // Already loaded once in this session.
         return true;
@@ -345,25 +346,35 @@ bool CTxDB::LoadPepeMessages()
     leveldb::Iterator *iterator = pdb->NewIterator(leveldb::ReadOptions());
     CDataStream ssStartKey(SER_DISK, CLIENT_VERSION);
     ssStartKey << make_pair(string("pepe"), uint256(0));
+    LogPrintf("CTxDB::LoadPepeMessages created iterator and ssStartKey\n");
     iterator->Seek(ssStartKey.str());
+    LogPrintf("CTxDB::LoadPepeMessages iterator->Seek\n");
     while(iterator->Valid())
     {
         boost::this_thread::interruption_point();
         // Unpack keys and values.
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+        LogPrintf("CTxDB::LoadPepeMessages: ssKey.write\n");
         ssKey.write(iterator->key().data(), iterator->key().size());
         CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+        LogPrintf("CTxDB::LoadPepeMessages: ssValue.write\n");
         ssValue.write(iterator->value().data(), iterator->value().size());
         string strType;
+        LogPrintf("CTxDB::LoadPepeMessages: strType\n");
         ssKey >> strType;
         // Did we reach the end of the data to read?
         if (strType != "pepe")
             break;
         CPepeMessage pepemessage;
+        LogPrintf("CTxDB::LoadPepeMessages: ssValue to pepemessage\n");
         ssValue >> pepemessage;
 
         uint256 pepeHash = pepemessage.GetHash();
-        mapPepeMessages.insert(make_pair(pepeHash, pepemessage));
+        LogPrintf("CTxDB::LoadPepeMessages: mapPepeMessages insert %s\n", pepeHash.ToString());
+        if(mapPepeMessages.count(pepeHash) == 0)
+            mapPepeMessages.insert(make_pair(pepeHash, pepemessage));
+
+        LogPrintf("CTxDB::LoadPepeMessages: Iterator next\n");
 
         iterator->Next();
     }

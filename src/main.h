@@ -124,7 +124,7 @@ extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
 extern CTxMemPool mempool;
 extern std::map<uint256, CBlockIndex*> mapBlockIndex;
-extern std::map<uint256, CPepeMessage*> mapPepeMessages;
+extern std::map<uint256, CPepeMessage> mapPepeMessages;
 extern std::set<std::pair<COutPoint, unsigned int> > setStakeSeen;
 extern CBlockIndex* pindexGenesisBlock;
 extern int nStakeMinConfirmations;
@@ -189,6 +189,7 @@ bool CheckDiskSpace(uint64_t nAdditionalBytes=0);
 FILE* OpenBlockFile(unsigned int nFile, unsigned int nBlockPos, const char* pszMode="rb");
 FILE* AppendBlockFile(unsigned int& nFileRet);
 bool LoadBlockIndex(bool fAllowNew=true);
+bool LoadPepeMessages();
 void PrintBlockTree();
 CBlockIndex* FindBlockByHeight(int nHeight);
 bool ProcessMessages(CNode* pfrom);
@@ -239,18 +240,11 @@ public:
     int64_t nTime;
     std::string msg;
 
-    CPepeMessage()
-    {
-
-    }
-
-    CPepeMesage(int64_t nTimeIn, std::string msgIn)
-    {
-        nTime = nTimeIn;
-        msg = msgIn;
-    }
-
-    IMPLEMENT_SERIALIZE( READWRITE(FLATDATA(*this)); )
+    IMPLEMENT_SERIALIZE
+    (
+        READWRITE(nTime);
+        READWRITE(msg);
+    )
 
     uint256 GetHash() const
     {
@@ -261,6 +255,7 @@ public:
     {
         return DateTimeStrFormat(nTime) + ": " + msg;
     }
+
 };
 
 /** Position on disk for a particular transaction. */
@@ -284,6 +279,7 @@ public:
     }
 
     IMPLEMENT_SERIALIZE( READWRITE(FLATDATA(*this)); )
+
     void SetNull() { nFile = (unsigned int) -1; nBlockPos = 0; nTxPos = 0; }
     bool IsNull() const { return (nFile == (unsigned int) -1); }
 

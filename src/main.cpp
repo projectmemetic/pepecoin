@@ -49,7 +49,7 @@ CCriticalSection cs_main;
 CTxMemPool mempool;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
-map<uint256, CPepeMessage*> mapPepeMessages;
+map<uint256, CPepeMessage> mapPepeMessages;
 set<pair<COutPoint, unsigned int> > setStakeSeen;
 
 CBigNum bnProofOfStakeLimit(~uint256(0) >> 20);
@@ -3133,7 +3133,8 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     }
 
     // Cache any found pepe messages
-    BOOST_FOREACH(const CTransaction& tx, block.vtx)
+    CTxDB txdb("rw");
+    BOOST_FOREACH(const CTransaction& tx, pblock->vtx)
     {
         BOOST_FOREACH(const CTxOut vout, tx.vout)
         {
@@ -3141,8 +3142,10 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             {
                 std::vector<unsigned char> vch(vout.scriptPubKey.begin()+2,vout.scriptPubKey.end());                
                 std::string astring(vch.begin(), vch.end());
-                CPepeMessage pmsg(tx.nTime, astring);
-                txdb->WritePepeMessage(pmsg.GetHash(), pmsg);
+                CPepeMessage pmsg;
+                pmsg.nTime = tx.nTime;
+                pmsg.msg = astring;
+                txdb.WritePepeMessage(pmsg.GetHash(), pmsg);
                 if(mapPepeMessages.count(pmsg.GetHash()) == 0)
                     mapPepeMessages.insert(make_pair(pmsg.GetHash(), pmsg));
             }
@@ -3334,7 +3337,16 @@ bool LoadBlockIndex(bool fAllowNew)
     return true;
 }
 
+bool LoadPepeMessages()
+{
+    LOCK(cs_main);
+    CTxDB txdb("cr+");
+    LogPrintf("main LoadPepeMessages\n");
+    if(!txdb.LoadPepeMessages())
+        return false;
 
+    return true;
+}
 
 void PrintBlockTree()
 {
@@ -4750,9 +4762,11 @@ void RescanPepeMessages()
                         //LogPrintf("casting to astring\n");
                         //std::string astring(reinterpret_cast<char*>(&vch[0]), vch.size());
                         std::string astring(vch.begin(), vch.end());
-                        CPepeMessage pmsg(tx.nTime, astring);
-                        txdb->WritePepeMessage(pmsg.GetHash(), pmsg);
-                        if(mapPepeMesages.count(pmsg.GetHash) == 0)
+                        CPepeMessage pmsg;
+                        pmsg.nTime = tx.nTime;
+                        pmsg.msg = astring;
+                        txdb.WritePepeMessage(pmsg.GetHash(), pmsg);
+                        if(mapPepeMessages.count(pmsg.GetHash()) == 0)
                             mapPepeMessages.insert(make_pair(pmsg.GetHash(), pmsg));
                     }
                 }

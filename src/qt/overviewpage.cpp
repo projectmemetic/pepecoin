@@ -408,9 +408,10 @@ void OverviewPage::getMessages()
     LogPrintf("getMessages\n");
     ui->listWidget->clear();
     //get messages from last 777 blocks, cache this to disk in future because going back too far causes slowdowns
-    BOOST_FOREACH(const PAIRTYPE(uint256, CPepeMessage*)& item, mapPepeMessages)
+    
+    BOOST_FOREACH(const PAIRTYPE(uint256, CPepeMessage)& item, mapPepeMessages)
     {
-        CPepeMessage* pmsg = item.second;
-        ui->listWidget->addItem(QString::fromStdString(pmsg.ToString());
+        CPepeMessage pmsg = item.second;
+        ui->listWidget->addItem(QString::fromStdString(pmsg.ToString()));
     }
 }
