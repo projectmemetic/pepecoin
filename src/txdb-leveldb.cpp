@@ -224,6 +224,16 @@ bool CTxDB::ReadAddrIndex(uint160 addrHash, std::vector<uint256>& txHashes)
     return Read(make_pair(string("adr"), addrHash), txHashes);
 }
 
+bool CTxDB::WritePepeMessage(uint256 hash, const CPepeMessage& pmsg)
+{
+    return Write(make_pair(string("pepe"), hash), pmsg);
+}
+
+bool CTxDB::ReadPepeMessage(uint256 hash, CPepeMessage& pmsg)
+{
+    return Read(make_pair(string("pepe"), hash), pmsg);
+}
+
 bool CTxDB::ReadTxIndex(uint256 hash, CTxIndex& txindex)
 {
     txindex.SetNull();
@@ -323,6 +333,46 @@ static CBlockIndex *InsertBlockIndex(uint256 hash)
     pindexNew->phashBlock = &((*mi).first);
 
     return pindexNew;
+}
+
+bool CTxDB::LoadPepeMessages()
+{
+    if(mapPepeMessages.size() > 0) {
+        // Already loaded once in this session.
+        return true;
+    }
+
+    leveldb::Iterator *iterator = pdb->NewIterator(leveldb::ReadOptions());
+    CDataStream ssStartKey(SER_DISK, CLIENT_VERSION);
+    ssStartKey << make_pair(string("pepe"), uint256(0));
+    iterator->Seek(ssStartKey.str());
+    while(iterator->Valid())
+    {
+        boost::this_thread::interruption_point();
+        // Unpack keys and values.
+        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+        ssKey.write(iterator->key().data(), iterator->key().size());
+        CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+        ssValue.write(iterator->value().data(), iterator->value().size());
+        string strType;
+        ssKey >> strType;
+        // Did we reach the end of the data to read?
+        if (strType != "pepe")
+            break;
+        CPepeMessage pepemessage;
+        ssValue >> pepemessage;
+
+        uint256 pepeHash = pepemessage.GetHash();
+        mapPepeMessages.insert(make_pair(pepeHash, pepemessage));
+
+        iterator->Next();
+    }
+
+    delete iterator;
+
+    boost::this_thread::interruption_point();
+
+    return true;
 }
 
 bool CTxDB::LoadBlockIndex()

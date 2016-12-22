@@ -200,6 +200,9 @@ public:
     bool ReadBestInvalidTrust(CBigNum& bnBestInvalidTrust);
     bool WriteBestInvalidTrust(CBigNum bnBestInvalidTrust);
     bool LoadBlockIndex();
+    bool ReadPepeMessage(uint256 hash, CPepeMessage& pmsg);
+    bool WritePepeMessage(uint256 hash, const CPepeMessage& pmsg);
+    bool LoadPepeMessages();
 private:
     bool LoadBlockIndexGuts();
 };

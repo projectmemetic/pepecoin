@@ -123,6 +123,7 @@ extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
 extern CTxMemPool mempool;
 extern std::map<uint256, CBlockIndex*> mapBlockIndex;
+extern std::map<uint256, CPepeMessage*> mapPepeMessages;
 extern std::set<std::pair<COutPoint, unsigned int> > setStakeSeen;
 extern CBlockIndex* pindexGenesisBlock;
 extern int nStakeMinConfirmations;
@@ -161,6 +162,8 @@ class CReserveKey;
 class CTxDB;
 class CTxIndex;
 class CWalletInterface;
+
+void RescanPepeMessages();
 
 /** Register a wallet to receive updates from core */
 void RegisterWallet(CWalletInterface* pwalletIn);
@@ -227,6 +230,37 @@ void Misbehaving(NodeId nodeid, int howmuch);
 
 int64_t GetMasternodePayment(int nHeight, int64_t blockValue);
 
+/** Message cached from op_return **/
+class CPepeMessage
+{
+
+public:
+    int64_t nTime;
+    std::string msg;
+
+    CPepeMessage()
+    {
+
+    }
+
+    CPepeMesage(int64_t nTimeIn, msgIn)
+    {
+        nTime = nTimeIn;
+        msg = msgIn;
+    }
+
+    IMPLEMENT_SERIALIZE( READWRITE(FLATDATA(*this)); )
+
+    uint256 GetHash() const
+    {
+        return SerializeHash(*this);
+    }
+
+    std::string ToString() const
+    {
+        return DateTimeStrFormat(tx.nTime) + ": " + msg;
+    }
+}
 
 /** Position on disk for a particular transaction. */
 class CDiskTxPos
