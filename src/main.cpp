@@ -49,6 +49,7 @@ CCriticalSection cs_main;
 CTxMemPool mempool;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
+map<uint256, CPepeMessage> mapPepeMessages;
 set<pair<COutPoint, unsigned int> > setStakeSeen;
 
 CBigNum bnProofOfStakeLimit(~uint256(0) >> 20);
@@ -3131,6 +3132,27 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
 
     }
 
+    // Cache any found pepe messages
+    CTxDB txdb("rw");
+    BOOST_FOREACH(const CTransaction& tx, pblock->vtx)
+    {
+        BOOST_FOREACH(const CTxOut vout, tx.vout)
+        {
+            if(vout.scriptPubKey.size() > 0 && vout.scriptPubKey[0] == OP_RETURN)
+            {
+                std::vector<unsigned char> vch(vout.scriptPubKey.begin()+2,vout.scriptPubKey.end());                
+                std::string astring(vch.begin(), vch.end());
+                CPepeMessage pmsg;
+                pmsg.nTime = tx.nTime;
+                pmsg.msg = astring;
+                txdb.WritePepeMessage(pmsg.GetHash(), pmsg);
+                if(mapPepeMessages.count(pmsg.GetHash()) == 0)
+                    mapPepeMessages.insert(make_pair(pmsg.GetHash(), pmsg));
+            }
+        }
+    }
+        
+
     LogPrintf("ProcessBlock: ACCEPTED\n");
 
     return true;
@@ -3315,7 +3337,16 @@ bool LoadBlockIndex(bool fAllowNew)
     return true;
 }
 
+bool LoadPepeMessages()
+{
+    LOCK(cs_main);
+    CTxDB txdb("cr+");
+    LogPrintf("main LoadPepeMessages\n");
+    if(!txdb.LoadPepeMessages())
+        return false;
 
+    return true;
+}
 
 void PrintBlockTree()
 {
@@ -4703,4 +4734,45 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
     int64_t ret = blockValue * 0.1; // 10% Masternodes pay + staking
 
     return ret;
+}
+
+void RescanPepeMessages()
+{
+    // scan the entire block index looking for messages
+    CBlockIndex* pindex = pindexBest;
+    CTxDB txdb("rw");
+    mapPepeMessages.clear();
+    while(pindex != NULL)
+    {
+        //LogPrintf("entered while loop\n");
+        CBlock block;
+        if(pindex != NULL && block.ReadFromDisk(pindex))
+        {
+           // LogPrintf("Read block from disk\n");
+            BOOST_FOREACH(const CTransaction& tx, block.vtx)
+            {
+                //LogPrintf("getMessages found tx\n");
+                BOOST_FOREACH(const CTxOut vout, tx.vout)
+                {
+                   // LogPrintf("getMessages found txout\n");
+                    if(vout.scriptPubKey.size() > 0 && vout.scriptPubKey[0] == OP_RETURN)
+                    {
+                       // LogPrintf("found op_return\n");
+                        std::vector<unsigned char> vch(vout.scriptPubKey.begin()+2,vout.scriptPubKey.end());
+                        //LogPrintf("casting to astring\n");
+                        //std::string astring(reinterpret_cast<char*>(&vch[0]), vch.size());
+                        std::string astring(vch.begin(), vch.end());
+                        CPepeMessage pmsg;
+                        pmsg.nTime = tx.nTime;
+                        pmsg.msg = astring;
+                        txdb.WritePepeMessage(pmsg.GetHash(), pmsg);
+                        if(mapPepeMessages.count(pmsg.GetHash()) == 0)
+                            mapPepeMessages.insert(make_pair(pmsg.GetHash(), pmsg));
+                    }
+                }
+            }
+        } 
+
+        pindex = pindex->pprev;
+    }
 }

@@ -829,6 +829,14 @@ bool AppInit2(boost::thread_group& threadGroup)
         return false;
     }
 
+    // ***** Step 7.1: Load message cache
+    uiInterface.InitMessage(_("Loading message cache..."));
+    if(!LoadPepeMessages())
+        return InitError(_("Error loading pepe messages"));
+
+    if(mapPepeMessages.size() == 0 && mapBlockIndex.size() > 0)
+        RescanPepeMessages();
+
     // ********************************************************* Step 8: load wallet
 #ifdef ENABLE_WALLET
     if (fDisableWallet) {

@@ -408,37 +408,10 @@ void OverviewPage::getMessages()
     LogPrintf("getMessages\n");
     ui->listWidget->clear();
     //get messages from last 777 blocks, cache this to disk in future because going back too far causes slowdowns
-    int i = 77700;
-    CBlockIndex* pindex = pindexBest;
-    while(i > 0 && pindex != NULL)
+    
+    BOOST_FOREACH(const PAIRTYPE(uint256, CPepeMessage)& item, mapPepeMessages)
     {
-        //LogPrintf("entered while loop\n");
-        CBlock block;
-        if(pindex != NULL && block.ReadFromDisk(pindex))
-        {
-           // LogPrintf("Read block from disk\n");
-            BOOST_FOREACH(const CTransaction& tx, block.vtx)
-            {
-                //LogPrintf("getMessages found tx\n");
-                BOOST_FOREACH(const CTxOut vout, tx.vout)
-                {
-                   // LogPrintf("getMessages found txout\n");
-                    if(vout.scriptPubKey.size() > 0 && vout.scriptPubKey[0] == OP_RETURN)
-                    {
-                       // LogPrintf("found op_return\n");
-                        std::vector<unsigned char> vch(vout.scriptPubKey.begin()+2,vout.scriptPubKey.end());
-                        //LogPrintf("casting to astring\n");
-                        //std::string astring(reinterpret_cast<char*>(&vch[0]), vch.size());
-                        std::string astring(vch.begin(), vch.end());
-                        
-                        //LogPrintf("Messagestring %s", astring);
-                        ui->listWidget->addItem(GUIUtil::dateTimeStr(tx.nTime) + ": " + QString::fromStdString(astring));
-                    }
-                }
-            }
-        } 
-
-        pindex = pindex->pprev;
-        i = i - 1;
+        CPepeMessage pmsg = item.second;
+        ui->listWidget->addItem(QString::fromStdString(pmsg.ToString()));
     }
 }
