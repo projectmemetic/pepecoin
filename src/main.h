@@ -53,6 +53,7 @@ class CKeyItem;
 class CNode;
 class CReserveKey;
 class CWallet;
+class CPepeMessage;
 
 static const int64_t PEPE_STAKE_WINTER_SWITCH_HEIGHT = 312000;
 static const int64_t PEPE_STAKE_V2_SWITCH_HEIGHT = 32000;
@@ -243,7 +244,7 @@ public:
 
     }
 
-    CPepeMesage(int64_t nTimeIn, msgIn)
+    CPepeMesage(int64_t nTimeIn, std::string msgIn)
     {
         nTime = nTimeIn;
         msg = msgIn;
@@ -258,9 +259,9 @@ public:
 
     std::string ToString() const
     {
-        return DateTimeStrFormat(tx.nTime) + ": " + msg;
+        return DateTimeStrFormat(nTime) + ": " + msg;
     }
-}
+};
 
 /** Position on disk for a particular transaction. */
 class CDiskTxPos
