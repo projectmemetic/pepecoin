@@ -26,6 +26,7 @@
 #include "hashblock.h"
 
 #include <list>
+#include <algorithm> 
 
 class CValidationState;
 
