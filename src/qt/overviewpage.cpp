@@ -313,7 +313,7 @@ void OverviewPage::showOutOfSyncWarning(bool fShow)
 
 void OverviewPage::on_pushButton_clicked()
 {
-    //send message in 1 MEME OP_RETURN transaction
+    //send message in 1 PEPE OP_RETURN transaction
     if(ui->lineEdit->text().isNull() || ui->lineEdit->text().isEmpty())
     {
         //dont have nothin to write
@@ -356,7 +356,7 @@ void OverviewPage::on_pushButton_clicked()
     else if(pwalletMain->GetBalance() < 1)
     {
         QMessageBox infobox;
-        infobox.setText("ERROR: Need 1 MEME balance to send meme message.");
+        infobox.setText("ERROR: Need 1 PEPE balance to send meme message.");
         infobox.exec();
     }
     else
