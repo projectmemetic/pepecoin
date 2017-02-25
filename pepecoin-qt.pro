@@ -1,5 +1,5 @@
 TEMPLATE = app
-TARGET = memetic-qt
+TARGET = pepecoin-qt
 VERSION = 1.0.0.0
 INCLUDEPATH += src src/json src/qt src/qt/plugins/mrichtexteditor
 QT += network printsupport
