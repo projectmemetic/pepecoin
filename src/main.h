@@ -26,7 +26,7 @@
 #include "hashblock.h"
 
 #include <list>
-#include <algorithm> 
+#include <algorithm>
 
 class CValidationState;
 
@@ -256,6 +256,11 @@ public:
     {
         return DateTimeStrFormat(nTime) + ": " + msg;
     }
+
+bool operator < (const CPepeMessage& a) const
+     {
+         return (nTime < a.nTime);
+     }
 
 };
 
