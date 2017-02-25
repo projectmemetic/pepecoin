@@ -424,4 +424,3 @@ void OverviewPage::getMessages()
         ui->listWidget->insertItem(0, QString::fromStdString(pmsg.ToString()));
     }
 }
-
