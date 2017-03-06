@@ -1,4 +1,4 @@
- PepeCoin - PCOIN / PEPE 
+ PepeCoin - PEPE / PCOIN
 ==============================
 -------------------------------------------
 A Hybrid Proof of Work / Proof of Stake / PepeCoin Stake Rate Cryptocurrency
