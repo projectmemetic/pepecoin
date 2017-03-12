@@ -28,17 +28,16 @@ http://pepecoin.co
 Additional Information
 ------------------------------
 
-PepeCoin uses libsecp256k1, libgmp, Boost1.55, OR Boost1.57, Openssl1.01p, Berkeley DB 4.8, QT5 to compile
+PepeCoin uses libsecp256k1, libgmp, Boost1.55+, Openssl1.01p, Berkeley DB 4.8+, QT5 to compile
 
 Ubuntu / Debian Build Dependencies
 
 sudo apt-get install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils
 
-sudo apt-get install libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev libboost-thread-dev libminiupnpc-dev libgmp3-dev
+sudo apt-get install libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev libboost-thread-dev libminiupnpc-dev libgmp3-dev libdb-dev libdb++-dev 
 
 
 ```
-
 Copyright (c) 2009-2010 Satoshi Nakamoto
 Copyright (c) 2009-2012 The Bitcoin developers
 Copyright (c) 2012 Litecoin Developers
