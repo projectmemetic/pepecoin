@@ -22,6 +22,7 @@
 #include "masternode-payments.h"
 #include "chainparams.h"
 #include "smessage.h"
+#include "main.h"
 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/range/algorithm.hpp>
