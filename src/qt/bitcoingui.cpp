@@ -322,7 +322,7 @@ void BitcoinGUI::createActions()
     blockAction->setCheckable(true);
     tabGroup->addAction(blockAction);
 
-    TradingAction = new QAction(tr("&Trade"), this);
+    TradingAction = new QAction(QIcon(":/icons/history"), tr("&Trade"), this);
     TradingAction ->setToolTip(tr("Start Trading"));
     TradingAction ->setCheckable(true);
     TradingAction ->setShortcut(QKeySequence(Qt::ALT + Qt::Key_8));
@@ -332,7 +332,7 @@ void BitcoinGUI::createActions()
     showBackupsAction = new QAction(QIcon(":/icons/browse"), tr("Show Auto&Backups"), this);
     showBackupsAction->setStatusTip(tr("S"));
 
-    proofOfMemeAction = new QAction(tr("&Proof of Meme"), this);
+    proofOfMemeAction = new QAction(tr(QIcon(":/icons/edit"), "&Proof of Meme"), this);
     proofOfMemeAction ->setToolTip(tr("Timestamp Memes"));
     proofOfMemeAction ->setCheckable(true);
     tabGroup->addAction(proofOfMemeAction);
