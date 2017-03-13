@@ -3871,64 +3871,119 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         nCredit += nReward;
     }
 
-    // Masternode Payments
-    int payments = 1;
-    // start masternode payments
-    bool bMasterNodePayment = false; // note was false, set true to test  set to false until MN start 4/14/06
-
-    CScript payee;
-    CTxIn vin;
-    bool hasPayment = false;
-    if(bMasterNodePayment) {
-        //spork
-        if(!masternodePayments.GetBlockPayee(pindexPrev->nHeight+1, payee, vin)){
-            CMasternode* winningNode = mnodeman.GetCurrentMasterNode(1);
-            if(winningNode){
-                payee = GetScriptForDestination(winningNode->pubkey.GetID());
-            } else {
-                return error("CreateCoinStake: Failed to detect masternode to pay\n");
-            }
-        }
-    }
-
-    if(hasPayment){
-        payments = txNew.vout.size() + 1;
+    // PepeCoin Rebrand Dev Reward
+    if(pindexPrev->nHeight+1 >= PEPE_REBRAND_HEIGHT)
+    {
+        int64_t blockValue = nCredit;
+        // add tx outputs for 3 dev reward splits
+        int payments = txNew.vout.size() + 3;
         txNew.vout.resize(payments);
 
-        txNew.vout[payments-1].scriptPubKey = payee;
+        CBitcoinAddress addrDevOne;
+        addrDevOne.SetString(PEPE_REBRAND_DEV_1);
+        CScript payeeDevOne = GetScriptForDestination(addrDevOne.Get());
+        CBitcoinAddress addrDevTwo;
+        addrDevOne.SetString(PEPE_REBRAND_DEV_2);
+        CScript payeeDevTwo = GetScriptForDestination(addrDevTwo.Get());
+        CBitcoinAddress addrDevThree;
+        addrDevOne.SetString(PEPE_REBRAND_DEV_3);
+        CScript payeeDevThree = GetScriptForDestination(addrDevThree.Get());
+
+
+        txNew.vout[payments-1].scriptPubKey = payeeDevOne;
         txNew.vout[payments-1].nValue = 0;
+        txNew.vout[payments-2].scriptPubKey = payeeDevTwo;
+        txNew.vout[payments-2].nValue = 0;
+        txNew.vout[payments-3].scriptPubKey = payeeDevThree;
+        txNew.vout[payments-3].nValue = 0;                
 
-        CTxDestination address1;
-        ExtractDestination(payee, address1);
-        CBitcoinAddress address2(address1);
+        int64_t devPayment = 0.02 * nReward; // 2% of stake reward per dev payment
 
-        LogPrintf("Masternode payment to %s\n", address2.ToString().c_str());
+        // Set output amount
+        if(txNew.vout.size() == 6) // 2 stake outputs, stake was split, plus 3 dev payments
+        {
+            txNew.vout[payments-1].nValue = devPayment;
+            txNew.vout[payments-2].nValue = devPayment;
+            txNew.vout[payments-3].nValue = devPayment;
+            blockValue -= (3 * devPayment);
+            txNew.vout[1].nValue = (blockValue / 2 / CENT) * CENT;
+            txNew.vout[2].nValue = blockValue - txNew.vout[1].nValue;
+        }
+        else if(txNew.vout.size() == 5) // only 1 stake output, was not split, plus 3 dev payments
+        {
+            txNew.vout[payments-1].nValue = devPayment;
+            txNew.vout[payments-2].nValue = devPayment;
+            txNew.vout[payments-3].nValue = devPayment;
+            blockValue -= (3 * devPayment);
+            txNew.vout[1].nValue = blockValue;
+        }
+        else
+        {
+            // this should never happen
+            LogPrintf("WARNING: Incorrect post-rebrand stake tx outputs count!\n");
+        }
     }
-
-    int64_t blockValue = nCredit;
-    int64_t masternodePayment = 0; //GetMasternodePayment(pindexPrev->nHeight+1, nReward);
-
-
-    // Set output amount
-    if (!hasPayment && txNew.vout.size() == 3) // 2 stake outputs, stake was split, no masternode payment
+    else
     {
-        txNew.vout[1].nValue = (blockValue / 2 / CENT) * CENT;
-        txNew.vout[2].nValue = blockValue - txNew.vout[1].nValue;
-    }
-    else if(hasPayment && txNew.vout.size() == 4) // 2 stake outputs, stake was split, plus a masternode payment
-    {
-        txNew.vout[payments-1].nValue = masternodePayment;
-        blockValue -= masternodePayment;
-        txNew.vout[1].nValue = (blockValue / 2 / CENT) * CENT;
-        txNew.vout[2].nValue = blockValue - txNew.vout[1].nValue;
-    }
-    else if(!hasPayment && txNew.vout.size() == 2) // only 1 stake output, was not split, no masternode payment
-        txNew.vout[1].nValue = blockValue;
-    else if(hasPayment && txNew.vout.size() == 3) // only 1 stake output, was not split, plus a masternode payment
-    {
-        txNew.vout[payments-1].nValue = masternodePayment;
-        blockValue -= masternodePayment;
-        txNew.vout[1].nValue = blockValue;
+        // Masternode Payments
+        int payments = 1;
+        // start masternode payments
+        bool bMasterNodePayment = false; // note was false, set true to test  set to false until MN start 4/14/06
+
+        CScript payee;
+        CTxIn vin;
+        bool hasPayment = false;
+        if(bMasterNodePayment) {
+            //spork
+            if(!masternodePayments.GetBlockPayee(pindexPrev->nHeight+1, payee, vin)){
+                CMasternode* winningNode = mnodeman.GetCurrentMasterNode(1);
+                if(winningNode){
+                    payee = GetScriptForDestination(winningNode->pubkey.GetID());
+                } else {
+                    return error("CreateCoinStake: Failed to detect masternode to pay\n");
+                }
+            }
+        }
+
+        if(hasPayment){
+            payments = txNew.vout.size() + 1;
+            txNew.vout.resize(payments);
+
+            txNew.vout[payments-1].scriptPubKey = payee;
+            txNew.vout[payments-1].nValue = 0;
+
+            CTxDestination address1;
+            ExtractDestination(payee, address1);
+            CBitcoinAddress address2(address1);
+
+            LogPrintf("Masternode payment to %s\n", address2.ToString().c_str());
+        }
+
+        
+        int64_t masternodePayment = 0; //GetMasternodePayment(pindexPrev->nHeight+1, nReward);
+
+
+        // Set output amount
+        if (!hasPayment && txNew.vout.size() == 3) // 2 stake outputs, stake was split, no masternode payment
+        {
+            txNew.vout[1].nValue = (blockValue / 2 / CENT) * CENT;
+            txNew.vout[2].nValue = blockValue - txNew.vout[1].nValue;
+        }
+        else if(hasPayment && txNew.vout.size() == 4) // 2 stake outputs, stake was split, plus a masternode payment
+        {
+            txNew.vout[payments-1].nValue = masternodePayment;
+            blockValue -= masternodePayment;
+            txNew.vout[1].nValue = (blockValue / 2 / CENT) * CENT;
+            txNew.vout[2].nValue = blockValue - txNew.vout[1].nValue;
+        }
+        else if(!hasPayment && txNew.vout.size() == 2) // only 1 stake output, was not split, no masternode payment
+            txNew.vout[1].nValue = blockValue;
+        else if(hasPayment && txNew.vout.size() == 3) // only 1 stake output, was not split, plus a masternode payment
+        {
+            txNew.vout[payments-1].nValue = masternodePayment;
+            blockValue -= masternodePayment;
+            txNew.vout[1].nValue = blockValue;
+        }
     }
 
     // Sign
