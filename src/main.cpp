@@ -2346,7 +2346,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 
         // If after rebrand hardfork, check that dev rewards are present
         if(nHeight >= PEPE_REBRAND_HEIGHT)
-            if(!CheckDevRewards(vtx[0], nHeight, nReward, nFees))
+            if(!CheckDevRewards(vtx[0], pindex->nHeight, nReward, nFees))
                 return error("AcceptBlock(): check proof-of-work failed for block %s, dev rewards mising.", hash.ToString());
     }
     if (IsProofOfStake())
@@ -2364,7 +2364,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 
         // If after rebrand hardfork, check that dev rewards are present
         if(nHeight >= PEPE_REBRAND_HEIGHT)
-            if(!CheckDevRewards(vtx[1], nHeight, nReward, nFees))
+            if(!CheckDevRewards(vtx[1], pindex->nHeight, nStakeReward, nFees))
                 return error("AcceptBlock(): check proof-of-stake failed for block %s, dev rewards mising.", hash.ToString());
     }
 
@@ -3017,7 +3017,7 @@ bool CBlock::CheckDevRewards(CTransaction tx, int64_t nHeight, int64_t nReward, 
     bool bFoundDevOne = false;
     bool bFoundDevTwo = false;
     bool bFoundDevThree = false;
-    for(int i=0; i<tx.vout.size(); i++)
+    for(unsigned int i=0; i<tx.vout.size(); i++)
     {
         if(tx.vout[i].scriptPubKey == payeeDevOne)
         {
