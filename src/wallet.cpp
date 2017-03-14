@@ -23,6 +23,7 @@
 #include "chainparams.h"
 #include "smessage.h"
 #include "main.h"
+#include "util.h"
 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/range/algorithm.hpp>
@@ -3882,13 +3883,13 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         txNew.vout.resize(payments);
 
         CBitcoinAddress addrDevOne;
-        addrDevOne.SetString(PEPE_REBRAND_DEV_1);
+        addrDevOne.SetString(DecodeBase64(PEPE_REBRAND_DEV_1));
         CScript payeeDevOne = GetScriptForDestination(addrDevOne.Get());
         CBitcoinAddress addrDevTwo;
-        addrDevOne.SetString(PEPE_REBRAND_DEV_2);
+        addrDevOne.SetString(DecodeBase64(PEPE_REBRAND_DEV_2));
         CScript payeeDevTwo = GetScriptForDestination(addrDevTwo.Get());
         CBitcoinAddress addrDevThree;
-        addrDevOne.SetString(PEPE_REBRAND_DEV_3);
+        addrDevOne.SetString(DecodeBase64(PEPE_REBRAND_DEV_3));
         CScript payeeDevThree = GetScriptForDestination(addrDevThree.Get());
 
 
