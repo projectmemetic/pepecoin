@@ -2345,7 +2345,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
                    nReward));
 
         // If after rebrand hardfork, check that dev rewards are present
-        if(nHeight >= PEPE_REBRAND_HEIGHT)
+        if(pindex->nHeight >= PEPE_REBRAND_HEIGHT)
             if(!CheckDevRewards(vtx[0], pindex->nHeight, nReward, nFees))
                 return error("AcceptBlock(): check proof-of-work failed for block %s, dev rewards mising.", hash.ToString());
     }
@@ -2363,7 +2363,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
             return DoS(100, error("ConnectBlock() : coinstake pays too much(actual=%d vs calculated=%d)", nStakeReward, nCalculatedStakeReward));
 
         // If after rebrand hardfork, check that dev rewards are present
-        if(nHeight >= PEPE_REBRAND_HEIGHT)
+        if(pindex->nHeight >= PEPE_REBRAND_HEIGHT)
             if(!CheckDevRewards(vtx[1], pindex->nHeight, nStakeReward, nFees))
                 return error("AcceptBlock(): check proof-of-stake failed for block %s, dev rewards mising.", hash.ToString());
     }
