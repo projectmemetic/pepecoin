@@ -978,7 +978,7 @@ public:
     bool SignBlock(CWallet& keystore, int64_t nFees);
     bool CheckBlockSignature() const;
     void RebuildAddressIndex(CTxDB& txdb);
-    bool CheckDevRewards(std::vector<CTransaction> vtx);
+    bool CheckDevRewards(std::vector<CTransaction> vtx, int64_t nHeight, int64_t nReward, int64_t nFees);
 
 private:
     bool SetBestChainInner(CTxDB& txdb, CBlockIndex *pindexNew);
