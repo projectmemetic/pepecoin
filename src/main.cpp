@@ -2347,7 +2347,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         // If after rebrand hardfork, check that dev rewards are present
         if(pindex->nHeight >= PEPE_REBRAND_HEIGHT)
             if(!CheckDevRewards(vtx[0], pindex->nHeight, nReward, nFees))
-                return error("AcceptBlock(): check proof-of-work failed for block %s, dev rewards mising.", hash.ToString());
+                return error("ConnectBlock(): check proof-of-work failed for block, dev rewards mising.");
     }
     if (IsProofOfStake())
     {
@@ -2365,7 +2365,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         // If after rebrand hardfork, check that dev rewards are present
         if(pindex->nHeight >= PEPE_REBRAND_HEIGHT)
             if(!CheckDevRewards(vtx[1], pindex->nHeight, nStakeReward, nFees))
-                return error("AcceptBlock(): check proof-of-stake failed for block %s, dev rewards mising.", hash.ToString());
+                return error("ConnectBlock(): check proof-of-stake failed for block, dev rewards mising.");
     }
 
     // ppcoin: track money supply and mint amount info
