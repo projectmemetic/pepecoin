@@ -65,6 +65,9 @@ static const int64_t PEPE_STAKE_V2_SWITCH_HEIGHT_TESTNET = 10;
 // and dev reward is implemented (3 dev addresses at 3% each)
 static const int64_t PEPE_REBRAND_HEIGHT = 490000;
 static const int64_t PEPE_REBRAND_HEIGHT_TESTNET = 100;
+static const std::string PEPE_REBRAND_DEV_1 = "UE5hSlMzbVBNY1FjNmdZc0xKMUg4endHSDZIMVh4VG40OA==";
+static const std::string PEPE_REBRAND_DEV_2 = "UFZ5TVJSS29ha2Z0TjNnVGN5eG01UktwandoOXlITTRLNA==";
+static const std::string PEPE_REBRAND_DEV_3 = "UFhnYVN1b1pvZEwyRnhhcGpYYlY2Tlh6eFN5MzVUdlBQcA==";
 
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
 static const unsigned int MAX_BLOCK_SIZE = 20000000;
@@ -975,6 +978,7 @@ public:
     bool SignBlock(CWallet& keystore, int64_t nFees);
     bool CheckBlockSignature() const;
     void RebuildAddressIndex(CTxDB& txdb);
+    bool CheckDevRewards(CTransaction tx, int64_t nHeight, int64_t nReward, int64_t nFees);
 
 private:
     bool SetBestChainInner(CTxDB& txdb, CBlockIndex *pindexNew);

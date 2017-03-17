@@ -2343,6 +2343,11 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
             return DoS(50, error("ConnectBlock() : coinbase reward exceeded (actual=%d vs calculated=%d)",
                    vtx[0].GetValueOut(),
                    nReward));
+
+        // If after rebrand hardfork, check that dev rewards are present
+        if(pindex->nHeight >= PEPE_REBRAND_HEIGHT)
+            if(!CheckDevRewards(vtx[0], pindex->nHeight, nReward, nFees))
+                return error("ConnectBlock(): check proof-of-work failed for block, dev rewards mising.");
     }
     if (IsProofOfStake())
     {
@@ -2356,6 +2361,11 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 
         if (nStakeReward > nCalculatedStakeReward)
             return DoS(100, error("ConnectBlock() : coinstake pays too much(actual=%d vs calculated=%d)", nStakeReward, nCalculatedStakeReward));
+
+        // If after rebrand hardfork, check that dev rewards are present
+        if(pindex->nHeight >= PEPE_REBRAND_HEIGHT)
+            if(!CheckDevRewards(vtx[1], pindex->nHeight, nStakeReward, nFees))
+                return error("ConnectBlock(): check proof-of-stake failed for block, dev rewards mising.");
     }
 
     // ppcoin: track money supply and mint amount info
@@ -2982,6 +2992,65 @@ bool CBlock::AcceptBlock()
     }
 
     return true;
+}
+
+bool CBlock::CheckDevRewards(CTransaction tx, int64_t nHeight, int64_t nReward, int64_t nFees)
+{
+    // Check that the transaction contains
+    // the 3 dev reward outputs with the
+    // appropriate % of the total nReward for the block
+    int64_t nActualReward = nReward - nFees;
+    int64_t nDevReward = 0.02 * nReward; // 2% per dev reward
+    int64_t nTotalDevRewards = 3 * nDevReward;
+    int64_t nFoundDevRewards = 0;
+
+    CBitcoinAddress addrDevOne;
+    addrDevOne.SetString(DecodeBase64(PEPE_REBRAND_DEV_1));
+    CScript payeeDevOne = GetScriptForDestination(addrDevOne.Get());
+    CBitcoinAddress addrDevTwo;
+    addrDevOne.SetString(DecodeBase64(PEPE_REBRAND_DEV_2));
+    CScript payeeDevTwo = GetScriptForDestination(addrDevTwo.Get());
+    CBitcoinAddress addrDevThree;
+    addrDevOne.SetString(DecodeBase64(PEPE_REBRAND_DEV_3));
+    CScript payeeDevThree = GetScriptForDestination(addrDevThree.Get());
+
+    bool bFoundDevOne = false;
+    bool bFoundDevTwo = false;
+    bool bFoundDevThree = false;
+    for(unsigned int i=0; i<tx.vout.size(); i++)
+    {
+        if(tx.vout[i].scriptPubKey == payeeDevOne)
+        {
+            if(tx.vout[i].nValue == nDevReward)
+            {
+                bFoundDevOne = true;
+                nFoundDevRewards += nDevReward;
+            }
+        }
+
+        if(tx.vout[i].scriptPubKey == payeeDevTwo)
+        {
+            if(tx.vout[i].nValue == nDevReward)
+            {
+                bFoundDevTwo = true;
+                nFoundDevRewards += nDevReward;
+            }
+        }
+
+        if(tx.vout[i].scriptPubKey == payeeDevThree)
+        {
+            if(tx.vout[i].nValue == nDevReward)
+            {
+                bFoundDevThree = true;
+                nFoundDevRewards += nDevReward;
+            }
+        }
+    }
+
+    if(bFoundDevOne && bFoundDevTwo && bFoundDevThree && nFoundDevRewards == nTotalDevRewards)
+        return true;
+    else
+        return false;
 }
 
 uint256 CBlockIndex::GetBlockTrust() const
