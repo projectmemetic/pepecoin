@@ -332,7 +332,7 @@ void BitcoinGUI::createActions()
     showBackupsAction = new QAction(QIcon(":/icons/browse"), tr("Show Auto&Backups"), this);
     showBackupsAction->setStatusTip(tr("S"));
 
-    proofOfMemeAction = new QAction(tr(QIcon(":/icons/edit"), "&Proof of Meme"), this);
+    proofOfMemeAction = new QAction(tr("&Proof of Meme"), this);
     proofOfMemeAction ->setToolTip(tr("Timestamp Memes"));
     proofOfMemeAction ->setCheckable(true);
     tabGroup->addAction(proofOfMemeAction);
