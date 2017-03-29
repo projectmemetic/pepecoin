@@ -63,7 +63,7 @@ static const int64_t PEPE_STAKE_V2_SWITCH_HEIGHT_TESTNET = 10;
 // Rebrand Back To PEPE Hardfork
 // At this height, POS moves to 7%, POW moves to 7 for 1 month of blocks then 5 and then halving every year
 // and dev reward is implemented (3 dev addresses at 3% each)
-static const int64_t PEPE_REBRAND_HEIGHT = 535000;
+static const int64_t PEPE_REBRAND_HEIGHT = 550000;
 static const int64_t PEPE_REBRAND_HEIGHT_TESTNET = 100;
 static const std::string PEPE_REBRAND_DEV_1 = "UE5hSlMzbVBNY1FjNmdZc0xKMUg4endHSDZIMVh4VG40OA==";
 static const std::string PEPE_REBRAND_DEV_2 = "UFJyeFZQWGNUQjN2TGNjZlBVRlRNVzJ6NTd3Skd3ZEd1ag==";
