@@ -11,7 +11,7 @@
 const std::string CLIENT_NAME("PepeCoin-2.0.0.0");
 
 // Client version number
-#define CLIENT_VERSION_SUFFIX   "-Shadilay"
+#define CLIENT_VERSION_SUFFIX   "-RebrandRel"
 
 
 // The following part of the code determines the CLIENT_BUILD variable.
@@ -27,6 +27,7 @@ const std::string CLIENT_NAME("PepeCoin-2.0.0.0");
 //   * if not, but GIT_COMMIT is defined, use v[maj].[min].[rev].[build]-g[commit]
 //   * otherwise, use v[maj].[min].[rev].[build]-unk
 // finally CLIENT_VERSION_SUFFIX is added
+
 
 // First, include build.h if requested
 #ifdef HAVE_BUILD_INFO
