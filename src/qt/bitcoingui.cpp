@@ -322,7 +322,7 @@ void BitcoinGUI::createActions()
     blockAction->setCheckable(true);
     tabGroup->addAction(blockAction);
 
-    TradingAction = new QAction(tr("&Trade"), this);
+    TradingAction = new QAction(QIcon(":/icons/history"), tr("&Trade"), this);
     TradingAction ->setToolTip(tr("Start Trading"));
     TradingAction ->setCheckable(true);
     TradingAction ->setShortcut(QKeySequence(Qt::ALT + Qt::Key_8));

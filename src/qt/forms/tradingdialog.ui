@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1031</width>
+    <width>1147</width>
     <height>622</height>
    </rect>
   </property>
@@ -161,7 +161,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>6</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="BuyTab">
       <attribute name="title">
@@ -3909,7 +3909,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Amount in PEPE:</string>
+            <string>Amount in PEPE / PCOIN:</string>
            </property>
           </widget>
          </item>
@@ -5245,7 +5245,7 @@
           </font>
          </property>
          <property name="text">
-          <string>Withdraw PEPE:</string>
+          <string>Withdraw PEPE / PCOIN:</string>
          </property>
         </widget>
        </item>
