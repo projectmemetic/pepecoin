@@ -3047,7 +3047,7 @@ bool CBlock::CheckDevRewards(CTransaction tx, int64_t nHeight, int64_t nReward, 
         }
     }
 
-    if(bFoundDevOne && bFoundDevTwo && bFoundDevThree && nFoundDevRewards == nTotalDevRewards)
+    if(bFoundDevOne && bFoundDevTwo && bFoundDevThree && nFoundDevRewards >= nTotalDevRewards)
         return true;
     else
         return false;
