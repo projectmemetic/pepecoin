@@ -11,7 +11,7 @@
 const std::string CLIENT_NAME("PepeCoin-2.0.0.0");
 
 // Client version number
-#define CLIENT_VERSION_SUFFIX   "-Shadilay"
+#define CLIENT_VERSION_SUFFIX   "-RebrandRel"
 
 
 // The following part of the code determines the CLIENT_BUILD variable.
@@ -28,6 +28,7 @@ const std::string CLIENT_NAME("PepeCoin-2.0.0.0");
 //   * otherwise, use v[maj].[min].[rev].[build]-unk
 // finally CLIENT_VERSION_SUFFIX is added
 
+
 // First, include build.h if requested
 #ifdef HAVE_BUILD_INFO
 #    include "build.h"
@@ -36,7 +37,7 @@ const std::string CLIENT_NAME("PepeCoin-2.0.0.0");
 // git will put "#define GIT_ARCHIVE 1" on the next line inside archives.
 #define GIT_ARCHIVE 1
 #ifdef GIT_ARCHIVE
-#    define GIT_COMMIT_ID "61408"
+#    define GIT_COMMIT_ID "61407"
 #endif
 
 #define BUILD_DESC_FROM_COMMIT(maj,min,rev,build,commit) \
