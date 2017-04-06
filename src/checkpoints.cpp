@@ -23,7 +23,7 @@ namespace Checkpoints
     // + Is surrounded by blocks with reasonable timestamps
     //   (no blocks before with a timestamp after, none after with
     //    timestamp before)
-    // + Contains no strange transactions
+    // + Contains no strange transactionsg
     //
     static MapCheckpoints mapCheckpoints =
         boost::assign::map_list_of
@@ -47,8 +47,7 @@ namespace Checkpoints
         (219777, uint256("0xe9f0929405524b5a3b2888c392351c902a11b7a167b3e12d63720b62d344230f"))
         (333777, uint256("0x45bff45918baa567e50568a5e0218e9796b9ef8ea3bdb44e1e6c17f95e687542"))
         (447777, uint256("0x307f3cb162219d6763439851f4c81ae6d0b867adccc97c6cc8d962b67f0de43a"))
-        (549333, uint256("0xfd66916698a7cb627b8187be3852b9df59d23a73e57d2e03eeee2da06a068bed"))
-        
+        (549333, uint256("0xfd66916698a7cb627b8187be3852b9df59d23a73e57d2e03eeee2da06a068bed"))        
     ;
 
     // TestNet has no checkpoints
