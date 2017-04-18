@@ -3008,10 +3008,10 @@ bool CBlock::CheckDevRewards(CTransaction tx, int64_t nHeight, int64_t nReward, 
     addrDevOne.SetString(DecodeBase64(PEPE_REBRAND_DEV_1));
     CScript payeeDevOne = GetScriptForDestination(addrDevOne.Get());
     CBitcoinAddress addrDevTwo;
-    addrDevOne.SetString(DecodeBase64(PEPE_REBRAND_DEV_2));
+    addrDevTwo.SetString(DecodeBase64(PEPE_REBRAND_DEV_2));
     CScript payeeDevTwo = GetScriptForDestination(addrDevTwo.Get());
     CBitcoinAddress addrDevThree;
-    addrDevOne.SetString(DecodeBase64(PEPE_REBRAND_DEV_3));
+    addrDevThree.SetString(DecodeBase64(PEPE_REBRAND_DEV_3));
     CScript payeeDevThree = GetScriptForDestination(addrDevThree.Get());
 
     bool bFoundDevOne = false;
