@@ -3001,6 +3001,10 @@ bool CBlock::CheckDevRewards(CTransaction tx, int64_t nHeight, int64_t nReward, 
     // appropriate % of the total nReward for the block
     int64_t nActualReward = nReward - nFees;
     int64_t nDevReward = 0.02 * nReward; // 2% per dev reward
+
+    if (nHeight > 600000)
+        int64_t nDevReward = 0.04 * nReward; 4; // 4% per dev reward
+    
     int64_t nTotalDevRewards = 3 * nDevReward;
     int64_t nFoundDevRewards = 0;
 
