@@ -3902,7 +3902,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
         int64_t devPayment = 0.02 * nReward; // 2% of stake reward per dev payment
         
-        if (nHeight > 600000)
+        if (pindexPrev->nHeight+1)
             devPayment = 0.04 * nReward; // 4% per dev reward, approx 38k coins/yr x3
 
         // Set output amount
