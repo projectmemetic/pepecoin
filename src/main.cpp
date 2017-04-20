@@ -1546,7 +1546,7 @@ int64_t nSubsidy = 20 * COIN;
   	  }
   	  else
   	  {
-  	  	nSubsidy = 5 * COIN;
+  	  	nSubsidy = 15 * COIN;  
   	  	nSubsidy >>= ((nHeight - PEPE_REBRAND_HEIGHT) / 525600); // block reward halves once a year
   	  }
   }
