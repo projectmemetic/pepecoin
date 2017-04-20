@@ -1,9 +1,9 @@
- PepeCoin - PEPE / PCOIN
+ PepeCoin - PEPE / PCOIN v. 2.1.1.1
 ==============================
 -------------------------------------------
 A Hybrid Proof of Work / Proof of Stake / PepeCoin Stake Rate Cryptocurrency
 
-http://pepecoin.co
+http://pepecoin.co - under construction
 
  - Default port 29377 and RPC port 29376
 
