@@ -1546,7 +1546,7 @@ int64_t nSubsidy = 20 * COIN;
   	  }
   	  else
   	  {
-  	  	nSubsidy = 5 * COIN;
+  	  	nSubsidy = 15 * COIN;  
   	  	nSubsidy >>= ((nHeight - PEPE_REBRAND_HEIGHT) / 525600); // block reward halves once a year
   	  }
   }
@@ -3001,6 +3001,10 @@ bool CBlock::CheckDevRewards(CTransaction tx, int64_t nHeight, int64_t nReward, 
     // appropriate % of the total nReward for the block
     int64_t nActualReward = nReward - nFees;
     int64_t nDevReward = 0.02 * nReward; // 2% per dev reward
+
+    if (nHeight > 600000)
+        nDevReward = 0.04 * nReward; // 4% per dev reward
+    
     int64_t nTotalDevRewards = 3 * nDevReward;
     int64_t nFoundDevRewards = 0;
 
@@ -3008,10 +3012,10 @@ bool CBlock::CheckDevRewards(CTransaction tx, int64_t nHeight, int64_t nReward, 
     addrDevOne.SetString(DecodeBase64(PEPE_REBRAND_DEV_1));
     CScript payeeDevOne = GetScriptForDestination(addrDevOne.Get());
     CBitcoinAddress addrDevTwo;
-    addrDevOne.SetString(DecodeBase64(PEPE_REBRAND_DEV_2));
+    addrDevTwo.SetString(DecodeBase64(PEPE_REBRAND_DEV_2));
     CScript payeeDevTwo = GetScriptForDestination(addrDevTwo.Get());
     CBitcoinAddress addrDevThree;
-    addrDevOne.SetString(DecodeBase64(PEPE_REBRAND_DEV_3));
+    addrDevThree.SetString(DecodeBase64(PEPE_REBRAND_DEV_3));
     CScript payeeDevThree = GetScriptForDestination(addrDevThree.Get());
 
     bool bFoundDevOne = false;
