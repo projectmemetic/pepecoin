@@ -20,7 +20,7 @@ PepeCoin is a decentralized, encrypted project that supports the preservation of
 ![PepeCoin Logo](http://i.imgur.com/hDXKtDB.png  "PepeCoin Logo")
 
 ***
-** Blockchain Specifications**
+**Blockchain Specifications**
 
  - Default port 29377 
  - RPC port 29376
@@ -34,7 +34,7 @@ PepeCoin is a decentralized, encrypted project that supports the preservation of
   - 6 hour minimum stake age (12 hour average)
   - Additional security improvements
   
- ** Features **
+ **Features**
 
 - Decentralized encrypted private messaging
 - Stealth Addresses
