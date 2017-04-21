@@ -580,7 +580,7 @@
        <item>
         <widget class="QLabel" name="label">
          <property name="text">
-          <string>Note: Cost is 1 PEPE / PCOIN</string>
+          <string>Note: Cost is 1 PEPE</string>
          </property>
         </widget>
        </item>

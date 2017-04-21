@@ -1,14 +1,16 @@
-# PepeCoin - PEPE / PCOIN v. 2.1.2.2
+# PepeCoin - PEPE v. 2.1.2.2
 
 
 ####
-Pepecoin is a hybrid Proof of Work (POW) /  Proof of Stake (POS) cryptocurrency fork of 6 different cryptocurrencies with many security additions.
+Pepecoin is a hybrid zombie mix of seven other cryptocurrency projects, plus a lot of custom code and goals.
+
+Pepecoin is a Proof of Work (POW) /  Proof of Stake (POS) cryptocurrency fork of 6 different cryptocurrencies with many security additions.
 
 PepeCoin is decentralized, encrypted image storage in IPFS, cryptographically verified against the PepeCoin blockchain. Protect your memes and political information from censorship.
 
- PepeCoin is blockchain hash secured image / archive storage, with decentralized moderation ability.
+PepeCoin is blockchain hash secured image / archive storage, with decentralized moderation ability.
 
- PepeCoin is a decentralized, encrypted project that supports the preservation of all freedom of speech within the bounds of US law.
+PepeCoin is a decentralized, encrypted project that supports the preservation of all freedom of speech within the bounds of US law.
 
 
 ***
@@ -34,6 +36,9 @@ PepeCoin is decentralized, encrypted image storage in IPFS, cryptographically ve
 
 - Decentralized encrypted private messaging
 - Stealth Addresses
+- Fully blockchain based, public decentralized encrypted messaging chat wall in wallet
+- Integrated Bittrex trading functions
+- Integrated block explorer
 - Image timestamping on the blockchain for proof of ownership
 - In-wallet hash image verification checking functions
 - JSON-RPC functions to externally query blockchain for hashed image datas
