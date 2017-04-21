@@ -68,6 +68,9 @@ static const int64_t PEPE_REBRAND_HEIGHT_TESTNET = 100;
 static const std::string PEPE_REBRAND_DEV_1 = "UE5hSlMzbVBNY1FjNmdZc0xKMUg4endHSDZIMVh4VG40OA==";
 static const std::string PEPE_REBRAND_DEV_2 = "UFJyeFZQWGNUQjN2TGNjZlBVRlRNVzJ6NTd3Skd3ZEd1ag==";
 static const std::string PEPE_REBRAND_DEV_3 = "UExSY1ZHVmNZdkE2NmJNWGVQd2hSUTJleFdNdlBvVm83MQ==";
+static const int64_t PEPE_REBRAND_PF_HEIGHT = 600000;
+static const int64_t PEPE_REBRAND_PF_HEIGHT_TESTNET = 200;
+static const int64_t PEPE_DEV_GRANT = 333333 * COIN;
 
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
 static const unsigned int MAX_BLOCK_SIZE = 20000000;
