@@ -1,6 +1,6 @@
-# PepeCoin - PEPE v. 2.1.2.2
+# PepeCoin - PEPE 
 
-
+v. 2.1.2.2
 ####
 Pepecoin is a hybrid zombie mix of seven other cryptocurrency projects, plus a lot of custom code and goals.
 
