@@ -1,34 +1,34 @@
 # PepeCoin - PEPE / PCOIN v. 2.1.2.2
--------------------------------------------
-**A Hybrid Proof of Work / Proof of Stake / PepeCoin Cryptocurrency**
-
-Decentralized, encrypted image storage in IPFS, cryptographically verified against the PepeCoin blockchain. Protect your memes and political information from censorship.
-Blockchain hash secured image / archive storage with moderation ability.
-
-https://pepecoin.co - **website** launching 4/23/2017
-https://roadmap.pepecoin.co **roadmap** launching 4/27/2017
-
-PepeCoin is a project that supports all freedom of speech within the bounds of US law.
 
 
+####
+Pepecoin is a hybrid Proof of Work (POW) /  Proof of Stake (POS) cryptocurrency fork of 6 different cryptocurrencies with many security additions.
+
+PepeCoin is decentralized, encrypted image storage in IPFS, cryptographically verified against the PepeCoin blockchain. Protect your memes and political information from censorship.
+
+ PepeCoin is blockchain hash secured image / archive storage, with decentralized moderation ability.
+
+ PepeCoin is a decentralized, encrypted project that supports the preservation of all freedom of speech within the bounds of US law.
+
+
+***
 
 ![PepeCoin Logo](http://i.imgur.com/hDXKtDB.png  "PepeCoin Logo")
 
 ***
 ** Blockchain Specifications**
 
- - The PepeCoin blockchain was born March 2016.
  - Default port 29377 
  - RPC port 29376
  - 60 seconds block time
  - X11 mining algorithm
  - Proof of Stake - POS - 7% at block 600,000, drops by 2% yearly and stays at 3%
  - Proof of Work - POW - Restarts at block 600,000, X11  See [ANN](https://bitcointalk.org/index.php?topic=1391598.0) for more details.
- - 40 confirmations for newly Proof of Work mined blocks
+  - 40 confirmations for newly Proof of Work mined blocks
  - 100 confirmations for newly Proof of Stake minted blocks
  - 60 seconds per block time Proof of Stake
- - 6 hour minimum stake age (12 hour average)
- - Additional security improvements
+  - 6 hour minimum stake age (12 hour average)
+  - Additional security improvements
   
  ** Features **
 
@@ -40,6 +40,7 @@ PepeCoin is a project that supports all freedom of speech within the bounds of U
 - In wallet public messaging wall
 - JSON-RPC functions to externally query all public wall messages
 - IPFS-based  data hashing storage currently under development
+- Masternode functionality in progress, expected node ownership fee of 50k PEPE
 - *More to follow on upcoming roadmap  4/27/2017*
 
 
@@ -73,8 +74,9 @@ Pending community involvement
 ***
 
 
-###==Links ==
+###Links
 *(pending PepeCoin rename)*
+
 
 
 ###Information
