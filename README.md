@@ -1,56 +1,153 @@
- PepeCoin - PEPE / PCOIN v. 2.1.1.1
-==============================
+# PepeCoin - PEPE / PCOIN v. 2.1.2.2
 -------------------------------------------
-A Hybrid Proof of Work / Proof of Stake / PepeCoin Stake Rate Cryptocurrency
+**A Hybrid Proof of Work / Proof of Stake / PepeCoin Cryptocurrency**
 
-http://pepecoin.co - under construction
+Decentralized, encrypted image storage in IPFS, cryptographically verified against the PepeCoin blockchain. Protect your memes and political information from censorship.
+Blockchain hash secured image / archive storage with moderation ability.
 
- - Default port 29377 and RPC port 29376
+https://pepecoin.co - **website** launching 4/23/2017
+https://roadmap.pepecoin.co **roadmap** launching 4/27/2017
 
- - 60 seconds block time POW (over July 2016)
- - ~3 Months Proof of Work mining distribution ended with 12m PCOIN / PEPE
+PepeCoin is a project that supports all freedom of speech within the bounds of US law.
+
+
+
+![PepeCoin Logo](http://i.imgur.com/hDXKtDB.png  "PepeCoin Logo")
+
+***
+** Blockchain Specifications**
+
+ - The PepeCoin blockchain was born March 2016.
+ - Default port 29377 
+ - RPC port 29376
+ - 60 seconds block time
  - X11 mining algorithm
- - PepeCoin Stake Rate PSR / POS enable at block 9000
- - POW End at block 70,000
-
+ - Proof of Stake - POS - 7% at block 600,000, drops by 2% yearly and stays at 3%
+ - Proof of Work - POW - Restarts at block 600,000, X11  See [ANN](https://bitcointalk.org/index.php?topic=1391598.0) for more details.
  - 40 confirmations for newly Proof of Work mined blocks
  - 100 confirmations for newly Proof of Stake minted blocks
- - 3.5% Premine for Development Fund - Public Ledger and Transparent
+ - 60 seconds per block time Proof of Stake
+ - 6 hour minimum stake age (12 hour average)
+ - Additional security improvements
+  
+ ** Features **
 
-  POSV Details
- ------------
-  - Proof of Stake activates at block 9000.
-  - 60 seconds per block time Proof of Stake
-  - 6 hour minimum stake age
-  - Additional security improvements
+- Decentralized encrypted private messaging
+- Stealth Addresses
+- Image timestamping on the blockchain for proof of ownership
+- In-wallet hash image verification checking functions
+- JSON-RPC functions to externally query blockchain for hashed image datas
+- In wallet public messaging wall
+- JSON-RPC functions to externally query all public wall messages
+- IPFS-based  data hashing storage currently under development
+- *More to follow on upcoming roadmap  4/27/2017*
+
 
 -------------------------------
 Additional Information
 ------------------------------
+ 
+**Windows Wallet**
+
+https://github.com/pepeteam/pepecoin/releases
+
+
+**Linux Builds:**
 
 PepeCoin uses libsecp256k1, libgmp, Boost1.55+, Openssl1.01p, Berkeley DB 4.8+, QT5 to compile
 
-Ubuntu / Debian Build Dependencies
 
-sudo apt-get install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev libboost-thread-dev libminiupnpc-dev libgmp3-dev libdb-dev libdb++-dev libgmp3-dev
+	sudo apt-get install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev libboost-thread-dev libminiupnpc-dev libgmp3-dev libdb-dev libdb++-dev libgmp3-dev
+	
+	git clone https://github.com/pepeteam/pepecoin.git
+	cd pepecoin/src
+	make -f makefile.unix USE_UPNP=-1
 
-git clone https://github.com/pepeteam/pepecoin.git
-cd pepecoin/src
-make -f makefile.unix USE_UPNP=-1
 
-```
-Copyright (c) 2009-2010 Satoshi Nakamoto
-Copyright (c) 2009-2012 The Bitcoin developers
-Copyright (c) 2012 Litecoin Developers
-Copyright (c) 2013 Peercoin Developers
-Copyright (c) 2014 DarkCoin Developers
-Copyright (c) 2014 BlackCoin Developers
-Copyright (c) 2014 Digibyte Developers
-Copyright (c) 2014 DashCoin Developers
-Copyright (c) 2014 NetCoin Developers
-Copyright (c) 2015 Transfercoin Developers
-Copyright (c) 2015-2016 PepeCoin Developers
-Copyright (c) 2015-2016 Memetic Developers
-Copyright (c) 2017 PepeCoin Developers
+**Mac Wallet**
 
- ```
+Pending community involvement
+
+***
+![](http://i.imgur.com/EfYNxub.png) 
+***
+
+
+###==Links ==
+*(pending PepeCoin rename)*
+
+
+###Information
+[Bitcointalk ANN](https://bitcointalk.org/index.php?topic=1391598.0) 
+Windows Wallet:  [Download](https://github.com/pepeteam/pepecoin/releases) 
+
+https://pepecoin.co Website - Coming 4/23/17
+https://roadmap.pepecoin.co - Coming 4/27/17
+
+
+
+
+####Exchanges
+
+[https://bittrex.com/Market/Index?MarketName=BTC-MEME  ](https://bittrex.com/Market/Index?MarketName=BTC-MEME  ) 
+[https://www.coinexchange.io/market/MEME/BTC](https://www.coinexchange.io/market/MEME/BTC) 
+
+
+####Block Explorers
+
+[https://poswallet.com/blockChain/meme](https://poswallet.com/blockChain/meme) 
+[https://prohashing.com/explorer/Memeticcoin/](https://prohashing.com/explorer/Memeticcoin/) 
+
+
+####Charts
+
+[https://coinmarketcap.com/currencies/pepecoin/](https://coinmarketcap.com/currencies/pepecoin/) 
+https://www.worldcoinindex.com/coin/memetic
+https://www.cryptocompare.com/coins/meme/charts/BTC
+https://bitinfocharts.com/markets/bittrex/meme-btc-1m.html
+https://cryptocoinview.com/MEME
+
+
+####Social
+[https://twitter.com/pepecoins](https://twitter.com/pepecoins) https://twitter.com/pepecoins
+Telegram group:  [Get invite](https://t.me/joinchat/AAAAAEB2DY0HG7sKzDWUYA) 
+
+
+***
+
+![pepecoin-256](https://i.imgur.com/xnSJvT9.jpg  "pepecoin-256")
+
+##License
+>Copyright (c) 2009-2010 Satoshi Nakamoto
+>Copyright (c) 2009-2012 The Bitcoin developers
+>Copyright (c) 2012 Litecoin Developers
+>Copyright (c) 2013 Peercoin Developers
+>Copyright (c) 2014 DarkCoin Developers
+>Copyright (c) 2014 BlackCoin Developers
+>Copyright (c) 2014 Digibyte Developers
+>Copyright (c) 2014 DashCoin Developers
+>Copyright (c) 2014 NetCoin Developers
+>Copyright (c) 2015 Transfercoin Developers
+>Copyright (c) 2015-2016 PepeCoin Developers
+>Copyright (c) 2015-2016 Memetic Developers
+>Copyright (c) 2017 PepeCoin Developers
+>
+>Permission is hereby granted, free of charge, to any person obtaining a copy
+>of this software and associated documentation files (the "Software"), to deal
+>in the Software without restriction, including without limitation the rights
+>to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+>copies of the Software, and to permit persons to whom the Software is
+>furnished to do so, subject to the following conditions:
+>
+>The above copyright notice and this permission notice shall be included in
+>all copies or substantial portions of the Software.
+>
+>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+>IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+>FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+>AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+>LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+>OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+>THE SOFTWARE.
+>
+
