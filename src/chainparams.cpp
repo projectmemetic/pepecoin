@@ -5,28 +5,28 @@
 // Copyright (c) 2016 The PepeCoin Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
+ 
 #include "assert.h"
-
+ 
 #include "chainparams.h"
 #include "main.h"
 #include "util.h"
-
+ 
 #include <boost/assign/list_of.hpp>
-
+ 
 using namespace boost::assign;
-
+ 
 struct SeedSpec6 {
     uint8_t addr[16];
     uint16_t port;
 };
-
+ 
 #include "chainparamsseeds.h"
-
+ 
 //
 // Main network
 //
-
+ 
 // Convert the pnSeeds array into usable address objects.
 static void convertSeeds(std::vector<CAddress> &vSeedsOut, const unsigned int *data, unsigned int count, int port)
 {
@@ -39,21 +39,21 @@ static void convertSeeds(std::vector<CAddress> &vSeedsOut, const unsigned int *d
     {
         struct in_addr ip;
         unsigned int i = data[k], t;
-
+ 
         // -- convert to big endian
         t =   (i & 0x000000ff) << 24u
             | (i & 0x0000ff00) << 8u
             | (i & 0x00ff0000) >> 8u
             | (i & 0xff000000) >> 24u;
-
+ 
         memcpy(&ip, &t, sizeof(ip));
-
+ 
         CAddress addr(CService(ip, port));
         addr.nTime = GetTime()-GetRand(nOneWeek)-nOneWeek;
         vSeedsOut.push_back(addr);
     }
 }
-
+ 
 class CMainParams : public CChainParams {
 public:
     CMainParams() {
@@ -68,7 +68,7 @@ public:
         nDefaultPort = 29377;
         nRPCPort = 29376;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 16);
-
+ 
         const char* pszTimestamp = "March 5, 2016: UN human rights chief backs Apple in FBI encryption row - BBC News";
         std::vector<CTxIn> vin;
         vin.resize(1);
@@ -84,7 +84,7 @@ public:
         genesis.nTime    = 1457184666;
         genesis.nBits    = bnProofOfWorkLimit.GetCompact();
         genesis.nNonce   = 663024;
-
+ 
         hashGenesisBlock = genesis.GetHash();
 /*
 		if (false ) {
@@ -101,7 +101,7 @@ public:
 		        }
 	         }
 	   }
-
+ 
         //// debug print
 	      printf("block.GetHash() == %s\n", genesis.GetHash().ToString().c_str());
 	      printf("block.hashMerkleRoot == %s\n", genesis.hashMerkleRoot.ToString().c_str());
@@ -110,24 +110,24 @@ public:
 */
         assert(hashGenesisBlock == uint256("0x00008cae6a01358d774087e2daf3b2108252b0b5a440195ffec4fd38f9892272"));
         assert(genesis.hashMerkleRoot == uint256("0xf8d91b2c93bd7222515770b67f20d3380edf8292548daeb3b0ce82fd5764dcac"));
-
-
+ 
+ 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,55); // pepecoin addresses start with P
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,85);
         base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,153);
         base58Prefixes[STEALTH_ADDRESS] = std::vector<unsigned char>(1,40);
         base58Prefixes[EXT_PUBLIC_KEY] = list_of(0x04)(0x88)(0xB2)(0x1E).convert_to_container<std::vector<unsigned char> >();;
         base58Prefixes[EXT_SECRET_KEY] = list_of(0x04)(0x88)(0xAD)(0xE4).convert_to_container<std::vector<unsigned char> >();;
-
+ 
         vSeeds.push_back(CDNSSeedData("nyc.pepecoin.co",  "nyc.pepecoin.co"));
         vSeeds.push_back(CDNSSeedData("dallas.pepecoin.co",  "dallas.pepecoin.co"));
         vSeeds.push_back(CDNSSeedData("tokyo.pepecoin.co",  "tokyo.pepecoin.co"));
         vSeeds.push_back(CDNSSeedData("netherlands.pepecoin.co",  "netherlands.pepecoin.co"));
         vSeeds.push_back(CDNSSeedData("paris.pepecoin.co",  "paris.pepecoin.co"));
         vSeeds.push_back(CDNSSeedData("seed.pepecoin.co",  "seed.pepecoin.co"));
-
+ 
         convertSeeds(vFixedSeeds, pnSeed, ARRAYLEN(pnSeed), nDefaultPort);
-
+ 
         nPoolMaxTransactions = 3;
         //strSporkKey = "046f78dcf911fbd61910136f7f0f8d90578f68d0b3ac973b5040fb7afb501b5939f39b108b0569dca71488f5bbf498d92e4d1194f6f941307ffd95f75e76869f0e";
         //strMasternodePaymentsPubKey = "046f78dcf911fbd61910136f7f0f8d90578f68d0b3ac973b5040fb7afb501b5939f39b108b0569dca71488f5bbf498d92e4d1194f6f941307ffd95f75e76869f0e";
@@ -136,10 +136,10 @@ public:
         nPOSStartBlock = 9000;
         nRestartPOWBlock = 320000; // when POW restarts
     }
-
+ 
     virtual const CBlock& GenesisBlock() const { return genesis; }
     virtual Network NetworkID() const { return CChainParams::MAIN; }
-
+ 
     virtual const vector<CAddress>& FixedSeeds() const {
         return vFixedSeeds;
     }
@@ -148,12 +148,12 @@ protected:
     vector<CAddress> vFixedSeeds;
 };
 static CMainParams mainParams;
-
-
+ 
+ 
 //
 // Testnet
 //
-
+ 
 class CTestNetParams : public CMainParams {
 public:
     CTestNetParams() {
@@ -169,25 +169,25 @@ public:
         nDefaultPort = 39377;
         nRPCPort = 39376;
         strDataDir = "testnet";
-
+ 
         // Modify the testnet genesis block so the timestamp is valid for a later start.
         genesis.nBits  = bnProofOfWorkLimit.GetCompact();
         genesis.nNonce = 663024;
-
+ 
         assert(hashGenesisBlock == uint256("0x00008cae6a01358d774087e2daf3b2108252b0b5a440195ffec4fd38f9892272"));
-
+ 
         vFixedSeeds.clear();
         vSeeds.clear();
-
+ 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,55);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,196);
         base58Prefixes[SECRET_KEY]     = std::vector<unsigned char>(1,239);
         base58Prefixes[STEALTH_ADDRESS] = std::vector<unsigned char>(1,40);
         base58Prefixes[EXT_PUBLIC_KEY] = list_of(0x04)(0x35)(0x87)(0xCF).convert_to_container<std::vector<unsigned char> >();;
         base58Prefixes[EXT_SECRET_KEY] = list_of(0x04)(0x35)(0x83)(0x94).convert_to_container<std::vector<unsigned char> >();;
-
+ 
         convertSeeds(vFixedSeeds, pnTestnetSeed, ARRAYLEN(pnTestnetSeed), nDefaultPort);
-
+ 
         nLastPOWBlock = 2000;
         nPOSStartBlock = 20;
         nRestartPOWBlock = 320000; // when POW restarts
@@ -195,14 +195,14 @@ public:
     virtual Network NetworkID() const { return CChainParams::TESTNET; }
 };
 static CTestNetParams testNetParams;
-
-
+ 
+ 
 static CChainParams *pCurrentParams = &mainParams;
-
+ 
 const CChainParams &Params() {
     return *pCurrentParams;
 }
-
+ 
 void SelectParams(CChainParams::Network network) {
     switch (network) {
         case CChainParams::MAIN:
@@ -216,11 +216,11 @@ void SelectParams(CChainParams::Network network) {
             return;
     }
 }
-
+ 
 bool SelectParamsFromCommandLine() {
-
+ 
     bool fTestNet = GetBoolArg("-testnet", false);
-
+ 
     if (fTestNet) {
         SelectParams(CChainParams::TESTNET);
     } else {
