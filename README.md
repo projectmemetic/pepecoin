@@ -2,7 +2,9 @@
 
 v. 2.1.2.2
 ####
-Pepecoin is a hybrid zombie mix of seven other cryptocurrency projects, plus a lot of custom code and goals.
+Pepecoin is digital decentralized crypto-currency, a hybrid zombie mix of seven other cryptocurrency projects, plus a lot of custom code and goals.
+
+Pepecoin incorporates both blockchain 2.0 and blockchain 3.0 technologies and is under continued development.
 
 Pepecoin is a Proof of Work (POW) /  Proof of Stake (POS) cryptocurrency fork of 6 different cryptocurrencies with many security additions.
 
@@ -78,13 +80,12 @@ Pending community involvement
 ![](http://i.imgur.com/EfYNxub.png) 
 ***
 
-
-###Links
+--------------------
+Links
+--------------------
 *(pending PepeCoin rename)*
 
-
-
-###Information
+**Information**
 [Bitcointalk ANN](https://bitcointalk.org/index.php?topic=1391598.0) 
 Windows Wallet:  [Download](https://github.com/pepeteam/pepecoin/releases) 
 
@@ -94,19 +95,19 @@ https://roadmap.pepecoin.co - Coming 4/27/17
 
 
 
-####Exchanges
+**Exchanges**
 
 [https://bittrex.com/Market/Index?MarketName=BTC-MEME  ](https://bittrex.com/Market/Index?MarketName=BTC-MEME  ) 
 [https://www.coinexchange.io/market/MEME/BTC](https://www.coinexchange.io/market/MEME/BTC) 
 
 
-####Block Explorers
+**Block Explorers**
 
 [https://poswallet.com/blockChain/meme](https://poswallet.com/blockChain/meme) 
 [https://prohashing.com/explorer/Memeticcoin/](https://prohashing.com/explorer/Memeticcoin/) 
 
 
-####Charts
+**Charts**
 
 [https://coinmarketcap.com/currencies/pepecoin/](https://coinmarketcap.com/currencies/pepecoin/) 
 https://www.worldcoinindex.com/coin/memetic
@@ -115,7 +116,7 @@ https://bitinfocharts.com/markets/bittrex/meme-btc-1m.html
 https://cryptocoinview.com/MEME
 
 
-####Social
+**Social**
 [https://twitter.com/pepecoins](https://twitter.com/pepecoins) https://twitter.com/pepecoins
 Telegram group:  [Get invite](https://t.me/joinchat/AAAAAEB2DY0HG7sKzDWUYA) 
 
@@ -124,7 +125,10 @@ Telegram group:  [Get invite](https://t.me/joinchat/AAAAAEB2DY0HG7sKzDWUYA)
 
 ![pepecoin-256](https://i.imgur.com/xnSJvT9.jpg  "pepecoin-256")
 
-##License
+------------------
+License
+------------------
+
 >Copyright (c) 2009-2010 Satoshi Nakamoto
 >Copyright (c) 2009-2012 The Bitcoin developers
 >Copyright (c) 2012 Litecoin Developers
@@ -157,4 +161,3 @@ Telegram group:  [Get invite](https://t.me/joinchat/AAAAAEB2DY0HG7sKzDWUYA)
 >OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 >THE SOFTWARE.
 >
-
