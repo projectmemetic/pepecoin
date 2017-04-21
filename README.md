@@ -123,6 +123,14 @@ Telegram group:  [Get invite](https://t.me/joinchat/AAAAAEB2DY0HG7sKzDWUYA)
 
 ***
 
+**Nodes**
+addnode=nyc.pepecoin.co
+addnode=dallas.pepecoin.co
+addnode=tokyo.pepecoin.co
+addnode=netherlands.pepecoin.co
+addnode=paris.pepecoin.co
+addnode=seed.pepecoin.co
+
 ![pepecoin-256](https://i.imgur.com/xnSJvT9.jpg  "pepecoin-256")
 
 ------------------
