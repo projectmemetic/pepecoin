@@ -1549,6 +1549,9 @@ int64_t nSubsidy = 20 * COIN;
   	  	nSubsidy = 15 * COIN;  
   	  	nSubsidy >>= ((nHeight - PEPE_REBRAND_HEIGHT) / 525600); // block reward halves once a year
   	  }
+
+      if(nHeight == PEPE_REBRAND_PF_HEIGHT)
+        nSubsidy += PEPE_DEV_GRANT;
   }
 
   	return nSubsidy + nFees;
@@ -1645,6 +1648,9 @@ int64_t nSubsidy = 20 * COIN;
         // Now calculate the reward
         int64_t nSubsidy = nCoinAge * nRewardCoinYear * 33 / (365 * 33 + 8); //integer equivalent of nCoinAge * nRewardCoinYear / 365.2424242..
      
+        if(nHeight+1 == PEPE_REBRAND_PF_HEIGHT)
+            nSubsidy += PEPE_DEV_GRANT;
+
         return nSubsidy + nFees;
   }
 
@@ -2345,7 +2351,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
                    nReward));
 
         // If after rebrand hardfork, check that dev rewards are present
-        if(pindex->nHeight >= PEPE_REBRAND_HEIGHT)
+        if(pindex->nHeight >= PEPE_REBRAND_PF_HEIGHT)
             if(!CheckDevRewards(vtx[0], pindex->nHeight, nReward, nFees))
                 return error("ConnectBlock(): check proof-of-work failed for block, dev rewards mising.");
     }
@@ -2363,7 +2369,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
             return DoS(100, error("ConnectBlock() : coinstake pays too much(actual=%d vs calculated=%d)", nStakeReward, nCalculatedStakeReward));
 
         // If after rebrand hardfork, check that dev rewards are present
-        if(pindex->nHeight >= PEPE_REBRAND_HEIGHT)
+        if(pindex->nHeight >= PEPE_REBRAND_PF_HEIGHT)
             if(!CheckDevRewards(vtx[1], pindex->nHeight, nStakeReward, nFees))
                 return error("ConnectBlock(): check proof-of-stake failed for block, dev rewards mising.");
     }
@@ -3002,12 +3008,14 @@ bool CBlock::CheckDevRewards(CTransaction tx, int64_t nHeight, int64_t nReward, 
     int64_t nActualReward = nReward - nFees;
     int64_t nDevReward = 0.02 * nReward; // 2% per dev reward
 
-    if (nHeight > 600000)
+    if (nHeight == PEPE_REBRAND_PF_HEIGHT)
+        nDevReward = PEPE_DEV_GRANT;
+    else if (nHeight > PEPE_REBRAND_PF_HEIGHT)
         nDevReward = 0.04 * nReward; // 4% per dev reward
     
     int64_t nTotalDevRewards = 3 * nDevReward;
     int64_t nFoundDevRewards = 0;
-
+    
     CBitcoinAddress addrDevOne;
     addrDevOne.SetString(DecodeBase64(PEPE_REBRAND_DEV_1));
     CScript payeeDevOne = GetScriptForDestination(addrDevOne.Get());
@@ -3023,35 +3031,47 @@ bool CBlock::CheckDevRewards(CTransaction tx, int64_t nHeight, int64_t nReward, 
     bool bFoundDevThree = false;
     for(unsigned int i=0; i<tx.vout.size(); i++)
     {
-        if(tx.vout[i].scriptPubKey == payeeDevOne)
-        {
-            if(tx.vout[i].nValue == nDevReward)
-            {
-                bFoundDevOne = true;
-                nFoundDevRewards += nDevReward;
-            }
-        }
+        txnouttype type;
+        vector<CTxDestination> addresses;
+        int nRequired;
 
-        if(tx.vout[i].scriptPubKey == payeeDevTwo)
+        if (ExtractDestinations(tx.vout[i].scriptPubKey, type, addresses, nRequired))
         {
-            if(tx.vout[i].nValue == nDevReward)
-            {
-                bFoundDevTwo = true;
-                nFoundDevRewards += nDevReward;
-            }
-        }
+            BOOST_FOREACH(const CTxDestination& addr, addresses)
+            {    
+                CBitcoinAddress addrFound = CBitcoinAddress(addr);
+    
+                if(addrFound == addrDevOne)
+                {
+                    if(tx.vout[i].nValue >= nDevReward)
+                    {
+                        bFoundDevOne = true;
+                        nFoundDevRewards += nDevReward;
+                    }
+                }
 
-        if(tx.vout[i].scriptPubKey == payeeDevThree)
-        {
-            if(tx.vout[i].nValue == nDevReward)
-            {
-                bFoundDevThree = true;
-                nFoundDevRewards += nDevReward;
+                if(addrFound == addrDevTwo)
+                {
+                    if(tx.vout[i].nValue >= nDevReward)
+                    {
+                        bFoundDevTwo = true;
+                        nFoundDevRewards += nDevReward;
+                    }
+                }
+
+                if(addrFound == addrDevThree)
+                {
+                    if(tx.vout[i].nValue >= nDevReward)
+                    {
+                        bFoundDevThree = true;
+                        nFoundDevRewards += nDevReward;
+                    }
+                }
             }
         }
     }
 
-    if(bFoundDevOne && bFoundDevTwo && bFoundDevThree && nFoundDevRewards >= nTotalDevRewards)
+    if((bFoundDevOne && bFoundDevTwo && bFoundDevThree) && (nFoundDevRewards >= nTotalDevRewards))
         return true;
     else
         return false;
