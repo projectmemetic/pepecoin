@@ -27,6 +27,9 @@
 
 using namespace std;
 
+// This will work if trex renames to PCOIN. If we can get them to rename to PEPE, a non-mandatory wallet update will follow.
+
+
 tradingDialog::tradingDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::tradingDialog),

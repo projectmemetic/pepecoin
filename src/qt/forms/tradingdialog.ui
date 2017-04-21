@@ -3909,7 +3909,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Amount in PEPE:</string>
+            <string>Amount in PEPE</string>
            </property>
           </widget>
          </item>
@@ -5245,7 +5245,7 @@
           </font>
          </property>
          <property name="text">
-          <string>Withdraw PEPE:</string>
+          <string>Withdraw PEPE</string>
          </property>
         </widget>
        </item>
