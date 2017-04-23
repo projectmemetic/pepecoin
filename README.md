@@ -71,6 +71,11 @@ PepeCoin uses libsecp256k1, libgmp, Boost1.55+, Openssl1.01p, Berkeley DB 4.8+, 
 	cd pepecoin/src
 	make -f makefile.unix USE_UPNP=-1
 
+To build the GUI with Qt 5 you need the following:
+
+    sudo apt-get install libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler
+
+
 
 **Mac Wallet**
 
