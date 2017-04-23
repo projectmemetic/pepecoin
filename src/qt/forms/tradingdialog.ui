@@ -5127,7 +5127,7 @@
           </font>
          </property>
          <property name="text">
-          <string>Generate PEPE Coin Deposit Address</string>
+          <string>Generate PEPE Coin Deposit Address (as MEME on bittrex) </string>
          </property>
         </widget>
        </item>
