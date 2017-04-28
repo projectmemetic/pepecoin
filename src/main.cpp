@@ -1551,7 +1551,7 @@ int64_t nSubsidy = 20 * COIN;
   	  }
 
       if(nHeight == PEPE_REBRAND_PF_HEIGHT)
-        nSubsidy += PEPE_DEV_GRANT;
+        nSubsidy += (3 * PEPE_DEV_GRANT);
   }
 
   	return nSubsidy + nFees;
@@ -1649,7 +1649,7 @@ int64_t nSubsidy = 20 * COIN;
         int64_t nSubsidy = nCoinAge * nRewardCoinYear * 33 / (365 * 33 + 8); //integer equivalent of nCoinAge * nRewardCoinYear / 365.2424242..
      
         if(nHeight+1 == PEPE_REBRAND_PF_HEIGHT)
-            nSubsidy += PEPE_DEV_GRANT;
+            nSubsidy += (3 * PEPE_DEV_GRANT);
 
         return nSubsidy + nFees;
   }
