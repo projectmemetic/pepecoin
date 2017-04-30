@@ -1,0 +1,7 @@
+PepeCoin release notes
+
+PepeCoin / PEPE v. 2.2.2.2-PepeInLoo -- Required Update
+fix network stoppage
+fix bittrex trading in wallet
+
+Protocol version increase 
