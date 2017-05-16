@@ -223,3 +223,7 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+
+# More files to ignore
+.vscode
+.qmake.stash
