@@ -338,7 +338,7 @@ static CBlockIndex *InsertBlockIndex(uint256 hash)
 bool CTxDB::LoadPepeMessages()
 {
     // Lighten log writing
-    // LogPrintf("Txdb LoadPepeMessages\n");
+    LogPrintf("Txdb LoadPepeMessages\n");
     if(mapPepeMessages.size() > 0) {
         // Already loaded once in this session.
         return true;
@@ -375,7 +375,7 @@ bool CTxDB::LoadPepeMessages()
         if(mapPepeMessages.count(pepeHash) == 0)
             mapPepeMessages.insert(make_pair(pepeHash, pepemessage));
 
-        LogPrintf("CTxDB::LoadPepeMessages: Iterator next\n");
+        //LogPrintf("CTxDB::LoadPepeMessages: Iterator next\n");
 
         iterator->Next();
     }
