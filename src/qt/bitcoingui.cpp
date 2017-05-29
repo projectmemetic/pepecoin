@@ -264,7 +264,6 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     connect(receiveCoinsPage, SIGNAL(signMessage(QString)), this, SLOT(gotoSignMessageTab(QString)));
 
     gotoOverviewPage();
-    overviewPage->getMessages();
 }
 
 BitcoinGUI::~BitcoinGUI()
@@ -684,7 +683,6 @@ void BitcoinGUI::setNumBlocks(int count)
 
     tooltip = tr("Processed %1 blocks of transaction history.").arg(count);
 
-    overviewPage->getMessages();
     // Set icon state: spinning if catching up, tick otherwise
     if(secs < 90*60)
     {
@@ -892,8 +890,6 @@ void BitcoinGUI::incomingTransaction(const QModelIndex & parent, int start, int 
                               .arg(BitcoinUnits::formatWithUnit(walletModel->getOptionsModel()->getDisplayUnit(), amount, true))
                               .arg(type)
                               .arg(address), icon);
-
-        overviewPage->getMessages();
     }
 
     
