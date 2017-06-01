@@ -22,6 +22,7 @@
 #include "addrman.h"
 #include "hash.h"
 #include "core.h"
+#include "sync.h"
 
 class CNode;
 class CBlockIndex;
@@ -331,6 +332,7 @@ public:
         nStartingHeight = -1;
         fStartSync = false;
         fGetAddr = false;
+        fRelayTxes = false;
         nMisbehavior = 0;
         hashCheckpointKnown = 0;
         setInventoryKnown.max_size(SendBufferSize() / 1000);
