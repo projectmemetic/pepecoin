@@ -8,7 +8,7 @@
 // Copyright (c) 2014 DashCoin Developers
 // Copyright (c) 2014 NetCoin Developers
 // Copyright (c) 2015 Transfercoin Developer
-// Copyright (c) 2015-2016 PepeCoin Developers
+// Copyright (c) 2015-2018 PepeCoin Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -57,7 +57,7 @@ CBigNum bnProofOfStakeLimit(~uint256(0) >> 20);
 unsigned int nStakeMinAge = 6 * 60 * 60; // 6 hours  temporary 1 hr for test
 unsigned int nModifierInterval = 2 * 60; // time to elapse before new modifier is computed
 
-int nCoinbaseMaturity = 60;
+int nCoinbaseMaturity = 60;     // 60 blocks until new POW or POS minted coins can be moved
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
 
@@ -1549,29 +1549,18 @@ int64_t nSubsidy = 20 * COIN;
   	  	nSubsidy = 15 * COIN;  
   	  	nSubsidy >>= ((nHeight - PEPE_REBRAND_HEIGHT) / 525600); // block reward halves once a year
   	  }
-
-      if(nHeight == PEPE_REBRAND_PF_HEIGHT)
+    
+      if(nHeight+1 == PEPE_REBRAND_PF_HEIGHT)
         nSubsidy += (3 * PEPE_DEV_GRANT);
+      if(nHeight+1 == PEPE_KEKDAQ_MID_HEIGHT)
+        nSubsidy += (3 * PEPE_DEV_GRANT_MID);
+      if(nHeight+1 == PEPE_IPFSMN_FNL_HEIGHT)
+        nSubsidy += (3 * PEPE_DEV_GRANT_FINAL);
   }
 
   	return nSubsidy + nFees;
 
 }
-
-/*
-  // PEPE STAKE RATE CALCULATION
-  // Original credit to: madprofezzor@gmail.com
-
-  // returns an integer between 0 and PIR_PHASES-1 representing which PIR phase the supplied block height falls into
-
-  Pepe Stake Rate (PSR) %
-| PEPE Amount    | Stake % Year 1|  Year 2  |  Year 3+ |
-|:-------------|:-------------:|------------:|------------:|
- |0 to 10000    |    3.0% | 2.0% | 1.0% |
- |10,000+        |    4.0%| 3.0% | 2.0% |
- |50,000+        |    5.0%| 4.0% | 3.0% |
- |100,000+       |    6.0%| 5.0% | 4.0% |
-*/
 
   int GetPIRRewardPhase(int64_t nHeight)
   {
@@ -1650,12 +1639,19 @@ int64_t nSubsidy = 20 * COIN;
      
         if(nHeight+1 == PEPE_REBRAND_PF_HEIGHT)
             nSubsidy += (3 * PEPE_DEV_GRANT);
+        if(nHeight+1 == PEPE_KEKDAQ_MID_HEIGHT)
+            nSubsidy += (3 * PEPE_DEV_GRANT_MID);
+        if(nHeight+1 == PEPE_IPFSMN_FNL_HEIGHT)
+            nSubsidy += (3 * PEPE_DEV_GRANT_FINAL);
+        
+        if (nHeight <= 1)
+            nSubsidy = 1 * COIN;    // Minimum 1 PEPE stake return for optimal KEKDAQ functionality.
 
         return nSubsidy + nFees;
   }
 
   // PEPE stake fix
-  // Simplified code to make it easier to understand, debug and maintain
+  // Not used anymore
   int64_t GetProofOfStakeRewardV2(const CBlockIndex* pindexPrev, int64_t nCoinAge, int64_t nFees, int64_t nCoinValue)
   {
         int64_t nHeight = pindexPrev->nHeight;
@@ -1744,7 +1740,7 @@ int64_t nSubsidy = 20 * COIN;
 
 
 
-static int64_t nTargetTimespan = 10 * 60;  // 10 mins
+static int64_t nTargetTimespan = 10 * 60;  // 10 mins stake difficulty retargeting
 
 // ppcoin: find last block index up to pindex
 const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake)
@@ -3013,6 +3009,10 @@ bool CBlock::CheckDevRewards(CTransaction tx, int64_t nHeight, int64_t nReward, 
 
     if (nHeight == PEPE_REBRAND_PF_HEIGHT)
         nDevReward = PEPE_DEV_GRANT;
+    if (nHeight == PEPE_KEKDAQ_MID_HEIGHT)
+        nDevReward = PEPE_DEV_GRANT_MID;
+      if(nHeight+1 == PEPE_IPFSMN_FNL_HEIGHT)
+        nDevReward = PEPE_DEV_GRANT_FINAL;
     else if (nHeight > PEPE_REBRAND_PF_HEIGHT)
         nDevReward = 0.04 * nReward; // 4% per dev reward
     
