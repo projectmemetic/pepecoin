@@ -9,7 +9,7 @@
 // Copyright (c) 2014 NetCoin Developers
 // Copyright (c) 2015 Transfercoin Developer
 // Copyright (c) 2015-2016 PepeCoin Developers
-// Copyright (c) 2016 The PepeCoin Developers
+// Copyright (c) 2016-2018 The PepeCoin Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -30,8 +30,8 @@
 
 class CValidationState;
 
-#define START_MASTERNODE_PAYMENTS_TESTNET 1460635200  // "20160414 0600"
-#define START_MASTERNODE_PAYMENTS 1460635200
+#define START_MASTERNODE_PAYMENTS_TESTNET 1500076800000
+#define START_MASTERNODE_PAYMENTS 1506816000000
 
 static const int64_t DARKSEND_COLLATERAL = (0.01*COIN);
 static const int64_t DARKSEND_POOL_MAX = (9999.99*COIN);
@@ -69,8 +69,13 @@ static const std::string PEPE_REBRAND_DEV_1 = "UE5hSlMzbVBNY1FjNmdZc0xKMUg4endHS
 static const std::string PEPE_REBRAND_DEV_2 = "UFJyeFZQWGNUQjN2TGNjZlBVRlRNVzJ6NTd3Skd3ZEd1ag==";
 static const std::string PEPE_REBRAND_DEV_3 = "UExSY1ZHVmNZdkE2NmJNWGVQd2hSUTJleFdNdlBvVm83MQ==";
 static const int64_t PEPE_REBRAND_PF_HEIGHT = 600000;
+static const int64_t PEPE_KEKDAQ_MID_HEIGHT = 733333;
+static const int64_t PEPE_IPFSMN_FNL_HEIGHT = 833333;
 static const int64_t PEPE_REBRAND_PF_HEIGHT_TESTNET = 200;
 static const int64_t PEPE_DEV_GRANT = 333333 * COIN;
+static const int64_t PEPE_DEV_GRANT_MID = 222222 * COIN;
+static const int64_t PEPE_DEV_GRANT_FINAL = 111111 * COIN;
+
 
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
 static const unsigned int MAX_BLOCK_SIZE = 20000000;
@@ -98,8 +103,6 @@ static const int64_t MIN_TX_FEE = 0.0001*COIN;
 static const int64_t MIN_RELAY_TX_FEE = MIN_TX_FEE;
 /** No amount larger than this (in satoshi) is valid */
 static const int64_t MAX_MONEY = 16628690 * COIN; // 16,628,690 POW Coins
-
-// Pepe Stake Rate PSR / PIR : Staking rewards are variable depending on the number of coins held.
 
 static const int PIR_LEVELS = 4; // number of entries in PIR_THRESHOLDS
 static const int64_t PIR_PHASEBLOCKS = 365 * 24 * 60; // one year for each phase

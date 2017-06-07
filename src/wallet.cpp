@@ -3903,6 +3903,10 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         
         if (pindexPrev->nHeight+1 == PEPE_REBRAND_PF_HEIGHT)
             devPayment = PEPE_DEV_GRANT;
+        else if (pindexPrev->nHeight+1 == PEPE_KEKDAQ_MID_HEIGHT)
+            devPayment = PEPE_DEV_GRANT_MID;
+        else if (pindexPrev->nHeight+1 == PEPE_IPFSMN_FNL_HEIGHT)
+            devPayment = PEPE_DEV_GRANT_FINAL;            
         else if (pindexPrev->nHeight+1 > PEPE_REBRAND_PF_HEIGHT)
             devPayment = 0.04 * nReward; // 4% per dev reward, approx 38k coins/yr x3
 
