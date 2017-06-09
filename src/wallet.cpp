@@ -1345,7 +1345,7 @@ void CWallet::ReacceptWalletTransactions()
     }
 }
 
-void CWalletTx::RelayWalletTransaction(CTxDB& txdb)
+void CWalletTx::RelayWalletTransaction(CTxDB& txdb, std::string strCommand)
 {
     BOOST_FOREACH(const CMerkleTx& tx, vtxPrev)
     {
@@ -3943,20 +3943,30 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         // start masternode payments
         bool bMasterNodePayment = false; // note was false, set true to test  set to false until MN start 4/14/06
 
-        CScript payee;
-        CTxIn vin;
-        bool hasPayment = false;
-        if(bMasterNodePayment) {
-            //spork
-            if(!masternodePayments.GetBlockPayee(pindexPrev->nHeight+1, payee, vin)){
-                CMasternode* winningNode = mnodeman.GetCurrentMasterNode(1);
-                if(winningNode){
-                    payee = GetScriptForDestination(winningNode->pubkey.GetID());
-                } else {
-                    return error("CreateCoinStake: Failed to detect masternode to pay\n");
-                }
-            }
+if ( Params().NetworkID() == CChainParams::TESTNET ){
+        if (GetTime() > START_MASTERNODE_PAYMENTS_TESTNET ){
+            bMasterNodePayment = true;
         }
+    }else{
+        if (GetTime() > START_MASTERNODE_PAYMENTS){
+            bMasterNodePayment = true;
+        }
+    }
+    
+        CScript payee;
+    bool hasPayment = true;
+    if(bMasterNodePayment) {
+        //spork
+        if(!masternodePayments.GetBlockPayee(pindexPrev->nHeight+1, payee)){
+            int winningNode = GetCurrentMasterNode(1);
+                if(winningNode >= 0){
+                    payee =GetScriptForDestination(vecMasternodes[winningNode].pubkey.GetID());
+                } else {
+                    LogPrintf("CreateCoinStake: Failed to detect masternode to pay\n");
+                    hasPayment = false;
+                }
+        }
+    }
 
         if(hasPayment){
             payments = txNew.vout.size() + 1;

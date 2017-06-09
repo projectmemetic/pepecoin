@@ -283,7 +283,7 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
         CWalletTx *newTx = transaction.getTransaction();
         CReserveKey *keyChange = transaction.getPossibleKeyChange();
 
-        if(recipients[0].useInstantX && total > GetSporkValue(SPORK_5_MAX_VALUE)*COIN){
+        if(recipients[0].useInstantX){//} && total > GetSporkValue(SPORK_5_MAX_VALUE)*COIN){
             return IXTransactionCreationFailed;
         }
 
@@ -291,7 +291,7 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
         bool fCreated = wallet->CreateTransaction(vecSend, *newTx, *keyChange, nFeeRequired, nChangePos, strFailReason, coinControl, recipients[0].inputType, recipients[0].useInstantX);
         transaction.setTransactionFee(nFeeRequired);
 
-        if(recipients[0].useInstantX && newTx->GetValueOut() > GetSporkValue(SPORK_5_MAX_VALUE)*COIN){
+        if(recipients[0].useInstantX){//} && newTx->GetValueOut() > GetSporkValue(SPORK_5_MAX_VALUE)*COIN){
             return IXTransactionCreationFailed;
         }
 
