@@ -47,15 +47,7 @@ MasternodeManager::MasternodeManager(QWidget *parent) :
     connect(timer, SIGNAL(timeout()), this, SLOT(updateNodeList()));
     timer->start(30000);
 
-    LOCK(cs_adrenaline);
-    if(pwalletMain->mapMyAdrenalineNodes.size() > 0)
-    {
-        BOOST_FOREACH(PAIRTYPE(std::string, CAdrenalineNodeConfig) adrenaline, pwalletMain->mapMyAdrenalineNodes)
-        {
-            updateAdrenalineNode(QString::fromStdString(adrenaline.second.sAlias), QString::fromStdString(adrenaline.second.sAddress), QString::fromStdString(adrenaline.second.sMasternodePrivKey), QString::fromStdString(adrenaline.second.sCollateralAddress));
-        }
-    }
-
+    
     updateNodeList();
 }
 
