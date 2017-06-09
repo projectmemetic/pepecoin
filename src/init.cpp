@@ -115,7 +115,7 @@ void Shutdown()
         bitdb.Flush(false);
 #endif
     StopNode();
-    DumpMasternodes();
+   
     {
         LOCK(cs_main);
 #ifdef ENABLE_WALLET
@@ -965,22 +965,6 @@ bool AppInit2(boost::thread_group& threadGroup)
     if (!strErrors.str().empty())
         return InitError(strErrors.str());
 
-    uiInterface.InitMessage(_("Loading masternode cache..."));
-
-    CMasternodeDB mndb;
-    CMasternodeDB::ReadResult readResult = mndb.Read(mnodeman);
-    if (readResult == CMasternodeDB::FileError)
-        LogPrintf("Missing masternode cache file - mncache.dat, will try to recreate\n");
-    else if (readResult != CMasternodeDB::Ok)
-    {
-        LogPrintf("Error reading mncache.dat: ");
-        if(readResult == CMasternodeDB::IncorrectFormat)
-            LogPrintf("magic is ok but data has invalid format, will try to recreate\n");
-        else
-            LogPrintf("file format is unknown or invalid, please fix it manually\n");
-    }
-
-
     fMasterNode = GetBoolArg("-masternode", false);
     if(fMasterNode) {
         LogPrintf("IS DARKSEND MASTER NODE\n");
@@ -989,7 +973,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         LogPrintf(" addr %s\n", strMasterNodeAddr.c_str());
 
         if(!strMasterNodeAddr.empty()){
-            CService addrTest = CService(strMasterNodeAddr, fNameLookup);
+            CService addrTest = CService(strMasterNodeAddr);
             if (!addrTest.IsValid()) {
                 return InitError("Invalid -masternodeaddr address: " + strMasterNodeAddr);
             }
@@ -1012,19 +996,6 @@ bool AppInit2(boost::thread_group& threadGroup)
         } else {
             return InitError(_("You must specify a masternodeprivkey in the configuration. Please see documentation for help."));
         }
-
-        activeMasternode.ManageStatus();
-    }
-
-    if(GetBoolArg("-mnconflock", false)) {
-        LogPrintf("Locking Masternodes:\n");
-        uint256 mnTxHash;
-        BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
-            LogPrintf("  %s %s\n", mne.getTxHash(), mne.getOutputIndex());
-            mnTxHash.SetHex(mne.getTxHash());
-            COutPoint outpoint = COutPoint(mnTxHash, boost::lexical_cast<unsigned int>(mne.getOutputIndex()));
-            pwalletMain->LockCoin(outpoint);
-        }
     }
 
     fEnableDarksend = GetBoolArg("-enabledarksend", false);
@@ -1040,13 +1011,18 @@ bool AppInit2(boost::thread_group& threadGroup)
         nDarksendRounds = 99999;
     }
 
-    nAnonymizeTransferAmount = GetArg("-anonymizetransferamount", 0);
-    if(nAnonymizeTransferAmount > 999999) nAnonymizeTransferAmount = 999999;
-    if(nAnonymizeTransferAmount < 2) nAnonymizeTransferAmount = 2;
+    nAnonymizeBananaBitsAmount = GetArg("-anonymizebananabitsamount", 0);
+    if(nAnonymizeBananaBitsAmount > 999999) nAnonymizeBananaBitsAmount = 999999;
+    if(nAnonymizeBananaBitsAmount < 2) nAnonymizeBananaBitsAmount = 2;
 
-    fEnableInstantX = GetBoolArg("-enableinstantx", fEnableInstantX);
-    nInstantXDepth = GetArg("-instantxdepth", nInstantXDepth);
-    nInstantXDepth = std::min(std::max(nInstantXDepth, 0), 60);
+    bool fEnableInstantX = GetBoolArg("-enableinstantx", true);
+    if(fEnableInstantX){
+        nInstantXDepth = GetArg("-instantxdepth", 5);
+        if(nInstantXDepth > 60) nInstantXDepth = 60;
+        if(nInstantXDepth < 0) nAnonymizeBananaBitsAmount = 0;
+    } else {
+        nInstantXDepth = 0;
+    }
 
     //lite mode disables all Masternode and Darksend related functionality
     fLiteMode = GetBoolArg("-litemode", false);
@@ -1057,15 +1033,17 @@ bool AppInit2(boost::thread_group& threadGroup)
     LogPrintf("fLiteMode %d\n", fLiteMode);
     LogPrintf("nInstantXDepth %d\n", nInstantXDepth);
     LogPrintf("Darksend rounds %d\n", nDarksendRounds);
-    LogPrintf("Anonymize PepeCoin Amount %d\n", nAnonymizeTransferAmount);
+    LogPrintf("Anonymize BananaBits Amount %d\n", nAnonymizeBananaBitsAmount);
 
     /* Denominations
        A note about convertability. Within Darksend pools, each denomination
        is convertable to another.
        For example:
-       1PEPE+1000 == (.1TX+100)*10
-       10PEPE+10000 == (1TX+1000)*10
+       1BANANABITS+1000 == (.1BANANABITS+100)*10
+       10BANANABITS+10000 == (1BANANABITS+1000)*10
     */
+    darkSendDenominations.push_back( (100000      * COIN)+100000000 );    
+    darkSendDenominations.push_back( (10000       * COIN)+10000000 );
     darkSendDenominations.push_back( (1000        * COIN)+1000000 );
     darkSendDenominations.push_back( (100         * COIN)+100000 );
     darkSendDenominations.push_back( (10          * COIN)+10000 );
