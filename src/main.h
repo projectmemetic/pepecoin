@@ -34,7 +34,7 @@ class CValidationState;
 #define START_MASTERNODE_PAYMENTS 1499579073
 
 static const int64_t DARKSEND_COLLATERAL = (5000*COIN);
-static const int64_t DARKSEND_COLLATERAL = (0.01*COIN);
+static const int64_t DARKSEND_FEE = (0.0001*COIN);
 static const int64_t DARKSEND_POOL_MAX = (9999.99*COIN);
 
 static const int64_t TARGET_SPACING = 60;
