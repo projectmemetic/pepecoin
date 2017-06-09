@@ -14,12 +14,7 @@
 #include "util.h"
 #include "ui_interface.h"
 #include "checkpoints.h"
-#include "darksend-relay.h"
 #include "activemasternode.h"
-#include "masternode-payments.h"
-#include "masternode.h"
-#include "masternodeman.h"
-#include "masternodeconfig.h"
 #include "spork.h"
 #include "smessage.h"
 
@@ -1141,7 +1136,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         {
             uiInterface.NotifyAdrenalineNodeChanged(adrenaline.second);
         }
-        
+
         // Add wallet transactions that aren't already in a block to mapTransactions
         pwalletMain->ReacceptWalletTransactions();
 
