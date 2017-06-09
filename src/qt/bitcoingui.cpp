@@ -476,7 +476,7 @@ void BitcoinGUI::createToolBars()
     toolbar->addAction(sendCoinsAction);
     toolbar->addAction(historyAction);
     toolbar->addAction(addressBookAction);
-    toolbarMenu->addAction(masternodeManagerAction);
+    toolbar->addAction(masternodeManagerAction);
 
 
     if (!fLiteMode){
