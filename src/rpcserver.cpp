@@ -251,7 +251,6 @@ static const CRPCCommand vRPCCommands[] =
 /* Dark features */
     { "spork",                  &spork,                  true,      false,      false },
     { "masternode",             &masternode,             true,      false,      true },
-    { "masternodelist",         &masternodelist,         true,      false,      false },
 
     { "getmessage",             &getmessage,             true,      false,      false},
     { "getmessages",            &getmessages,             true,      false,      false},
