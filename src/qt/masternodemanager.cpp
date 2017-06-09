@@ -48,7 +48,7 @@ MasternodeManager::MasternodeManager(QWidget *parent) :
     timer->start(30000);
 
     LOCK(cs_adrenaline);
-    if(pwalletMain->mapMyAdrenalineNodes != NULL && pwalletMain->mapMyAdrenalineNodes.size() > 0)
+    if(pwalletMain->mapMyAdrenalineNodes.size() > 0)
     {
         BOOST_FOREACH(PAIRTYPE(std::string, CAdrenalineNodeConfig) adrenaline, pwalletMain->mapMyAdrenalineNodes)
         {
