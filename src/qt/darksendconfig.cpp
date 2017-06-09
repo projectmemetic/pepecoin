@@ -84,8 +84,8 @@ void DarksendConfig::configure(bool enabled, int coins, int rounds) {
     QSettings settings;
 
     settings.setValue("nDarksendRounds", rounds);
-    settings.setValue("nAnonymizeTransferAmount", coins);
+    settings.setValue("nAnonymizePepeCoinAmount", coins);
 
     nDarksendRounds = rounds;
-    nAnonymizeTransferAmount = coins;
+    nAnonymizePepeCoinAmount = coins;
 }
