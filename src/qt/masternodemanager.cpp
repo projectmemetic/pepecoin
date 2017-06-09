@@ -380,3 +380,139 @@ void MasternodeManager::on_stopAllButton_clicked()
     msg.setText(QString::fromStdString(results));
     msg.exec();
 }
+
+void MasternodeManager::on_localButton_clicked()
+{
+    bool bAlreadyHaveLocalNode = false;
+    // Check if a local Pepe Node already exists
+    BOOST_FOREACH(PAIRTYPE(std::string, CAdrenalineNodeConfig) adrenaline, pwalletMain->mapMyAdrenalineNodes)
+    {
+        if(adrenaline.second.isLocal)
+    {
+        bAlreadyHaveLocalNode = true;
+        break;
+    }
+    }
+    if(bAlreadyHaveLocalNode)
+    {
+    QMessageBox msg;
+        msg.setText("A local Pepe Node already exists.");
+    msg.exec();
+    return;
+    }
+
+    // Only create once the external IP is known
+    if(GetLocalAddress(NULL).ToStringIP() == "0.0.0.0")
+    {
+    QMessageBox msg;
+        msg.setText("The local external IP is not yet detected.  Please try again in a few minutes.");
+    msg.exec();
+    return;
+    }
+
+    if(pwalletMain->GetBalance() < 10000.1*COIN)
+    {
+    QMessageBox msg;
+        msg.setText("You must have at least 10000.1 PEPE to cover the 10000 PEPE collateral for a Pepe Node and the tx fee.");
+    msg.exec();
+    return;
+    }
+
+    if (pwalletMain->IsLocked())
+    {
+    QMessageBox msg;
+        msg.setText("Your wallet must be unlocked so that the 10000 PEPE collateral can be sent.");
+    msg.exec();
+    return;
+    }
+
+    // Automatically create an entry for the local address
+    CAdrenalineNodeConfig c;
+        c.sAlias = "Local Pepe Node";
+    c.sAddress = GetLocalAddress(NULL).ToStringIPPort();
+        CKey secret;
+        secret.MakeNewKey(false);
+        c.sMasternodePrivKey = CBitcoinSecret(secret).ToString();
+    
+        CWalletDB walletdb(pwalletMain->strWalletFile);
+        CAccount account;
+        walletdb.ReadAccount(c.sAlias, account);
+        bool bKeyUsed = false;
+    bool bForceNew = false;
+
+        // Check if the current key has been used
+        if (account.vchPubKey.IsValid())
+        {
+            CScript scriptPubKey;
+            scriptPubKey.SetDestination(account.vchPubKey.GetID());
+            for (map<uint256, CWalletTx>::iterator it = pwalletMain->mapWallet.begin();
+                 it != pwalletMain->mapWallet.end() && account.vchPubKey.IsValid();
+                 ++it)
+            {
+                const CWalletTx& wtx = (*it).second;
+                BOOST_FOREACH(const CTxOut& txout, wtx.vout)
+                    if (txout.scriptPubKey == scriptPubKey)
+                        bKeyUsed = true;
+            }
+        }
+
+        // Generate a new key
+        if (!account.vchPubKey.IsValid() || bForceNew || bKeyUsed)
+        {
+            if (!pwalletMain->GetKeyFromPool(account.vchPubKey))
+            {
+        QMessageBox msg;
+                msg.setText("Keypool ran out, please call keypoolrefill first.");
+        msg.exec();
+        return;
+        }
+            pwalletMain->SetAddressBookName(account.vchPubKey.GetID(), c.sAlias);
+            walletdb.WriteAccount(c.sAlias, account);
+        }
+
+        c.sCollateralAddress = CBitcoinAddress(account.vchPubKey.GetID()).ToString();
+
+        c.isLocal = true;
+
+        pwalletMain->mapMyAdrenalineNodes.insert(make_pair(c.sAddress, c));
+    walletdb.WriteAdrenalineNodeConfig(c.sAddress, c);
+        uiInterface.NotifyAdrenalineNodeChanged(c);
+
+        strMasterNodeAddr = c.sAddress;
+    strMasterNodePrivKey = c.sMasternodePrivKey;
+
+        CKey keyds;
+            CPubKey pubkeyds;
+    std::string errorMessage;
+            if(!darkSendSigner.SetKey(strMasterNodePrivKey, errorMessage, keyds, pubkeyds))
+            {
+                QMessageBox msg;
+                msg.setText("Invalid masternodeprivkey. Please see documenation.");
+        msg.exec();
+        return;
+            }
+
+        activeMasternode.pubKeyMasternode = pubkeyds;
+        fMasterNode = true;
+
+    CWalletTx wtx;
+    std::string sNarr;
+
+    string strError = pwalletMain->SendMoneyToDestination(CBitcoinAddress(account.vchPubKey.GetID()).Get(), 10000*COIN, sNarr, wtx);
+    if (strError != "")
+    {
+    QMessageBox msg;
+        msg.setText(QString::fromStdString(strError));
+    msg.exec();
+    return;
+    }
+    else
+    {
+    QMessageBox msg;
+    std::string sMsg = "Local Pepe Node created and 10000 PEPE sent to the collateral address.  Transaction hash:\n";
+    sMsg += wtx.GetHash().GetHex();
+        msg.setText(QString::fromStdString(sMsg));
+    msg.exec();
+    return;
+    }
+}
