@@ -18,8 +18,7 @@
 #include "spork.h"
 #include "darksend.h"
 #include "instantx.h"
-#include "masternodeman.h"
-#include "masternode-payments.h"
+#include "masternode.h"
 #include "chainparams.h"
 #include "smessage.h"
 #include "main.h"
@@ -1346,21 +1345,24 @@ void CWallet::ReacceptWalletTransactions()
     }
 }
 
-void CWalletTx::RelayWalletTransaction(CTxDB& txdb, std::string strCommand)
+void CWalletTx::RelayWalletTransaction(CTxDB& txdb)
 {
+    BOOST_FOREACH(const CMerkleTx& tx, vtxPrev)
+    {
+        if (!(tx.IsCoinBase() || tx.IsCoinStake()))
+        {
+            uint256 hash = tx.GetHash();
+            if (!txdb.ContainsTx(hash))
+                RelayTransaction((CTransaction)tx, hash);
+        }
+    }
     if (!(IsCoinBase() || IsCoinStake()))
     {
-        if (GetDepthInMainChain() == 0) {
-            uint256 hash = GetHash();
-            if(strCommand == "txlreq"){
-                LogPrintf("Relaying txlreq %s\n", hash.ToString());
-                mapTxLockReq.insert(make_pair(hash, ((CTransaction)*this)));
-                CreateNewLock(((CTransaction)*this));
-                RelayTransactionLockReq((CTransaction)*this, true);
-            } else {
-                LogPrintf("Relaying wtx %s\n", hash.ToString());
-                RelayTransaction((CTransaction)*this, hash);
-            }
+        uint256 hash = GetHash();
+        if (!txdb.ContainsTx(hash))
+        {
+            LogPrintf("Relaying wtx %s\n", hash.ToString());
+            RelayTransaction((CTransaction)*this, hash);
         }
     }
 }
