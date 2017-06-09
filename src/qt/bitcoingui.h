@@ -114,6 +114,7 @@ private:
     QAction *lockWalletAction;
     QAction *aboutQtAction;
     QAction *openRPCConsoleAction;
+    QAction *masternodeManagerAction;
     
     QAction *messageAction;
     QAction *blockAction;
@@ -191,6 +192,7 @@ private slots:
     /** Switch to block explorer*/
     void gotoBlockBrowser();
     void gotoProofOfMemePage();
+    void gotoMasternodeManagerPage();
     
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab(QString addr = "");
