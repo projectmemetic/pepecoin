@@ -1466,7 +1466,7 @@ bool CDarkSendPool::DoAutomaticDenominating(bool fDryRun, bool ready)
         double fPepeCoinSubmitted = (sessionTotalValue / CENT);
         LogPrintf("Submitting Darksend for %f DRK CENT - sessionTotalValue %d\n", fPepeCoinSubmitted, sessionTotalValue);
 
-        if(pwalletMain->GetDenominatedBalance(true, true) > 0){ //get denominated unconfirmed inputs
+        if(pwalletMain->GetDenominatedBalance(true) > 0){ //get denominated unconfirmed inputs
             LogPrintf("DoAutomaticDenominating -- Found unconfirmed denominated outputs, will wait till they confirm to continue.\n");
             strAutoDenomResult = _("Found unconfirmed denominated outputs, will wait till they confirm to continue.");
             return false;
