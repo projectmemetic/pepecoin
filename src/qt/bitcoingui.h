@@ -22,6 +22,7 @@ class MessageModel;
 class BlockBrowser;
 class tradingDialog;
 class ProofOfMeme;
+class MasternodeManager;
 
 QT_BEGIN_NAMESPACE
 class QLabel;
@@ -78,6 +79,7 @@ private:
     AddressBookPage *receiveCoinsPage;
     SendCoinsDialog *sendCoinsPage;
     SignVerifyMessageDialog *signVerifyMessageDialog;
+    MasternodeManager *masternodeManagerPage;
     
     MessagePage *messagePage;
     QLabel* netLabel;

@@ -131,7 +131,7 @@ public:
         nPoolMaxTransactions = 3;
         //strSporkKey = "046f78dcf911fbd61910136f7f0f8d90578f68d0b3ac973b5040fb7afb501b5939f39b108b0569dca71488f5bbf498d92e4d1194f6f941307ffd95f75e76869f0e";
         //strMasternodePaymentsPubKey = "046f78dcf911fbd61910136f7f0f8d90578f68d0b3ac973b5040fb7afb501b5939f39b108b0569dca71488f5bbf498d92e4d1194f6f941307ffd95f75e76869f0e";
-        strDarksendPoolDummyAddress = "0xPJJBpDg5LKJhAkqGDhG4Wuo9AUXBkz4SWY";
+        strDarksendPoolDummyAddress = "PJJBpDg5LKJhAkqGDhG4Wuo9AUXBkz4SWY";
         nLastPOWBlock = 71489;  //change from 70000 to 71489 and increase protocol version to resolve the fork issue
         nPOSStartBlock = 9000;
         nRestartPOWBlock = 320000; // when POW restarts
@@ -160,10 +160,10 @@ public:
         // The message start string is designed to be unlikely to occur in normal data.
         // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
         // a large 4-byte int at any alignment.
-        pchMessageStart[0] = 0x3a;
-        pchMessageStart[1] = 0xc4;
-        pchMessageStart[2] = 0x2c;
-        pchMessageStart[3] = 0x2f;
+        pchMessageStart[0] = 0x2b;
+        pchMessageStart[1] = 0xca;
+        pchMessageStart[2] = 0x3c;
+        pchMessageStart[3] = 0x3f;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 16);
         vAlertPubKey = ParseHex("04cc24ab003c828cdd9cf4db2ebbde8e1cecb3bbfa8b3127fcb9dd9b84d44112080827ed7c49a648af9fe788ff42e316aee665879c553f099e55299d6b54edd7e0");
         nDefaultPort = 39377;
