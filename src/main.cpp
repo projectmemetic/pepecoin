@@ -29,8 +29,7 @@
 #include "ui_interface.h"
 #include "instantx.h"
 #include "darksend.h"
-#include "masternodeman.h"
-#include "masternode-payments.h"
+#include "masternode.h"
 #include "spork.h"
 #include "smessage.h"
 
