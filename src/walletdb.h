@@ -99,6 +99,7 @@ public:
     std::string sAddress;
     std::string sCollateralAddress;
     std::string sMasternodePrivKey;
+    bool isLocal;
 
     CAdrenalineNodeConfig()
     {
@@ -110,7 +111,8 @@ public:
         READWRITE(sAlias);
         READWRITE(sAddress);
         READWRITE(sCollateralAddress);
-   READWRITE(sMasternodePrivKey);
+        READWRITE(sMasternodePrivKey);
+        READWRITE(isLocal);
     )
 };
 
