@@ -388,9 +388,6 @@ bool AppInit2(boost::thread_group& threadGroup)
             LogPrintf("AppInit2 : parameter interaction: -bind set -> setting -listen=1\n");
     }
 
-    // Process masternode config
-    masternodeConfig.read(GetMasternodeConfigFile());
-
     if (mapArgs.count("-connect") && mapMultiArgs["-connect"].size() > 0) {
         // when only connecting to trusted nodes, do not seed via DNS, or listen by default
         if (SoftSetBoolArg("-dnsseed", false))
@@ -1011,15 +1008,15 @@ bool AppInit2(boost::thread_group& threadGroup)
         nDarksendRounds = 99999;
     }
 
-    nAnonymizeBananaBitsAmount = GetArg("-anonymizebananabitsamount", 0);
-    if(nAnonymizeBananaBitsAmount > 999999) nAnonymizeBananaBitsAmount = 999999;
-    if(nAnonymizeBananaBitsAmount < 2) nAnonymizeBananaBitsAmount = 2;
+    nAnonymizePepeCoinAmount = GetArg("-anonymizePepeCoinamount", 0);
+    if(nAnonymizePepeCoinAmount > 999999) nAnonymizePepeCoinAmount = 999999;
+    if(nAnonymizePepeCoinAmount < 2) nAnonymizePepeCoinAmount = 2;
 
     bool fEnableInstantX = GetBoolArg("-enableinstantx", true);
     if(fEnableInstantX){
         nInstantXDepth = GetArg("-instantxdepth", 5);
         if(nInstantXDepth > 60) nInstantXDepth = 60;
-        if(nInstantXDepth < 0) nAnonymizeBananaBitsAmount = 0;
+        if(nInstantXDepth < 0) nAnonymizePepeCoinAmount = 0;
     } else {
         nInstantXDepth = 0;
     }
@@ -1033,14 +1030,14 @@ bool AppInit2(boost::thread_group& threadGroup)
     LogPrintf("fLiteMode %d\n", fLiteMode);
     LogPrintf("nInstantXDepth %d\n", nInstantXDepth);
     LogPrintf("Darksend rounds %d\n", nDarksendRounds);
-    LogPrintf("Anonymize BananaBits Amount %d\n", nAnonymizeBananaBitsAmount);
+    LogPrintf("Anonymize PepeCoin Amount %d\n", nAnonymizePepeCoinAmount);
 
     /* Denominations
        A note about convertability. Within Darksend pools, each denomination
        is convertable to another.
        For example:
-       1BANANABITS+1000 == (.1BANANABITS+100)*10
-       10BANANABITS+10000 == (1BANANABITS+1000)*10
+       1PepeCoin+1000 == (.1PepeCoin+100)*10
+       10PepeCoin+10000 == (1PepeCoin+1000)*10
     */
     darkSendDenominations.push_back( (100000      * COIN)+100000000 );    
     darkSendDenominations.push_back( (10000       * COIN)+10000000 );

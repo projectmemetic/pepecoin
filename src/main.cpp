@@ -1010,8 +1010,7 @@ int CMerkleTx::GetDepthInMainChainINTERNAL(CBlockIndex* &pindexRet) const
 }
 
 int CMerkleTx::GetTransactionLockSignatures() const
-{
-    if(!IsSporkActive(SPORK_2_INSTANTX)) return -3;
+{}
     if(!fEnableInstantX) return -1;
 
     //compile consessus vote
@@ -4329,7 +4328,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         }
         if (tx.nDoS) pfrom->Misbehaving(tx.nDoS);
     }
-    
+
     else if (strCommand == "block" && !fImporting && !fReindex) // Ignore blocks received while importing
     {
         CBlock block;
