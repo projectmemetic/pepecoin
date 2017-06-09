@@ -497,5 +497,5 @@ bool CActiveMasternode::RegisterByPubKey(std::string strService, std::string str
        LogPrintf("Register::Register() - Error: %s\n", errorMessage.c_str());
        return false;
    }
-   return Register(vin, CService(strService), keyCollateralAddress, pubKeyCollateralAddress, keyMasternode, pubKeyMasternode, errorMessage);
+   return Register(vin, CService(strService), keyCollateralAddress, pubKeyCollateralAddress, keyMasternode, pubKeyMasternode, "", 0, errorMessage);
 }
