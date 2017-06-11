@@ -194,7 +194,7 @@
        <item row="8" column="0">
         <widget class="QLabel" name="label_15">
          <property name="text">
-          <string>Number of masternodes</string>
+          <string>Number of Mastertoads</string>
          </property>
         </widget>
        </item>

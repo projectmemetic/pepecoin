@@ -258,7 +258,7 @@ void MasternodeManager::on_removeButton_clicked()
         return;
 
     QMessageBox::StandardButton confirm;
-    confirm = QMessageBox::question(this, "Delete Adrenaline Node?", "Are you sure you want to delete this adrenaline node configuration?", QMessageBox::Yes|QMessageBox::No);
+    confirm = QMessageBox::question(this, "Delete Mastertoad?", "Are you sure you want to delete this mastertoad configuration?", QMessageBox::Yes|QMessageBox::No);
 
     if(confirm == QMessageBox::Yes)
     {
@@ -296,7 +296,7 @@ void MasternodeManager::on_startButton_clicked()
 
     QMessageBox msg;
     if(result)
-        msg.setText("Adrenaline Node at " + QString::fromStdString(c.sAddress) + " started.");
+        msg.setText("Mastertoad at " + QString::fromStdString(c.sAddress) + " started.");
     else
         msg.setText("Error: " + QString::fromStdString(errorMessage));
 
@@ -321,7 +321,7 @@ void MasternodeManager::on_stopButton_clicked()
     QMessageBox msg;
     if(result)
     {
-        msg.setText("Adrenaline Node at " + QString::fromStdString(c.sAddress) + " stopped.");
+        msg.setText("Mastertoad at " + QString::fromStdString(c.sAddress) + " stopped.");
     }
     else
     {
@@ -379,7 +379,7 @@ void MasternodeManager::on_stopAllButton_clicked()
 void MasternodeManager::on_localButton_clicked()
 {
     bool bAlreadyHaveLocalNode = false;
-    // Check if a local Pepe Node already exists
+    // Check if a local Mastertoad already exists
     BOOST_FOREACH(PAIRTYPE(std::string, CAdrenalineNodeConfig) adrenaline, pwalletMain->mapMyAdrenalineNodes)
     {
         if(adrenaline.second.isLocal)
@@ -391,7 +391,7 @@ void MasternodeManager::on_localButton_clicked()
     if(bAlreadyHaveLocalNode)
     {
     QMessageBox msg;
-        msg.setText("A local Pepe Node already exists.");
+        msg.setText("A local Mastertoad already exists.");
     msg.exec();
     return;
     }
@@ -408,7 +408,7 @@ void MasternodeManager::on_localButton_clicked()
     if(pwalletMain->GetBalance() < 15000.1*COIN)
     {
     QMessageBox msg;
-        msg.setText("You must have at least 15000.1 PEPE to cover the 15000 PEPE collateral for a Pepe Node and the tx fee.");
+        msg.setText("You must have at least 15000.1 PEPE to cover the 15000 PEPE collateral for a Mastertoad and the tx fee.");
     msg.exec();
     return;
     }
@@ -423,7 +423,7 @@ void MasternodeManager::on_localButton_clicked()
 
     // Automatically create an entry for the local address
     CAdrenalineNodeConfig c;
-        c.sAlias = "Local Pepe Node";
+        c.sAlias = "Local Mastertoad";
     c.sAddress = GetLocalAddress(NULL).ToStringIPPort();
         CKey secret;
         secret.MakeNewKey(false);
@@ -504,7 +504,7 @@ void MasternodeManager::on_localButton_clicked()
     else
     {
     QMessageBox msg;
-    std::string sMsg = "Local Pepe Node created and 15000 PEPE sent to the collateral address.  Transaction hash:\n";
+    std::string sMsg = "Local Mastertoad created and 15000 PEPE sent to the collateral address.  Transaction hash:\n";
     sMsg += wtx.GetHash().GetHex();
         msg.setText(QString::fromStdString(sMsg));
     msg.exec();
