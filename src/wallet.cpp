@@ -3878,7 +3878,8 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     int64_t blockValue = nCredit;
 
     // PepeCoin Rebrand Dev Reward
-    if(pindexPrev->nHeight+1 >= PEPE_REBRAND_HEIGHT)
+    if((Params().NetworkID() != CChainParams::TESTNET && pindexPrev->nHeight+1 >= PEPE_REBRAND_HEIGHT && pindexPrev+1 <= PEPE_KEKDAQ_MID_HEIGHT)
+        || (Params().NetworkID() == CChainParams::TESTNET && pindexPrev->nHeight+1 >= PEPE_REBRAND_HEIGHT_TESTNET && pindexPrev+1 <= PEPE_KEKDAQ_MID_HEIGHT_TESTNET))
     {
         // add tx outputs for 3 dev reward splits
         int payments = txNew.vout.size() + 3;
