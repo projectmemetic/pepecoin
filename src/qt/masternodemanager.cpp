@@ -405,10 +405,10 @@ void MasternodeManager::on_localButton_clicked()
     return;
     }
 
-    if(pwalletMain->GetBalance() < 10000.1*COIN)
+    if(pwalletMain->GetBalance() < 15000.1*COIN)
     {
     QMessageBox msg;
-        msg.setText("You must have at least 10000.1 PEPE to cover the 10000 PEPE collateral for a Pepe Node and the tx fee.");
+        msg.setText("You must have at least 15000.1 PEPE to cover the 15000 PEPE collateral for a Pepe Node and the tx fee.");
     msg.exec();
     return;
     }
@@ -416,7 +416,7 @@ void MasternodeManager::on_localButton_clicked()
     if (pwalletMain->IsLocked())
     {
     QMessageBox msg;
-        msg.setText("Your wallet must be unlocked so that the 10000 PEPE collateral can be sent.");
+        msg.setText("Your wallet must be unlocked so that the 15000 PEPE collateral can be sent.");
     msg.exec();
     return;
     }
@@ -493,7 +493,7 @@ void MasternodeManager::on_localButton_clicked()
     CWalletTx wtx;
     std::string sNarr;
 
-    string strError = pwalletMain->SendMoneyToDestination(CBitcoinAddress(account.vchPubKey.GetID()).Get(), 10000*COIN, sNarr, wtx);
+    string strError = pwalletMain->SendMoneyToDestination(CBitcoinAddress(account.vchPubKey.GetID()).Get(), 15000*COIN, sNarr, wtx);
     if (strError != "")
     {
     QMessageBox msg;
@@ -504,7 +504,7 @@ void MasternodeManager::on_localButton_clicked()
     else
     {
     QMessageBox msg;
-    std::string sMsg = "Local Pepe Node created and 10000 PEPE sent to the collateral address.  Transaction hash:\n";
+    std::string sMsg = "Local Pepe Node created and 15000 PEPE sent to the collateral address.  Transaction hash:\n";
     sMsg += wtx.GetHash().GetHex();
         msg.setText(QString::fromStdString(sMsg));
     msg.exec();
