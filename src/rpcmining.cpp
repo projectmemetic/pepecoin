@@ -11,6 +11,8 @@
 #include "init.h"
 #include "miner.h"
 #include "kernel.h"
+#include "masternode.h"
+#include "base58.h"
 
 #include <boost/assign/list_of.hpp>
 
