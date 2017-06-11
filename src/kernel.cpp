@@ -318,7 +318,7 @@ bool CheckProofOfStake(CBlockIndex* pindexPrev, const CTransaction& tx, unsigned
     int nDepth;
 
     nStakeMinConfirmations = 360; // 6 hours
-    if((pindexPrev->nHeight+1) >= PEPE_STAKE_WINTER_SWITCH_HEIGHT)
+    if((pindexPrev->nHeight+1) >= PEPE_STAKE_WINTER_SWITCH_HEIGHT || Params().NetworkID() == CChainParams::TESTNET)
         nStakeMinConfirmations = 60;
 
     if (IsConfirmedInNPrevBlocks(txindex, pindexPrev, nStakeMinConfirmations - 1, nDepth))

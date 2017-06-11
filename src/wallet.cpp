@@ -1824,7 +1824,7 @@ void CWallet::AvailableCoinsForStaking(vector<COutput>& vCoins, unsigned int nSp
     {
         LOCK2(cs_main, cs_wallet);
         int nStakeMinConfirmations = 360;
-        if(pindexBest->nHeight >= PEPE_STAKE_WINTER_SWITCH_HEIGHT)
+        if(pindexBest->nHeight >= PEPE_STAKE_WINTER_SWITCH_HEIGHT || Params().NetworkID() == CChainParams::TESTNET)
             nStakeMinConfirmations = 60;
 
         for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
