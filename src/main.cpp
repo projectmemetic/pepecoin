@@ -2371,8 +2371,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
             CScript payee;
             if(!masternodePayments.GetBlockPayee(pindex->nHeight, payee) || payee == CScript()){
                 foundPayee = true; //doesn't require a specific payee
-                foundPaymentAmount = true;
-                foundPaymentAndPayee = true;
+                
                 if(fDebug) { LogPrintf("CheckBlock() : Using non-specific masternode payments %d\n", pindex->nHeight); }
             }
 
@@ -2389,7 +2388,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
                     foundPaymentAndPayee = true;
             }
 
-            if(!foundPaymentAndPayee) {
+            if(!foundPaymentAmount || !foundPayee) {
                 CTxDestination address1;
                 ExtractDestination(payee, address1);
                 CBitcoinAddress address2(address1);
