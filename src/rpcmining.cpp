@@ -662,12 +662,11 @@ Value getblocktemplate(const Array& params, bool fHelp)
 
     CScript payee;
     masternodePayments.GetBlockPayee(pindexPrev->nHeight+1, payee);
-    CBitcoinAddress address2;
     CTxDestination address1;
     ExtractDestination(payee, address1);
     CBitcoinAddress address2(address1);
-    masternodeObj.push_back(Pair("payee", address2.ToString().c_str()));
-    masternodeObj.push_back(Pair("payee_amount", (int64_t)(pblock->vtx[0].vout[0].nValue * 0.375)));
+    result.push_back(Pair("payee", address2.ToString().c_str()));
+    result.push_back(Pair("payee_amount", (int64_t)(pblock->vtx[0].vout[0].nValue * 0.375)));
     result.push_back(Pair("masternode_payments_started", pindexPrev->nHeight + 1 > PEPE_KEKDAQ_MID_HEIGHT));
     result.push_back(Pair("enforce_masternode_payments", pindexPrev->nHeight + 1 > PEPE_KEKDAQ_MID_HEIGHT));
 
