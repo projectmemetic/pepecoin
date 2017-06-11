@@ -1093,11 +1093,33 @@ bool AppInit2(boost::thread_group& threadGroup)
     if (fServer)
         StartRPCThreads();
 
+    BOOST_FOREACH(PAIRTYPE(std::string, CAdrenalineNodeConfig) adrenaline, pwalletMain->mapMyAdrenalineNodes)
+    {
+        CAdrenalineNodeConfig c = adrenaline.second;
+        if(c.isLocal)
+        {
+        strMasterNodeAddr = c.sAddress;
+        strMasterNodePrivKey = c.sMasternodePrivKey;
+
+            CKey keyds;
+                CPubKey pubkeyds;
+        std::string errorMessage;
+                if(!darkSendSigner.SetKey(strMasterNodePrivKey, errorMessage, keyds, pubkeyds))
+                {
+                    return InitError("Invalid masternodeprivkey. Please see documenation.");
+                }
+
+            activeMasternode.pubKeyMasternode = pubkeyds;
+            fMasterNode = true;
+            break;
+        }
+    }
+
 #ifdef ENABLE_WALLET
     // Mine proof-of-stake blocks in the background
     if (!GetBoolArg("-staking", true))
         LogPrintf("Staking disabled\n");
-    else if (pwalletMain)
+    else if (pwalletMain && !fMasterNode) // don't stake if we are a local masternode
         threadGroup.create_thread(boost::bind(&ThreadStakeMiner, pwalletMain));
 #endif
 
