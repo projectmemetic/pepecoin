@@ -95,7 +95,7 @@
            <item>
             <widget class="QLabel" name="label_2">
              <property name="text">
-              <string>Pepe Node Count:</string>
+              <string>Mastertoad Count:</string>
              </property>
             </widget>
            </item>
@@ -125,7 +125,7 @@
        </widget>
        <widget class="QWidget" name="tab_2">
         <attribute name="title">
-         <string>My Pepe Nodes</string>
+         <string>My Mastertoads</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_2">
          <item row="0" column="0">
