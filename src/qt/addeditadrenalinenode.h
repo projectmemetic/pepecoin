@@ -2,8 +2,6 @@
 #define ADDEDITADRENALINENODE_H
 
 #include <QDialog>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
 
 namespace Ui {
 class AddEditAdrenalineNode;

@@ -11,6 +11,8 @@
 #include "init.h"
 #include "miner.h"
 #include "kernel.h"
+#include "masternode.h"
+#include "base58.h"
 
 #include <boost/assign/list_of.hpp>
 
@@ -657,6 +659,26 @@ Value getblocktemplate(const Array& params, bool fHelp)
     result.push_back(Pair("curtime", (int64_t)pblock->nTime));
     result.push_back(Pair("bits", strprintf("%08x", pblock->nBits)));
     result.push_back(Pair("height", (int64_t)(pindexPrev->nHeight+1)));
+
+    CScript payee;
+    if(!masternodePayments.GetBlockPayee(pindexPrev->nHeight+1, payee))
+    {
+        int winningNode = GetCurrentMasterNode(1);
+        if(winningNode >= 0)
+        {
+            payee = GetScriptForDestination(vecMasternodes[winningNode].pubkey.GetID());
+        } else {
+            LogPrintf("GetBlockTemplate: Failed to detect masternode to pay\n");
+        }
+    }
+
+    CTxDestination address1;
+    ExtractDestination(payee, address1);
+    CBitcoinAddress address2(address1);
+    result.push_back(Pair("payee", address2.ToString().c_str()));
+    result.push_back(Pair("payee_amount", (int64_t)(pblock->vtx[0].vout[0].nValue * 0.375)));
+    result.push_back(Pair("masternode_payments_started", pindexPrev->nHeight + 1 > PEPE_KEKDAQ_MID_HEIGHT));
+    result.push_back(Pair("enforce_masternode_payments", pindexPrev->nHeight + 1 > PEPE_KEKDAQ_MID_HEIGHT));
 
     return result;
 }

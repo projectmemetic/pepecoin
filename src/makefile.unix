@@ -143,12 +143,9 @@ OBJS= \
     obj/stealth.o \
     obj/activemasternode.o \
     obj/darksend.o \
-    obj/darksend-relay.o \
     obj/instantx.o \
     obj/masternodeconfig.o \
-    obj/masternodeman.o \
     obj/masternode.o \
-    obj/masternode-payments.o \
     obj/rpcdarksend.o \
     obj/spork.o \
     obj/crypto/hmac_sha256.o \

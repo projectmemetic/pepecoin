@@ -29,8 +29,7 @@
 #include "ui_interface.h"
 #include "instantx.h"
 #include "darksend.h"
-#include "masternodeman.h"
-#include "masternode-payments.h"
+#include "masternode.h"
 #include "spork.h"
 #include "smessage.h"
 
@@ -1010,32 +1009,6 @@ int CMerkleTx::GetDepthInMainChainINTERNAL(CBlockIndex* &pindexRet) const
     return pindexBest->nHeight - pindex->nHeight + 1;
 }
 
-int CMerkleTx::GetTransactionLockSignatures() const
-{
-    if(!IsSporkActive(SPORK_2_INSTANTX)) return -3;
-    if(!fEnableInstantX) return -1;
-
-    //compile consessus vote
-    std::map<uint256, CTransactionLock>::iterator i = mapTxLocks.find(GetHash());
-    if (i != mapTxLocks.end()){
-        return (*i).second.CountSignatures();
-    }
-
-    return -1;
-}
-
-bool CMerkleTx::IsTransactionLockTimedOut() const
-{
-    if(!fEnableInstantX) return -1;
-
-    //compile consessus vote
-    std::map<uint256, CTransactionLock>::iterator i = mapTxLocks.find(GetHash());
-    if (i != mapTxLocks.end()){
-        return GetTime() > (*i).second.nTimeout;
-    }
-
-    return false;
-}
 
 int CMerkleTx::GetDepthInMainChain(CBlockIndex* &pindexRet, bool enableIX) const
 {
@@ -1043,15 +1016,6 @@ int CMerkleTx::GetDepthInMainChain(CBlockIndex* &pindexRet, bool enableIX) const
     int nResult = GetDepthInMainChainINTERNAL(pindexRet);
     if (nResult == 0 && !mempool.exists(GetHash()))
         return -1; // Not in chain, not in mempool
-
-    if(enableIX){
-        if (nResult < 10){
-            int signatures = GetTransactionLockSignatures();
-            if(signatures >= INSTANTX_SIGNATURES_REQUIRED){
-                return nInstantXDepth+nResult;
-            }
-        }
-    }
 
     return nResult;
 }
@@ -1754,7 +1718,7 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
 {
     CBigNum bnTargetLimit = fProofOfStake ? GetProofOfStakeLimit(pindexLast->nHeight) : Params().ProofOfWorkLimit();
 
-    if (pindexLast == NULL)
+    if (pindexLast == NULL || TestNet()) 
         return bnTargetLimit.GetCompact(); // genesis block
 
     const CBlockIndex* pindexPrev = GetLastBlockIndex(pindexLast, fProofOfStake);
@@ -2369,6 +2333,78 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
             if(!CheckDevRewards(vtx[1], pindex->nHeight, nStakeReward, nFees))
                 return error("ConnectBlock(): check proof-of-stake failed for block, dev rewards mising.");
     }
+
+    // ----------- masternode payments -----------
+
+    bool MasternodePayments = false;                    
+    if ( Params().NetworkID() == CChainParams::TESTNET ){
+        if (pindex->nHeight > PEPE_KEKDAQ_MID_HEIGHT_TESTNET ){
+            MasternodePayments = true;
+        }
+    }else{
+        if (pindex->nHeight > PEPE_KEKDAQ_MID_HEIGHT){
+            MasternodePayments = true;
+        }
+    }
+
+    if(MasternodePayments == true)
+    {
+        CAmount masternodePaymentAmount = 0;
+        if(IsProofOfStake())
+        {
+            masternodePaymentAmount = GetMasternodePayment(pindex->nHeight, vtx[1].GetValueOut());
+        }
+        else if(IsProofOfWork())
+        {
+            masternodePaymentAmount = GetMasternodePayment(pindex->nHeight, vtx[0].GetValueOut());
+        }
+            
+        bool fIsInitialDownload = IsInitialBlockDownload();
+
+        // If we don't already have its previous block, skip masternode payment step
+        if (!fIsInitialDownload && pindex != NULL)
+        {
+            bool foundPaymentAmount = false;
+            bool foundPayee = false;
+            bool foundPaymentAndPayee = false;
+
+            CScript payee;
+            if(!masternodePayments.GetBlockPayee(pindex->nHeight, payee) || payee == CScript()){
+                foundPayee = true; //doesn't require a specific payee
+                
+                if(fDebug) { LogPrintf("CheckBlock() : Using non-specific masternode payments %d\n", pindex->nHeight); }
+            }
+
+            int vtxIndex = 0;
+            if(IsProofOfStake())
+                vtxIndex = 1;
+
+            for (unsigned int i = 0; i < vtx[vtxIndex].vout.size(); i++) {
+                if(vtx[vtxIndex].vout[i].nValue == masternodePaymentAmount )
+                    foundPaymentAmount = true;
+                if(vtx[vtxIndex].vout[i].scriptPubKey == payee )
+                    foundPayee = true;
+                if(vtx[vtxIndex].vout[i].nValue == masternodePaymentAmount && vtx[vtxIndex].vout[i].scriptPubKey == payee)
+                    foundPaymentAndPayee = true;
+            }
+
+            if(!foundPaymentAmount || !foundPayee) {
+                CTxDestination address1;
+                ExtractDestination(payee, address1);
+                CBitcoinAddress address2(address1);
+
+                if(fDebug) { LogPrintf("CheckBlock() : Couldn't find masternode payment(%d|%d) or payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, address2.ToString().c_str(), pindex->nHeight); }
+                return DoS(100, error("CheckBlock() : Couldn't find masternode payment or payee"));
+            } else {
+                if(fDebug) { LogPrintf("CheckBlock() : Found masternode payment %d\n", pindexBest->nHeight+1); }
+            }
+        } else {
+            if(fDebug) { LogPrintf("CheckBlock() : Is initial download, skipping masternode payment check %d\n", pindex->nHeight); }
+        }
+    } else {
+        if(fDebug) { LogPrintf("CheckBlock() : Skipping masternode payment check - nHeight %d Hash %s\n", pindex->nHeight, GetHash().ToString().c_str()); }
+    }
+
 
     // ppcoin: track money supply and mint amount info
     pindex->nMint = nValueOut - nValueIn + nFees;
@@ -3218,45 +3254,6 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
             delete mi->second;
         }
         mapOrphanBlocksByPrev.erase(hashPrev);
-    }
-
-    if(!IsInitialBlockDownload()){
-
-    	CScript payee;
-        CTxIn vin;
-
-        // If we're in LiteMode disable darksend features without disabling masternodes
-        if (!fLiteMode && !fImporting && !fReindex && pindexBest->nHeight > Checkpoints::GetTotalBlocksEstimate()){
-
-            if(masternodePayments.GetBlockPayee(pindexBest->nHeight, payee, vin)){
-                //UPDATE MASTERNODE LAST PAID TIME
-                CMasternode* pmn = mnodeman.Find(vin);
-                if(pmn != NULL) {
-                    pmn->nLastPaid = GetAdjustedTime();
-                }
-
-                LogPrintf("ProcessBlock() : Update Masternode Last Paid Time - %d\n", pindexBest->nHeight);
-            }
-
-            darkSendPool.CheckTimeout();
-            darkSendPool.NewBlock();
-            masternodePayments.ProcessBlock(GetHeight()+10);
-
-        } else if (fLiteMode && !fImporting && !fReindex && pindexBest->nHeight > Checkpoints::GetTotalBlocksEstimate())
-        {
-            if(masternodePayments.GetBlockPayee(pindexBest->nHeight, payee, vin)){
-                //UPDATE MASTERNODE LAST PAID TIME
-                CMasternode* pmn = mnodeman.Find(vin);
-                if(pmn != NULL) {
-                    pmn->nLastPaid = GetAdjustedTime();
-                }
-
-                LogPrintf("ProcessBlock() : Update Masternode Last Paid Time - %d\n", pindexBest->nHeight);
-            }
-
-            masternodePayments.ProcessBlock(GetHeight()+10);
-        }
-
     }
 
     // Cache any found pepe messages
@@ -4240,58 +4237,12 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     }
 
 
-    else if (strCommand == "tx"|| strCommand == "dstx")
+    else if (strCommand == "tx")
     {
         vector<uint256> vWorkQueue;
         vector<uint256> vEraseQueue;
         CTransaction tx;
-
-        //masternode signed transaction
-        bool ignoreFees = false;
-        CTxIn vin;
-        vector<unsigned char> vchSig;
-        int64_t sigTime;
-
-        if(strCommand == "tx") {
-            vRecv >> tx;
-        } else if (strCommand == "dstx") {
-            //these allow masternodes to publish a limited amount of free transactions
-            vRecv >> tx >> vin >> vchSig >> sigTime;
-
-            CMasternode* pmn = mnodeman.Find(vin);
-            if(pmn != NULL)
-            {
-                if(!pmn->allowFreeTx){
-                    //multiple peers can send us a valid masternode transaction
-                    if(fDebug) LogPrintf("dstx: Masternode sending too many transactions %s\n", tx.GetHash().ToString().c_str());
-                    return true;
-                }
-
-                std::string strMessage = tx.GetHash().ToString() + boost::lexical_cast<std::string>(sigTime);
-
-                std::string errorMessage = "";
-                if(!darkSendSigner.VerifyMessage(pmn->pubkey2, vchSig, strMessage, errorMessage)){
-                    LogPrintf("dstx: Got bad masternode address signature %s \n", vin.ToString().c_str());
-                    //pfrom->Misbehaving(20);
-                    return false;
-                }
-
-                LogPrintf("dstx: Got Masternode transaction %s\n", tx.GetHash().ToString().c_str());
-
-                ignoreFees = true;
-                pmn->allowFreeTx = false;
-
-                if(!mapDarksendBroadcastTxes.count(tx.GetHash())){
-                    CDarksendBroadcastTx dstx;
-                    dstx.tx = tx;
-                    dstx.vin = vin;
-                    dstx.vchSig = vchSig;
-                    dstx.sigTime = sigTime;
-
-                    mapDarksendBroadcastTxes.insert(make_pair(tx.GetHash(), dstx));
-                }
-            }
-        }
+        vRecv >> tx;
 
         CInv inv(MSG_TX, tx.GetHash());
         pfrom->AddInventoryKnown(inv);
@@ -4302,7 +4253,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
         mapAlreadyAskedFor.erase(inv);
 
-        if (AcceptToMemoryPool(mempool, tx, true, &fMissingInputs, false, ignoreFees))
+        if (AcceptToMemoryPool(mempool, tx, true, &fMissingInputs))
         {
             RelayTransaction(tx, inv.hash);
             vWorkQueue.push_back(inv.hash);
@@ -4350,13 +4301,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             if (nEvicted > 0)
                 LogPrint("mempool", "mapOrphan overflow, removed %u tx\n", nEvicted);
         }
-        if(strCommand == "dstx"){
-	        CInv inv(MSG_DSTX, tx.GetHash());
-	        RelayInventory(inv);
-	    }
         if (tx.nDoS) pfrom->Misbehaving(tx.nDoS);
     }
-
 
     else if (strCommand == "block" && !fImporting && !fReindex) // Ignore blocks received while importing
     {
@@ -4528,9 +4474,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         if (fSecMsgEnabled)
             SecureMsgReceiveData(pfrom, strCommand, vRecv);
 
-        darkSendPool.ProcessMessageDarksend(pfrom, strCommand, vRecv);
-        mnodeman.ProcessMessage(pfrom, strCommand, vRecv);
-        ProcessMessageMasternodePayments(pfrom, strCommand, vRecv);
+        ProcessMessageDarksend(pfrom, strCommand, vRecv);
+        ProcessMessageMasternode(pfrom, strCommand, vRecv);
         ProcessMessageInstantX(pfrom, strCommand, vRecv);
         ProcessSpork(pfrom, strCommand, vRecv);
 
@@ -4860,7 +4805,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
 
 int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
 {
-    int64_t ret = blockValue * 0.1; // 10% Masternodes pay + staking
+    int64_t ret = blockValue * 0.375; // 37.5% Masternodes pay + staking
 
     return ret;
 }

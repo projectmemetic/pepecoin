@@ -14,12 +14,7 @@
 #include "util.h"
 #include "ui_interface.h"
 #include "checkpoints.h"
-#include "darksend-relay.h"
 #include "activemasternode.h"
-#include "masternode-payments.h"
-#include "masternode.h"
-#include "masternodeman.h"
-#include "masternodeconfig.h"
 #include "spork.h"
 #include "smessage.h"
 
@@ -120,7 +115,7 @@ void Shutdown()
         bitdb.Flush(false);
 #endif
     StopNode();
-    DumpMasternodes();
+   
     {
         LOCK(cs_main);
 #ifdef ENABLE_WALLET
@@ -392,9 +387,6 @@ bool AppInit2(boost::thread_group& threadGroup)
         if (SoftSetBoolArg("-listen", true))
             LogPrintf("AppInit2 : parameter interaction: -bind set -> setting -listen=1\n");
     }
-
-    // Process masternode config
-    masternodeConfig.read(GetMasternodeConfigFile());
 
     if (mapArgs.count("-connect") && mapMultiArgs["-connect"].size() > 0) {
         // when only connecting to trusted nodes, do not seed via DNS, or listen by default
@@ -970,22 +962,6 @@ bool AppInit2(boost::thread_group& threadGroup)
     if (!strErrors.str().empty())
         return InitError(strErrors.str());
 
-    uiInterface.InitMessage(_("Loading masternode cache..."));
-
-    CMasternodeDB mndb;
-    CMasternodeDB::ReadResult readResult = mndb.Read(mnodeman);
-    if (readResult == CMasternodeDB::FileError)
-        LogPrintf("Missing masternode cache file - mncache.dat, will try to recreate\n");
-    else if (readResult != CMasternodeDB::Ok)
-    {
-        LogPrintf("Error reading mncache.dat: ");
-        if(readResult == CMasternodeDB::IncorrectFormat)
-            LogPrintf("magic is ok but data has invalid format, will try to recreate\n");
-        else
-            LogPrintf("file format is unknown or invalid, please fix it manually\n");
-    }
-
-
     fMasterNode = GetBoolArg("-masternode", false);
     if(fMasterNode) {
         LogPrintf("IS DARKSEND MASTER NODE\n");
@@ -994,7 +970,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         LogPrintf(" addr %s\n", strMasterNodeAddr.c_str());
 
         if(!strMasterNodeAddr.empty()){
-            CService addrTest = CService(strMasterNodeAddr, fNameLookup);
+            CService addrTest = CService(strMasterNodeAddr);
             if (!addrTest.IsValid()) {
                 return InitError("Invalid -masternodeaddr address: " + strMasterNodeAddr);
             }
@@ -1017,19 +993,6 @@ bool AppInit2(boost::thread_group& threadGroup)
         } else {
             return InitError(_("You must specify a masternodeprivkey in the configuration. Please see documentation for help."));
         }
-
-        activeMasternode.ManageStatus();
-    }
-
-    if(GetBoolArg("-mnconflock", false)) {
-        LogPrintf("Locking Masternodes:\n");
-        uint256 mnTxHash;
-        BOOST_FOREACH(CMasternodeConfig::CMasternodeEntry mne, masternodeConfig.getEntries()) {
-            LogPrintf("  %s %s\n", mne.getTxHash(), mne.getOutputIndex());
-            mnTxHash.SetHex(mne.getTxHash());
-            COutPoint outpoint = COutPoint(mnTxHash, boost::lexical_cast<unsigned int>(mne.getOutputIndex()));
-            pwalletMain->LockCoin(outpoint);
-        }
     }
 
     fEnableDarksend = GetBoolArg("-enabledarksend", false);
@@ -1045,13 +1008,18 @@ bool AppInit2(boost::thread_group& threadGroup)
         nDarksendRounds = 99999;
     }
 
-    nAnonymizeTransferAmount = GetArg("-anonymizetransferamount", 0);
-    if(nAnonymizeTransferAmount > 999999) nAnonymizeTransferAmount = 999999;
-    if(nAnonymizeTransferAmount < 2) nAnonymizeTransferAmount = 2;
+    nAnonymizePepeCoinAmount = GetArg("-anonymizePepeCoinamount", 0);
+    if(nAnonymizePepeCoinAmount > 999999) nAnonymizePepeCoinAmount = 999999;
+    if(nAnonymizePepeCoinAmount < 2) nAnonymizePepeCoinAmount = 2;
 
-    fEnableInstantX = GetBoolArg("-enableinstantx", fEnableInstantX);
-    nInstantXDepth = GetArg("-instantxdepth", nInstantXDepth);
-    nInstantXDepth = std::min(std::max(nInstantXDepth, 0), 60);
+    bool fEnableInstantX = GetBoolArg("-enableinstantx", true);
+    if(fEnableInstantX){
+        nInstantXDepth = GetArg("-instantxdepth", 5);
+        if(nInstantXDepth > 60) nInstantXDepth = 60;
+        if(nInstantXDepth < 0) nAnonymizePepeCoinAmount = 0;
+    } else {
+        nInstantXDepth = 0;
+    }
 
     //lite mode disables all Masternode and Darksend related functionality
     fLiteMode = GetBoolArg("-litemode", false);
@@ -1062,15 +1030,17 @@ bool AppInit2(boost::thread_group& threadGroup)
     LogPrintf("fLiteMode %d\n", fLiteMode);
     LogPrintf("nInstantXDepth %d\n", nInstantXDepth);
     LogPrintf("Darksend rounds %d\n", nDarksendRounds);
-    LogPrintf("Anonymize PepeCoin Amount %d\n", nAnonymizeTransferAmount);
+    LogPrintf("Anonymize PepeCoin Amount %d\n", nAnonymizePepeCoinAmount);
 
     /* Denominations
        A note about convertability. Within Darksend pools, each denomination
        is convertable to another.
        For example:
-       1PEPE+1000 == (.1TX+100)*10
-       10PEPE+10000 == (1TX+1000)*10
+       1PepeCoin+1000 == (.1PepeCoin+100)*10
+       10PepeCoin+10000 == (1PepeCoin+1000)*10
     */
+    darkSendDenominations.push_back( (100000      * COIN)+100000000 );    
+    darkSendDenominations.push_back( (10000       * COIN)+10000000 );
     darkSendDenominations.push_back( (1000        * COIN)+1000000 );
     darkSendDenominations.push_back( (100         * COIN)+100000 );
     darkSendDenominations.push_back( (10          * COIN)+10000 );
@@ -1123,12 +1093,38 @@ bool AppInit2(boost::thread_group& threadGroup)
     if (fServer)
         StartRPCThreads();
 
+    BOOST_FOREACH(PAIRTYPE(std::string, CAdrenalineNodeConfig) adrenaline, pwalletMain->mapMyAdrenalineNodes)
+    {
+        CAdrenalineNodeConfig c = adrenaline.second;
+        if(c.isLocal)
+        {
+        strMasterNodeAddr = c.sAddress;
+        strMasterNodePrivKey = c.sMasternodePrivKey;
+
+            CKey keyds;
+                CPubKey pubkeyds;
+        std::string errorMessage;
+                if(!darkSendSigner.SetKey(strMasterNodePrivKey, errorMessage, keyds, pubkeyds))
+                {
+                    return InitError("Invalid masternodeprivkey. Please see documenation.");
+                }
+
+            activeMasternode.pubKeyMasternode = pubkeyds;
+            fMasterNode = true;
+            break;
+        }
+    }
+
 #ifdef ENABLE_WALLET
     // Mine proof-of-stake blocks in the background
     if (!GetBoolArg("-staking", true))
         LogPrintf("Staking disabled\n");
-    else if (pwalletMain)
+    else if (pwalletMain && !fMasterNode) // don't stake if we are a local masternode
+    {
+        if(TestNet())
+            nStakeMinAge = 6 * 60; // 6 minutes for TestNet so we don't have to wait so long to test things
         threadGroup.create_thread(boost::bind(&ThreadStakeMiner, pwalletMain));
+    }
 #endif
 
     // ********************************************************* Step 12: finished
@@ -1137,6 +1133,11 @@ bool AppInit2(boost::thread_group& threadGroup)
 
 #ifdef ENABLE_WALLET
     if (pwalletMain) {
+        BOOST_FOREACH(PAIRTYPE(std::string, CAdrenalineNodeConfig) adrenaline, pwalletMain->mapMyAdrenalineNodes)
+        {
+            uiInterface.NotifyAdrenalineNodeChanged(adrenaline.second);
+        }
+
         // Add wallet transactions that aren't already in a block to mapTransactions
         pwalletMain->ReacceptWalletTransactions();
 

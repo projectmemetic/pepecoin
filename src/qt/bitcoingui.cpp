@@ -39,6 +39,7 @@
 #include "blockbrowser.h"
 #include "tradingdialog.h"
 #include "proofofmeme.h"
+#include "masternodemanager.h"
 
 #ifdef Q_OS_MAC
 #include "macdockiconhandler.h"
@@ -145,6 +146,8 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     tradingDialogPage->setObjectName("tradingDialog");
 
     proofOfMemePage = new ProofOfMeme(this);
+    masternodeManagerPage = new MasternodeManager(this);
+    
 
     signVerifyMessageDialog = new SignVerifyMessageDialog(this);
 
@@ -163,6 +166,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     centralStackedWidget->addWidget(blockBrowser);
     centralStackedWidget->addWidget(tradingDialogPage);
     centralStackedWidget->addWidget(proofOfMemePage);
+    centralStackedWidget->addWidget(masternodeManagerPage);
 
     QWidget *centralWidget = new QWidget();
     QVBoxLayout *centralLayout = new QVBoxLayout(centralWidget);
@@ -309,6 +313,10 @@ void BitcoinGUI::createActions()
     addressBookAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
     tabGroup->addAction(addressBookAction);
 
+    masternodeManagerAction = new QAction(QIcon(":/icons/bitcoin"), tr("&Mastertoads"), this);
+    masternodeManagerAction->setToolTip(tr("Show Mastertoads status and configure your nodes."));
+    masternodeManagerAction->setCheckable(true);
+    tabGroup->addAction(masternodeManagerAction);
 
     messageAction = new QAction(QIcon(":/icons/edit"), tr("&Messages"), this);
     messageAction->setToolTip(tr("View and Send Encrypted messages"));
@@ -321,7 +329,7 @@ void BitcoinGUI::createActions()
     blockAction->setCheckable(true);
     tabGroup->addAction(blockAction);
 
-    TradingAction = new QAction(QIcon(":/icons/history"), tr("&Trade"), this);
+    TradingAction = new QAction(tr("&Trade"), this);
     TradingAction ->setToolTip(tr("Start Trading"));
     TradingAction ->setCheckable(true);
     TradingAction ->setShortcut(QKeySequence(Qt::ALT + Qt::Key_8));
@@ -398,6 +406,8 @@ void BitcoinGUI::createActions()
     connect(lockWalletAction, SIGNAL(triggered()), this, SLOT(lockWallet()));
     connect(signMessageAction, SIGNAL(triggered()), this, SLOT(gotoSignMessageTab()));
     connect(verifyMessageAction, SIGNAL(triggered()), this, SLOT(gotoVerifyMessageTab()));
+    connect(masternodeManagerAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(masternodeManagerAction, SIGNAL(triggered()), this, SLOT(gotoMasternodeManagerPage()));
 }
 
 void BitcoinGUI::createMenuBar()
@@ -466,7 +476,8 @@ void BitcoinGUI::createToolBars()
     toolbar->addAction(sendCoinsAction);
     toolbar->addAction(historyAction);
     toolbar->addAction(addressBookAction);
-    
+    toolbar->addAction(masternodeManagerAction);
+
 
     if (!fLiteMode){
         toolbar->addAction(messageAction);
@@ -935,7 +946,14 @@ void BitcoinGUI::clearWidgets()
     }
 }
 
+void BitcoinGUI::gotoMasternodeManagerPage()
+{
+    masternodeManagerAction->setChecked(true);
+    centralStackedWidget->setCurrentWidget(masternodeManagerPage);
 
+    exportAction->setEnabled(false);
+    disconnect(exportAction, SIGNAL(triggered()), 0, 0);
+}
 
 void BitcoinGUI::gotoBlockBrowser()
 {

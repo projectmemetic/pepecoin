@@ -54,8 +54,11 @@ enum AvailableCoinsType
     ALL_COINS = 1,
     ONLY_DENOMINATED = 2,
     ONLY_NOT10000IFMN = 3,
-    ONLY_NONDENOMINATED_NOT10000IFMN = 4
+    ONLY_NONDENOMINATED = 3,
+    ONLY_NONDENOMINATED_NOT10000IFMN = 4,
+    ONLY_NONDENOMINATED_NOTMN = 4
 };
+
 
 /** A key pool entry */
 class CKeyPool
@@ -148,6 +151,9 @@ public:
     typedef std::map<unsigned int, CMasterKey> MasterKeyMap;
     MasterKeyMap mapMasterKeys;
     unsigned int nMasterKeyMaxID;
+
+    std::map<std::string, CAdrenalineNodeConfig> mapMyAdrenalineNodes;
+    bool AddAdrenalineNodeConfig(CAdrenalineNodeConfig nodeConfig);
 
     CWallet()
     {

@@ -42,6 +42,7 @@ static const int MIN_PEER_PROTO_VERSION = 61409;
 static const int MIN_POOL_PEER_PROTO_VERSION = 61402;
 
 static const int MIN_INSTANTX_PROTO_VERSION = 61402;
+static const int MIN_MN_PROTO_VERSION = 61402;
 
 //! minimum peer version that can receive masternode payments
 // V1 - Last protocol version before update

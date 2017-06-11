@@ -18,8 +18,7 @@
 #include "spork.h"
 #include "darksend.h"
 #include "instantx.h"
-#include "masternodeman.h"
-#include "masternode-payments.h"
+#include "masternode.h"
 #include "chainparams.h"
 #include "smessage.h"
 #include "main.h"
@@ -1348,19 +1347,22 @@ void CWallet::ReacceptWalletTransactions()
 
 void CWalletTx::RelayWalletTransaction(CTxDB& txdb, std::string strCommand)
 {
+    BOOST_FOREACH(const CMerkleTx& tx, vtxPrev)
+    {
+        if (!(tx.IsCoinBase() || tx.IsCoinStake()))
+        {
+            uint256 hash = tx.GetHash();
+            if (!txdb.ContainsTx(hash))
+                RelayTransaction((CTransaction)tx, hash);
+        }
+    }
     if (!(IsCoinBase() || IsCoinStake()))
     {
-        if (GetDepthInMainChain() == 0) {
-            uint256 hash = GetHash();
-            if(strCommand == "txlreq"){
-                LogPrintf("Relaying txlreq %s\n", hash.ToString());
-                mapTxLockReq.insert(make_pair(hash, ((CTransaction)*this)));
-                CreateNewLock(((CTransaction)*this));
-                RelayTransactionLockReq((CTransaction)*this, true);
-            } else {
-                LogPrintf("Relaying wtx %s\n", hash.ToString());
-                RelayTransaction((CTransaction)*this, hash);
-            }
+        uint256 hash = GetHash();
+        if (!txdb.ContainsTx(hash))
+        {
+            LogPrintf("Relaying wtx %s\n", hash.ToString());
+            RelayTransaction((CTransaction)*this, hash);
         }
     }
 }
@@ -1822,7 +1824,7 @@ void CWallet::AvailableCoinsForStaking(vector<COutput>& vCoins, unsigned int nSp
     {
         LOCK2(cs_main, cs_wallet);
         int nStakeMinConfirmations = 360;
-        if(pindexBest->nHeight >= PEPE_STAKE_WINTER_SWITCH_HEIGHT)
+        if(pindexBest->nHeight >= PEPE_STAKE_WINTER_SWITCH_HEIGHT || Params().NetworkID() == CChainParams::TESTNET)
             nStakeMinConfirmations = 60;
 
         for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
@@ -3876,7 +3878,8 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     int64_t blockValue = nCredit;
 
     // PepeCoin Rebrand Dev Reward
-    if(pindexPrev->nHeight+1 >= PEPE_REBRAND_HEIGHT)
+    if((Params().NetworkID() != CChainParams::TESTNET && pindexPrev->nHeight+1 >= PEPE_REBRAND_HEIGHT && pindexPrev+1 <= PEPE_KEKDAQ_MID_HEIGHT)
+        || (Params().NetworkID() == CChainParams::TESTNET && pindexPrev->nHeight+1 >= PEPE_REBRAND_HEIGHT_TESTNET && pindexPrev+1 <= PEPE_KEKDAQ_MID_HEIGHT_TESTNET))
     {
         // add tx outputs for 3 dev reward splits
         int payments = txNew.vout.size() + 3;
@@ -3941,23 +3944,33 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         // start masternode payments
         bool bMasterNodePayment = false; // note was false, set true to test  set to false until MN start 4/14/06
 
+        if ( Params().NetworkID() == CChainParams::TESTNET ){
+            if (pindexPrev->nHeight+1 > PEPE_KEKDAQ_MID_HEIGHT_TESTNET ){
+                bMasterNodePayment = true;
+            }
+        }else{
+            if (pindexPrev->nHeight+1 > PEPE_KEKDAQ_MID_HEIGHT){
+                bMasterNodePayment = true;
+            }
+        }
+
         CScript payee;
-        CTxIn vin;
-        bool hasPayment = false;
+        bool hasPayment = true;
         if(bMasterNodePayment) {
             //spork
-            if(!masternodePayments.GetBlockPayee(pindexPrev->nHeight+1, payee, vin)){
-                CMasternode* winningNode = mnodeman.GetCurrentMasterNode(1);
-                if(winningNode){
-                    payee = GetScriptForDestination(winningNode->pubkey.GetID());
-                } else {
-                    return error("CreateCoinStake: Failed to detect masternode to pay\n");
-                }
+            if(!masternodePayments.GetBlockPayee(pindexPrev->nHeight+1, payee)){
+                int winningNode = GetCurrentMasterNode(1);
+                    if(winningNode >= 0){
+                        payee =GetScriptForDestination(vecMasternodes[winningNode].pubkey.GetID());
+                    } else {
+                        LogPrintf("CreateCoinStake: Failed to detect masternode to pay\n");
+                        hasPayment = false;
+                    }
             }
         }
 
         if(hasPayment){
-            payments = txNew.vout.size() + 1;
+            payments = txNew.vout.size() + 4;
             txNew.vout.resize(payments);
 
             txNew.vout[payments-1].scriptPubKey = payee;
@@ -3969,31 +3982,86 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
             LogPrintf("Masternode payment to %s\n", address2.ToString().c_str());
         }
+        else
+        {
+            // add tx outputs for 3 dev reward splits
+            int payments = txNew.vout.size() + 3;
+            txNew.vout.resize(payments);
+        }
 
+        CBitcoinAddress addrDevOne;
+        addrDevOne.SetString(DecodeBase64(PEPE_REBRAND_DEV_1));
+        CScript payeeDevOne = GetScriptForDestination(addrDevOne.Get());
+        CBitcoinAddress addrDevTwo;
+        addrDevTwo.SetString(DecodeBase64(PEPE_REBRAND_DEV_2));
+        CScript payeeDevTwo = GetScriptForDestination(addrDevTwo.Get());
+        CBitcoinAddress addrDevThree;
+        addrDevThree.SetString(DecodeBase64(PEPE_REBRAND_DEV_3));
+        CScript payeeDevThree = GetScriptForDestination(addrDevThree.Get());
+
+        txNew.vout[payments-1].scriptPubKey = payeeDevOne;
+        txNew.vout[payments-1].nValue = 0;
+        txNew.vout[payments-2].scriptPubKey = payeeDevTwo;
+        txNew.vout[payments-2].nValue = 0;
+        txNew.vout[payments-3].scriptPubKey = payeeDevThree;
+        txNew.vout[payments-3].nValue = 0;                
+
+        int64_t devPayment = 0.02 * nReward; // 2% of stake reward per dev payment
         
-        int64_t masternodePayment = 0; //GetMasternodePayment(pindexPrev->nHeight+1, nReward);
+        if (pindexPrev->nHeight+1 == PEPE_REBRAND_PF_HEIGHT)
+            devPayment = PEPE_DEV_GRANT;
+        else if (pindexPrev->nHeight+1 == PEPE_KEKDAQ_MID_HEIGHT)
+            devPayment = PEPE_DEV_GRANT_MID;
+        else if (pindexPrev->nHeight+1 == PEPE_IPFSMN_FNL_HEIGHT)
+            devPayment = PEPE_DEV_GRANT_FINAL;            
+        else if (pindexPrev->nHeight+1 > PEPE_REBRAND_PF_HEIGHT)
+            devPayment = 0.04 * nReward; // 4% per dev reward, approx 38k coins/yr x3
 
+        int64_t masternodePayment = nReward * 0.375; //37.5% //GetMasternodePayment(pindexPrev->nHeight+1, nReward);
 
         // Set output amount
-        if (!hasPayment && txNew.vout.size() == 3) // 2 stake outputs, stake was split, no masternode payment
+        if(!hasPayment && txNew.vout.size() == 6) // 2 stake outputs, stake was split, plus 3 dev payments
         {
+            txNew.vout[payments-1].nValue = devPayment;
+            txNew.vout[payments-2].nValue = devPayment;
+            txNew.vout[payments-3].nValue = devPayment;
+            blockValue -= (3 * devPayment);
             txNew.vout[1].nValue = (blockValue / 2 / CENT) * CENT;
             txNew.vout[2].nValue = blockValue - txNew.vout[1].nValue;
         }
-        else if(hasPayment && txNew.vout.size() == 4) // 2 stake outputs, stake was split, plus a masternode payment
+        else if(!hasPayment && txNew.vout.size() == 5) // only 1 stake output, was not split, plus 3 dev payments
         {
-            txNew.vout[payments-1].nValue = masternodePayment;
+            txNew.vout[payments-1].nValue = devPayment;
+            txNew.vout[payments-2].nValue = devPayment;
+            txNew.vout[payments-3].nValue = devPayment;
+            blockValue -= (3 * devPayment);
+            txNew.vout[1].nValue = blockValue;
+        }        
+        else if(hasPayment && txNew.vout.size() == 7) // 2 stake outputs, stake was split, mn payment plus 3 dev payments
+        {
+            txNew.vout[payments-1].nValue = devPayment;
+            txNew.vout[payments-2].nValue = devPayment;
+            txNew.vout[payments-3].nValue = devPayment;
+            blockValue -= (3 * devPayment);
+            txNew.vout[payments-4].nValue = masternodePayment;
             blockValue -= masternodePayment;
             txNew.vout[1].nValue = (blockValue / 2 / CENT) * CENT;
             txNew.vout[2].nValue = blockValue - txNew.vout[1].nValue;
         }
-        else if(!hasPayment && txNew.vout.size() == 2) // only 1 stake output, was not split, no masternode payment
-            txNew.vout[1].nValue = blockValue;
-        else if(hasPayment && txNew.vout.size() == 3) // only 1 stake output, was not split, plus a masternode payment
+        else if(hasPayment && txNew.vout.size() == 6) // only 1 stake output, was not split, mn payment plus 3 dev payments
         {
-            txNew.vout[payments-1].nValue = masternodePayment;
+            txNew.vout[payments-1].nValue = devPayment;
+            txNew.vout[payments-2].nValue = devPayment;
+            txNew.vout[payments-3].nValue = devPayment;
+            blockValue -= (3 * devPayment);
+            txNew.vout[payments-4].nValue = masternodePayment;
             blockValue -= masternodePayment;
             txNew.vout[1].nValue = blockValue;
+        }
+        else
+        {
+            // this should never happen
+            LogPrintf("WARNING: Incorrect post-rebrand stake tx outputs count!\n");
         }
     }
 
@@ -4893,4 +4961,13 @@ void CWallet::GetKeyBirthTimes(std::map<CKeyID, int64_t> &mapKeyBirth) const {
     // Extract block timestamps for those keys
     for (std::map<CKeyID, CBlockIndex*>::const_iterator it = mapKeyFirstBlock.begin(); it != mapKeyFirstBlock.end(); it++)
         mapKeyBirth[it->first] = it->second->nTime - 7200; // block times can be 2h off
+}
+
+bool CWallet::AddAdrenalineNodeConfig(CAdrenalineNodeConfig nodeConfig)
+{
+    bool rv = CWalletDB(strWalletFile).WriteAdrenalineNodeConfig(nodeConfig.sAlias, nodeConfig);
+    if(rv)
+   uiInterface.NotifyAdrenalineNodeChanged(nodeConfig);
+
+    return rv;
 }
