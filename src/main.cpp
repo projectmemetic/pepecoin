@@ -2356,7 +2356,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         }
         else if(IsProofOfWork())
         {
-            masternodePaymentAmount = GetProofOfWorkReward(pindex->nHeight, vtx[0].GetValueOut());
+            masternodePaymentAmount = GetMasternodePayment(pindex->nHeight, vtx[0].GetValueOut());
         }
             
         bool fIsInitialDownload = IsInitialBlockDownload();
