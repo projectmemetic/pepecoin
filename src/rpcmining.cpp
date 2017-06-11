@@ -661,7 +661,17 @@ Value getblocktemplate(const Array& params, bool fHelp)
     result.push_back(Pair("height", (int64_t)(pindexPrev->nHeight+1)));
 
     CScript payee;
-    masternodePayments.GetBlockPayee(pindexPrev->nHeight+1, payee);
+    if(!masternodePayments.GetBlockPayee(pindexPrev->nHeight+1, payee))
+    {
+        int winningNode = GetCurrentMasterNode(1);
+        if(winningNode >= 0)
+        {
+            payee = GetScriptForDestination(vecMasternodes[winningNode].pubkey.GetID());
+        } else {
+            LogPrintf("GetBlockTemplate: Failed to detect masternode to pay\n");
+        }
+    }
+
     CTxDestination address1;
     ExtractDestination(payee, address1);
     CBitcoinAddress address2(address1);
