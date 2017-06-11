@@ -53,7 +53,7 @@ set<pair<COutPoint, unsigned int> > setStakeSeen;
 
 CBigNum bnProofOfStakeLimit(~uint256(0) >> 20);
 
-unsigned int nStakeMinAge = TestNet() ? 6 * 60 : 6 * 60 * 60; // 6 hours  temporary 1 hr for test
+unsigned int nStakeMinAge = 6 * 60 * 60; // 6 hours  temporary 1 hr for test
 unsigned int nModifierInterval = 2 * 60; // time to elapse before new modifier is computed
 
 int nCoinbaseMaturity = 60;     // 60 blocks until new POW or POS minted coins can be moved

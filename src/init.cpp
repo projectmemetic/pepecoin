@@ -1120,7 +1120,11 @@ bool AppInit2(boost::thread_group& threadGroup)
     if (!GetBoolArg("-staking", true))
         LogPrintf("Staking disabled\n");
     else if (pwalletMain && !fMasterNode) // don't stake if we are a local masternode
+    {
+        if(TestNet())
+            nStakeMinAge = 6 * 60; // 6 minutes for TestNet so we don't have to wait so long to test things
         threadGroup.create_thread(boost::bind(&ThreadStakeMiner, pwalletMain));
+    }
 #endif
 
     // ********************************************************* Step 12: finished
