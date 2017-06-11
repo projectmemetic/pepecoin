@@ -154,6 +154,10 @@ Value listunspent(const Array& params, bool fHelp)
 
     RPCTypeCheck(params, list_of(int_type)(int_type)(array_type));
 
+    int nMismatchSpent;
+    int64_t nBalanceInQuestion;
+    pwalletMain->FixSpentCoins(nMismatchSpent, nBalanceInQuestion);
+
     int nMinDepth = 6; // 6 confirmations
     if (params.size() > 0)
         nMinDepth = params[0].get_int();
