@@ -30,9 +30,9 @@ extern int nBestHeight;
 
 
 /** Time between pings automatically sent out for latency probing and keepalive (in seconds). */
-static const int PING_INTERVAL = 1 * 60;
+static const int PING_INTERVAL = 5 * 60; // Don't ping so much
 /** Time after which to disconnect, after waiting for a ping response (or inactivity). */
-static const int TIMEOUT_INTERVAL = 60 * 60;
+static const int TIMEOUT_INTERVAL = 60 * 60 * 1000; // Allow for high latency connections
 
 inline unsigned int ReceiveFloodSize() { return 2000*GetArg("-maxreceivebuffer", 50*1000); }
 inline unsigned int SendBufferSize() { return 5000*GetArg("-maxsendbuffer", 50*1000); }
