@@ -1,6 +1,6 @@
 PepeCoin release notes
 
-PepeCoin / PEPE v. 2.2.2.2-PepeInLoo -- Required Update
+PepeCoin / PEPE v. 2.3.1.1-KekdaqMN -- Required Update
 fix network stoppage
 fix bittrex trading in wallet
 
