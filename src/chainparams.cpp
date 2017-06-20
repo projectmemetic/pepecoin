@@ -119,11 +119,6 @@ public:
         base58Prefixes[EXT_PUBLIC_KEY] = list_of(0x04)(0x88)(0xB2)(0x1E).convert_to_container<std::vector<unsigned char> >();;
         base58Prefixes[EXT_SECRET_KEY] = list_of(0x04)(0x88)(0xAD)(0xE4).convert_to_container<std::vector<unsigned char> >();;
  
-        vSeeds.push_back(CDNSSeedData("nyc.pepecoin.co",  "nyc.pepecoin.co"));
-        vSeeds.push_back(CDNSSeedData("dallas.pepecoin.co",  "dallas.pepecoin.co"));
-        vSeeds.push_back(CDNSSeedData("tokyo.pepecoin.co",  "tokyo.pepecoin.co"));
-        vSeeds.push_back(CDNSSeedData("netherlands.pepecoin.co",  "netherlands.pepecoin.co"));
-        vSeeds.push_back(CDNSSeedData("paris.pepecoin.co",  "paris.pepecoin.co"));
         vSeeds.push_back(CDNSSeedData("seed.pepecoin.co",  "seed.pepecoin.co"));
  
         convertSeeds(vFixedSeeds, pnSeed, ARRAYLEN(pnSeed), nDefaultPort);
