@@ -661,15 +661,16 @@ Value getblocktemplate(const Array& params, bool fHelp)
     result.push_back(Pair("height", (int64_t)(pindexPrev->nHeight+1)));
 
     CScript payee;
-    if(!masternodePayments.GetBlockPayee(pindexPrev->nHeight+1, payee))
-    {
-        int winningNode = GetCurrentMasterNode(1);
-        if(winningNode >= 0)
-        {
-            payee = GetScriptForDestination(vecMasternodes[winningNode].pubkey.GetID());
-        } else {
-            LogPrintf("GetBlockTemplate: Failed to detect masternode to pay\n");
-        }
+    int winningNode = GetCurrentMasterNode(1);
+    if(winningNode >= 0){
+        payee =GetScriptForDestination(vecMasternodes[winningNode].pubkey.GetID());
+    } else {
+        LogPrintf("GetBlockTemplate: Failed to detect masternode to pay\n");
+        // pay the burn address if it can't detect
+        std::string burnAddy = "PKekDaqXXXXXXXXXXXXXXXXXXXXXWH8yfH";
+        CBitcoinAddress burnAddr;
+        burnAddr.SetString(burnAddy);
+        payee = GetScriptForDestination(burnAddr.Get());
     }
 
     CTxDestination address1;
