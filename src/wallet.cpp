@@ -3878,8 +3878,8 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     int64_t blockValue = nCredit;
 
     // PepeCoin Rebrand Dev Reward
-    if((Params().NetworkID() != CChainParams::TESTNET && pindexPrev->nHeight+1 >= PEPE_REBRAND_HEIGHT && pindexPrev->nHeight+1 <= PEPE_KEKDAQ_MID_HEIGHT)
-        || (Params().NetworkID() == CChainParams::TESTNET && pindexPrev->nHeight+1 >= PEPE_REBRAND_HEIGHT_TESTNET && pindexPrev->nHeight+1 <= PEPE_KEKDAQ_MID_HEIGHT_TESTNET))
+    if(((Params().NetworkID() != CChainParams::TESTNET && pindexPrev->nHeight+1 >= PEPE_REBRAND_HEIGHT) && (Params().NetworkID() != CChainParams::TESTNET && pindexPrev->nHeight+1 <= PEPE_KEKDAQ_MID_FIX_HEIGHT))
+        || ((Params().NetworkID() == CChainParams::TESTNET && pindexPrev->nHeight+1 >= PEPE_REBRAND_HEIGHT_TESTNET) && (Params().NetworkID() == CChainParams::TESTNET && pindexPrev->nHeight+1 <= PEPE_KEKDAQ_MID_HEIGHT_TESTNET)))
     {
         // add tx outputs for 3 dev reward splits
         int payments = txNew.vout.size() + 3;
@@ -3904,14 +3904,16 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
         int64_t devPayment = 0.02 * nReward; // 2% of stake reward per dev payment
         
+        if (pindexPrev->nHeight+1 > PEPE_REBRAND_PF_HEIGHT)
+            devPayment = 0.04 * nReward; // 4% per dev reward, approx 38k coins/yr x3
+
         if (pindexPrev->nHeight+1 == PEPE_REBRAND_PF_HEIGHT)
             devPayment = PEPE_DEV_GRANT;
-        else if (pindexPrev->nHeight+1 == PEPE_KEKDAQ_MID_HEIGHT)
+        if (pindexPrev->nHeight+1 == PEPE_KEKDAQ_MID_FIX_HEIGHT)
             devPayment = PEPE_DEV_GRANT_MID;
-        else if (pindexPrev->nHeight+1 == PEPE_IPFSMN_FNL_HEIGHT)
+        if (pindexPrev->nHeight+1 == PEPE_IPFSMN_FNL_HEIGHT)
             devPayment = PEPE_DEV_GRANT_FINAL;            
-        else if (pindexPrev->nHeight+1 > PEPE_REBRAND_PF_HEIGHT)
-            devPayment = 0.04 * nReward; // 4% per dev reward, approx 38k coins/yr x3
+        
 
         // Set output amount
         if(txNew.vout.size() == 6) // 2 stake outputs, stake was split, plus 3 dev payments
@@ -3957,16 +3959,19 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         CScript payee;
         bool hasPayment = true;
         if(bMasterNodePayment) {
-            //spork
-            if(!masternodePayments.GetBlockPayee(pindexPrev->nHeight+1, payee)){
-                int winningNode = GetCurrentMasterNode(1);
-                    if(winningNode >= 0){
-                        payee =GetScriptForDestination(vecMasternodes[winningNode].pubkey.GetID());
-                    } else {
-                        LogPrintf("CreateCoinStake: Failed to detect masternode to pay\n");
-                        hasPayment = false;
-                    }
+            //spork            
+            int winningNode = GetCurrentMasterNode(1);
+            if(winningNode >= 0){
+                payee =GetScriptForDestination(vecMasternodes[winningNode].pubkey.GetID());
+            } else {
+                LogPrintf("CreateCoinStake: Failed to detect masternode to pay\n");
+                // pay the burn address if it can't detect
+                std::string burnAddy = "PKekDaqXXXXXXXXXXXXXXXXXXXXXWH8yfH";
+                CBitcoinAddress burnAddr;
+                burnAddr.SetString(burnAddy);
+                payee = GetScriptForDestination(burnAddr.Get());
             }
+            
         }
 
         if(hasPayment){
@@ -4007,17 +4012,18 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         txNew.vout[payments-3].nValue = 0;                
 
         int64_t devPayment = 0.02 * nReward; // 2% of stake reward per dev payment
-        
+
+        if (pindexPrev->nHeight+1 > PEPE_REBRAND_PF_HEIGHT)
+            devPayment = 0.04 * nReward; // 4% per dev reward, approx 38k coins/yr x3        
         if (pindexPrev->nHeight+1 == PEPE_REBRAND_PF_HEIGHT)
             devPayment = PEPE_DEV_GRANT;
-        else if (pindexPrev->nHeight+1 == PEPE_KEKDAQ_MID_HEIGHT)
+        if (pindexPrev->nHeight+1 == PEPE_KEKDAQ_MID_FIX_HEIGHT)
             devPayment = PEPE_DEV_GRANT_MID;
-        else if (pindexPrev->nHeight+1 == PEPE_IPFSMN_FNL_HEIGHT)
+        if (pindexPrev->nHeight+1 == PEPE_IPFSMN_FNL_HEIGHT)
             devPayment = PEPE_DEV_GRANT_FINAL;            
-        else if (pindexPrev->nHeight+1 > PEPE_REBRAND_PF_HEIGHT)
-            devPayment = 0.04 * nReward; // 4% per dev reward, approx 38k coins/yr x3
+        
 
-        int64_t masternodePayment = nReward * 0.375; //37.5% //GetMasternodePayment(pindexPrev->nHeight+1, nReward);
+        int64_t masternodePayment = (nReward - (3 * devPayment)) * 0.375; //37.5% //GetMasternodePayment(pindexPrev->nHeight+1, nReward);
 
         // Set output amount
         if(!hasPayment && txNew.vout.size() == 6) // 2 stake outputs, stake was split, plus 3 dev payments

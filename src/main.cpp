@@ -1516,7 +1516,7 @@ int64_t nSubsidy = 20 * COIN;
     
       if(nHeight == PEPE_REBRAND_PF_HEIGHT)
         nSubsidy += (3 * PEPE_DEV_GRANT);
-      if(nHeight == PEPE_KEKDAQ_MID_HEIGHT)
+      if(nHeight == PEPE_KEKDAQ_MID_FIX_HEIGHT)
         nSubsidy += (3 * PEPE_DEV_GRANT_MID);
       if(nHeight == PEPE_IPFSMN_FNL_HEIGHT)
         nSubsidy += (3 * PEPE_DEV_GRANT_FINAL);
@@ -1603,7 +1603,7 @@ int64_t nSubsidy = 20 * COIN;
      
         if(nHeight+1 == PEPE_REBRAND_PF_HEIGHT)
             nSubsidy += (3 * PEPE_DEV_GRANT);
-        if(nHeight+1 == PEPE_KEKDAQ_MID_HEIGHT)
+        if(nHeight+1 == PEPE_KEKDAQ_MID_FIX_HEIGHT)
             nSubsidy += (3 * PEPE_DEV_GRANT_MID);
         if(nHeight+1 == PEPE_IPFSMN_FNL_HEIGHT)
             nSubsidy += (3 * PEPE_DEV_GRANT_FINAL);
@@ -2342,7 +2342,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
             MasternodePayments = true;
         }
     }else{
-        if (pindex->nHeight > PEPE_KEKDAQ_MID_HEIGHT){
+        if (pindex->nHeight > PEPE_KEKDAQ_MID_FIX_HEIGHT){
             MasternodePayments = true;
         }
     }
@@ -2394,7 +2394,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
                 CBitcoinAddress address2(address1);
 
                 if(fDebug) { LogPrintf("CheckBlock() : Couldn't find masternode payment(%d|%d) or payee(%d|%s) nHeight %d. \n", foundPaymentAmount, masternodePaymentAmount, foundPayee, address2.ToString().c_str(), pindex->nHeight); }
-                return DoS(100, error("CheckBlock() : Couldn't find masternode payment or payee"));
+                return DoS(1, error("CheckBlock() : Couldn't find masternode payment or payee"));
             } else {
                 if(fDebug) { LogPrintf("CheckBlock() : Found masternode payment %d\n", pindexBest->nHeight+1); }
             }
@@ -2751,6 +2751,8 @@ bool CTransaction::GetCoinAge(CTxDB& txdb, const CBlockIndex* pindexPrev, uint64
     int nStakeMinConfirmations = 360;
     if((pindexPrev->nHeight+1) > PEPE_STAKE_WINTER_SWITCH_HEIGHT)
         nStakeMinConfirmations = 60;
+    if((pindexPrev->nHeight+1) > PEPE_KEKDAQ_MID_FIX_HEIGHT)
+        nStakeMinConfirmations = 600;
 
     if (IsCoinBase())
         return true;
@@ -2951,7 +2953,7 @@ bool CBlock::AcceptBlock()
     // Get prev block index
     map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hashPrevBlock);
     if (mi == mapBlockIndex.end())
-        return DoS(10, error("AcceptBlock() : prev block not found"));
+        return DoS(1, error("AcceptBlock() : prev block not found"));
     CBlockIndex* pindexPrev = (*mi).second;
     int nHeight = pindexPrev->nHeight+1;
 
@@ -2971,7 +2973,7 @@ bool CBlock::AcceptBlock()
 
     // Check proof-of-work or proof-of-stake
     if (nBits != GetNextTargetRequired(pindexPrev, IsProofOfStake()))
-        return DoS(100, error("AcceptBlock() : incorrect %s", IsProofOfWork() ? "proof-of-work" : "proof-of-stake"));
+        return DoS(1, error("AcceptBlock() : incorrect %s", IsProofOfWork() ? "proof-of-work" : "proof-of-stake"));
 
     // Check timestamp against prev
     if (GetBlockTime() <= pindexPrev->GetPastTimeLimit() || FutureDrift(GetBlockTime()) < pindexPrev->GetBlockTime())
@@ -2984,7 +2986,7 @@ bool CBlock::AcceptBlock()
 
     // Check that the block chain matches the known block chain up to a checkpoint
     if (!Checkpoints::CheckHardened(nHeight, hash))
-        return DoS(100, error("AcceptBlock() : rejected by hardened checkpoint lock-in at %d", nHeight));
+        return DoS(10, error("AcceptBlock() : rejected by hardened checkpoint lock-in at %d", nHeight));
 
     uint256 hashProof;
     // Verify hash target and signature of coinstake tx
@@ -3043,15 +3045,15 @@ bool CBlock::CheckDevRewards(CTransaction tx, int64_t nHeight, int64_t nReward, 
     int64_t nActualReward = nReward - nFees;
     int64_t nDevReward = 0.02 * nReward; // 2% per dev reward
 
+    if (nHeight > PEPE_REBRAND_PF_HEIGHT)
+        nDevReward = 0.04 * nReward; // 4% per dev reward
     if (nHeight == PEPE_REBRAND_PF_HEIGHT)
         nDevReward = PEPE_DEV_GRANT;
-    if (nHeight == PEPE_KEKDAQ_MID_HEIGHT)
+    if (nHeight == PEPE_KEKDAQ_MID_FIX_HEIGHT)
         nDevReward = PEPE_DEV_GRANT_MID;
-      if(nHeight+1 == PEPE_IPFSMN_FNL_HEIGHT)
+    if(nHeight == PEPE_IPFSMN_FNL_HEIGHT)
         nDevReward = PEPE_DEV_GRANT_FINAL;
-    else if (nHeight > PEPE_REBRAND_PF_HEIGHT)
-        nDevReward = 0.04 * nReward; // 4% per dev reward
-    
+        
     int64_t nTotalDevRewards = 3 * nDevReward;
     int64_t nFoundDevRewards = 0;
     

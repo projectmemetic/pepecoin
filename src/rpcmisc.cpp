@@ -67,10 +67,10 @@ Value getinfo(const Array& params, bool fHelp)
 
     obj.push_back(Pair("testnet",       TestNet()));
 #ifdef ENABLE_WALLET
-    if (pwalletMain) {
+   /* if (pwalletMain) {
         obj.push_back(Pair("keypoololdest", (int64_t)pwalletMain->GetOldestKeyPoolTime()));
         obj.push_back(Pair("keypoolsize",   (int)pwalletMain->GetKeyPoolSize()));
-    }
+    }*/
     obj.push_back(Pair("paytxfee",      ValueFromAmount(nTransactionFee)));
     obj.push_back(Pair("mininput",      ValueFromAmount(nMinimumInputValue)));
     if (pwalletMain && pwalletMain->IsCrypted())
