@@ -71,7 +71,7 @@ static const std::string PEPE_REBRAND_DEV_2 = "UFJyeFZQWGNUQjN2TGNjZlBVRlRNVzJ6N
 static const std::string PEPE_REBRAND_DEV_3 = "UExSY1ZHVmNZdkE2NmJNWGVQd2hSUTJleFdNdlBvVm83MQ==";
 static const int64_t PEPE_REBRAND_PF_HEIGHT = 600000;
 static const int64_t PEPE_KEKDAQ_MID_HEIGHT = 733333;
-static const int64_t PEPE_KEKDAQ_MID_FIX_HEIGHT = 737000;
+static const int64_t PEPE_KEKDAQ_MID_FIX_HEIGHT = 738500;
 static const int64_t PEPE_IPFSMN_FNL_HEIGHT = 833333;
 static const int64_t PEPE_REBRAND_PF_HEIGHT_TESTNET = 200;
 static const int64_t PEPE_KEKDAQ_MID_HEIGHT_TESTNET = 333;
