@@ -2353,11 +2353,11 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         CAmount masternodePaymentAmount = 0;
         if(IsProofOfStake())
         {
-            int64_t nActualReward = nReward - nFees;
-            int64_t nDevReward = 0.02 * nReward; // 2% per dev reward
+            int64_t nActualReward = nStakeReward - nFees;
+            int64_t nDevReward = 0.02 * nStakeReward; // 2% per dev reward
 
             if (pindex->nHeight > PEPE_REBRAND_PF_HEIGHT)
-                nDevReward = 0.04 * nReward; // 4% per dev reward
+                nDevReward = 0.04 * nStakeReward; // 4% per dev reward
             if (pindex->nHeight == PEPE_REBRAND_PF_HEIGHT)
                 nDevReward = PEPE_DEV_GRANT;
             if (pindex->nHeight == PEPE_KEKDAQ_MID_FIX_HEIGHT)
