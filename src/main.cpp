@@ -2301,6 +2301,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         mapQueuedChanges[hashTx] = CTxIndex(posThisTx, tx.vout.size());
     }
 
+
     if (IsProofOfWork())
     {
         int64_t nReward = GetProofOfWorkReward(pindex->nHeight, nFees);
@@ -2352,7 +2353,21 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         CAmount masternodePaymentAmount = 0;
         if(IsProofOfStake())
         {
-            masternodePaymentAmount = GetMasternodePayment(pindex->nHeight, vtx[1].GetValueOut());
+            int64_t nActualReward = nReward - nFees;
+            int64_t nDevReward = 0.02 * nReward; // 2% per dev reward
+
+            if (pindex->nHeight > PEPE_REBRAND_PF_HEIGHT)
+                nDevReward = 0.04 * nReward; // 4% per dev reward
+            if (pindex->nHeight == PEPE_REBRAND_PF_HEIGHT)
+                nDevReward = PEPE_DEV_GRANT;
+            if (pindex->nHeight == PEPE_KEKDAQ_MID_FIX_HEIGHT)
+                nDevReward = PEPE_DEV_GRANT_MID;
+            if(pindex->nHeight == PEPE_IPFSMN_FNL_HEIGHT)
+                nDevReward = PEPE_DEV_GRANT_FINAL;
+                
+            int64_t nTotalDevRewards = 3 * nDevReward;
+            int64_t nMnRewardBase = nStakeReward - nTotalDevRewards;
+            masternodePaymentAmount = GetMasternodePayment(pindex->nHeight, nMnRewardBase);
         }
         else if(IsProofOfWork())
         {
