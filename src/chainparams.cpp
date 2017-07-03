@@ -121,7 +121,7 @@ public:
  
         vSeeds.push_back(CDNSSeedData("seed.pepecoin.co",  "seed.pepecoin.co"));
  
-        convertSeeds(vFixedSeeds, pnSeed6_main, ARRAYLEN(pnSeed), nDefaultPort);
+        convertSeeds(vFixedSeeds, pnSeed6_main, ARRAYLEN(pnSeed6_main), nDefaultPort);
  
         nPoolMaxTransactions = 3;
         //strSporkKey = "046f78dcf911fbd61910136f7f0f8d90578f68d0b3ac973b5040fb7afb501b5939f39b108b0569dca71488f5bbf498d92e4d1194f6f941307ffd95f75e76869f0e";
