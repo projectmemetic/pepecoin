@@ -13,7 +13,7 @@ static const SeedSpec6 pnSeed6_main[] =
 };
 
 
-static const unsigned int pnTestnetSeed[] = {
+static const SeedSpec6 pnSeed6_test[] = {
 
 };
 #endif
