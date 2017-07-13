@@ -3772,11 +3772,15 @@ bool static AlreadyHave(CTxDB& txdb, const CInv& inv)
 
 void static ProcessGetData(CNode* pfrom)
 {
+    // only proceed if we can get a lock
+    // if we can't, don't block and leave it in the queue for next time
+    TRY_LOCK(cs_main, lockMain);
+    if (!lockMain)
+        return;
+
     std::deque<CInv>::iterator it = pfrom->vRecvGetData.begin();
 
     vector<CInv> vNotFound;
-
-    LOCK(cs_main);
 
     while (it != pfrom->vRecvGetData.end()) {
         // Don't bother if send buffer is too full to respond anyway
@@ -4145,14 +4149,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
                     pfrom->AskFor(inv);
             } else if (inv.type == MSG_BLOCK && mapOrphanBlocks.count(inv.hash)) {
                 PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(inv.hash));
-            } else if (nInv == nLastBlock) {
-                // In case we are on a very long side-chain, it is possible that we already have
-                // the last block in an inv bundle sent in response to getblocks. Try to detect
-                // this situation and push another getblocks to continue.
-                PushGetBlocks(pfrom, mapBlockIndex[inv.hash], uint256(0));
-                if (fDebug)
-                    LogPrintf("force request: %s\n", inv.ToString());
-            }
+            } 
 
             // Track requests for our stuff
             g_signals.Inventory(inv.hash);
