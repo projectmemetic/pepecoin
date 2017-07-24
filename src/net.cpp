@@ -970,6 +970,7 @@ void ThreadSocketHandler()
             BOOST_FOREACH(CNode* pnode, vNodesCopy)
                 pnode->Release();
         }
+	MilliSleep(200); // niceness
     }
 }
 
@@ -1425,7 +1426,13 @@ void ThreadMessageHandler()
 
         vector<CNode*> vNodesCopy;
         {
-            LOCK(cs_vNodes);
+	    // niceness, try to get a lock if not wait and try again instead of blocking
+            TRY_LOCK(cs_vNodes, lockNodes);
+	    if(!lockNodes)
+	    {
+		MilliSleep(100);
+		continue;
+	    }
             vNodesCopy = vNodes;
             BOOST_FOREACH(CNode* pnode, vNodesCopy) {
                 pnode->AddRef();
@@ -1454,16 +1461,7 @@ void ThreadMessageHandler()
                 TRY_LOCK(pnode->cs_vRecvMsg, lockRecv);
                 if (lockRecv)
                 {
-                    if (!g_signals.ProcessMessages(pnode))
-                        pnode->CloseSocketDisconnect();
-
-                    if (pnode->nSendSize < SendBufferSize())
-                    {
-                        if (!pnode->vRecvGetData.empty() || (!pnode->vRecvMsg.empty() && pnode->vRecvMsg[0].complete()))
-                        {
-                            fSleep = false;
-                        }
-                    }
+		    ProcessMessages(pnode);
                 }
             }
             boost::this_thread::interruption_point();
@@ -1472,7 +1470,7 @@ void ThreadMessageHandler()
             {
                 TRY_LOCK(pnode->cs_vSend, lockSend);
                 if (lockSend)
-                    g_signals.SendMessages(pnode, pnode == pnodeTrickle);
+                    SendMessages(pnode, pnode == pnodeTrickle);
             }
             boost::this_thread::interruption_point();
         }
@@ -1483,8 +1481,8 @@ void ThreadMessageHandler()
                 pnode->Release();
         }
 
-        if (fSleep)
-            MilliSleep(100);
+	// niceness
+        MilliSleep(200);
     }
 }
 
