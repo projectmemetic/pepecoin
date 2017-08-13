@@ -844,7 +844,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CTransaction &tx, bool fLimitFree,
 bool AcceptableInputs(CTxMemPool& pool, const CTransaction &txo, bool fLimitFree,
                          bool* pfMissingInputs, bool fRejectInsaneFee, bool isDSTX)
 {
-    AssertLockHeld(cs_main);
+    //AssertLockHeld(cs_main);
     if (pfMissingInputs)
         *pfMissingInputs = false;
 
