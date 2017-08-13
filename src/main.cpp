@@ -399,6 +399,7 @@ bool IsStandardTx(const CTransaction& tx, string& reason)
 bool IsFinalTx(const CTransaction &tx, int nBlockHeight, int64_t nBlockTime)
 {
     AssertLockHeld(cs_main);
+    
     // Time based nLockTime implemented in 0.1.6
     if (tx.nLockTime == 0)
         return true;
@@ -3274,25 +3275,27 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     }
 
     // Cache any found pepe messages
-    CTxDB txdb("rw");
-    BOOST_FOREACH(const CTransaction& tx, pblock->vtx)
+    if(GetBoolArg("-messagewall", false))
     {
-        BOOST_FOREACH(const CTxOut vout, tx.vout)
+        CTxDB txdb("rw");
+        BOOST_FOREACH(const CTransaction& tx, pblock->vtx)
         {
-            if(vout.scriptPubKey.size() > 0 && vout.scriptPubKey[0] == OP_RETURN)
+            BOOST_FOREACH(const CTxOut vout, tx.vout)
             {
-                std::vector<unsigned char> vch(vout.scriptPubKey.begin()+2,vout.scriptPubKey.end());                
-                std::string astring(vch.begin(), vch.end());
-                CPepeMessage pmsg;
-                pmsg.nTime = tx.nTime;
-                pmsg.msg = astring;
-                txdb.WritePepeMessage(pmsg.GetHash(), pmsg);
-                if(mapPepeMessages.count(pmsg.GetHash()) == 0)
-                    mapPepeMessages.insert(make_pair(pmsg.GetHash(), pmsg));
+                if(vout.scriptPubKey.size() > 0 && vout.scriptPubKey[0] == OP_RETURN)
+                {
+                    std::vector<unsigned char> vch(vout.scriptPubKey.begin()+2,vout.scriptPubKey.end());                
+                    std::string astring(vch.begin(), vch.end());
+                    CPepeMessage pmsg;
+                    pmsg.nTime = tx.nTime;
+                    pmsg.msg = astring;
+                    txdb.WritePepeMessage(pmsg.GetHash(), pmsg);
+                    if(mapPepeMessages.count(pmsg.GetHash()) == 0)
+                        mapPepeMessages.insert(make_pair(pmsg.GetHash(), pmsg));
+                }
             }
         }
-    }
-        
+    }   
 
     LogPrintf("ProcessBlock: ACCEPTED\n");
 
@@ -4489,10 +4492,13 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         if (fSecMsgEnabled)
             SecureMsgReceiveData(pfrom, strCommand, vRecv);
 
-        ProcessMessageDarksend(pfrom, strCommand, vRecv);
-        ProcessMessageMasternode(pfrom, strCommand, vRecv);
-        ProcessMessageInstantX(pfrom, strCommand, vRecv);
-        ProcessSpork(pfrom, strCommand, vRecv);
+	if(!fLiteMode)
+	{
+            ProcessMessageDarksend(pfrom, strCommand, vRecv);
+            ProcessMessageMasternode(pfrom, strCommand, vRecv);
+            ProcessMessageInstantX(pfrom, strCommand, vRecv);
+            ProcessSpork(pfrom, strCommand, vRecv);
+	}
 
         // Ignore unknown commands for extensibility
     }

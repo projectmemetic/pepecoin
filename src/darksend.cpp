@@ -307,6 +307,7 @@ void ProcessMessageDarksend(CNode* pfrom, std::string& strCommand, CDataStream& 
 
             //if(!AcceptableInputs(mempool, state, tx)){
             bool* pfMissingInputs;
+        LOCK(cs_main);
 	    if(!AcceptableInputs(mempool, tx, false, pfMissingInputs)){
                 LogPrintf("dsi -- transaction not valid! \n");
                 error = _("Transaction not valid.");
@@ -976,6 +977,7 @@ bool CDarkSendPool::IsCollateralValid(const CTransaction& txCollateral){
     CValidationState state;
     //if(!AcceptableInputs(mempool, state, txCollateral)){
     bool* pfMissingInputs;
+    LOCK(cs_main);
     if(!AcceptableInputs(mempool, txCollateral, false, pfMissingInputs)){
         if(fDebug) LogPrintf ("CDarkSendPool::IsCollateralValid - didn't pass IsAcceptable\n");
         return false;
@@ -1157,6 +1159,7 @@ void CDarkSendPool::SendDarksendDenominate(std::vector<CTxIn>& vin, std::vector<
 
         //if(!AcceptableInputs(mempool, state, tx)){
 	bool* pfMissingInputs;
+    LOCK(cs_main);
 	if(!AcceptableInputs(mempool, tx, false, pfMissingInputs)){
             LogPrintf("dsi -- transaction not valid! %s \n", tx.ToString().c_str());
             return;
@@ -2121,7 +2124,7 @@ void ThreadCheckDarkSendPool()
         //LogPrintf("ThreadCheckDarkSendPool::check timeout\n");
         darkSendPool.CheckTimeout();
 
-        if(c % 60 == 0){
+        if(c % 120 == 0){ // every 2 minutes
             LOCK(cs_main);
             /*
                 cs_main is required for doing masternode.Check because something
@@ -2167,8 +2170,8 @@ void ThreadCheckDarkSendPool()
             CleanTransactionLocksList();
         }
 
-        //try to sync the masternode list and payment list every 5 seconds from at least 3 nodes
-        if(c % 5 == 0 && RequestedMasterNodeList < 3){
+        //try to sync the masternode list and payment list every 30 seconds from at least 3 nodes
+        if(c % 30 == 0 && RequestedMasterNodeList < 3){
             bool fIsInitialDownload = IsInitialBlockDownload();
             if(!fIsInitialDownload) {
                 LOCK(cs_vNodes);
