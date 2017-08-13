@@ -2124,7 +2124,7 @@ void ThreadCheckDarkSendPool()
         //LogPrintf("ThreadCheckDarkSendPool::check timeout\n");
         darkSendPool.CheckTimeout();
 
-        if(c % 120 == 0){ // every 2 minutes
+        if(c % 60 == 0){
             LOCK(cs_main);
             /*
                 cs_main is required for doing masternode.Check because something
@@ -2170,8 +2170,8 @@ void ThreadCheckDarkSendPool()
             CleanTransactionLocksList();
         }
 
-        //try to sync the masternode list and payment list every 30 seconds from at least 3 nodes
-        if(c % 30 == 0 && RequestedMasterNodeList < 3){
+        //try to sync the masternode list and payment list every 5 seconds from at least 3 nodes
+        if(c % 5 == 0 && RequestedMasterNodeList < 3){
             bool fIsInitialDownload = IsInitialBlockDownload();
             if(!fIsInitialDownload) {
                 LOCK(cs_vNodes);
