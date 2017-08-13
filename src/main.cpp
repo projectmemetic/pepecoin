@@ -2353,8 +2353,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
     {
         CAmount masternodePaymentAmount = 0;
         if(IsProofOfStake())
-        {
-            int64_t nActualReward = nStakeReward - nFees;
+        {            
             int64_t nDevReward = 0.02 * nStakeReward; // 2% per dev reward
 
             if (pindex->nHeight > PEPE_REBRAND_PF_HEIGHT)
@@ -2382,7 +2381,6 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         {
             bool foundPaymentAmount = false;
             bool foundPayee = false;
-            bool foundPaymentAndPayee = false;
 
             CScript payee;
             if(!masternodePayments.GetBlockPayee(pindex->nHeight, payee) || payee == CScript()){
@@ -2400,8 +2398,6 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
                     foundPaymentAmount = true;
                 if(vtx[vtxIndex].vout[i].scriptPubKey == payee )
                     foundPayee = true;
-                if(vtx[vtxIndex].vout[i].nValue == masternodePaymentAmount && vtx[vtxIndex].vout[i].scriptPubKey == payee)
-                    foundPaymentAndPayee = true;
             }
 
             if(!foundPaymentAmount || !foundPayee) {
@@ -2711,8 +2707,6 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
     nBestChainTrust = pindexNew->nChainTrust;
     nTimeBestReceived = GetTime();
     mempool.AddTransactionsUpdated(1);
-
-    uint256 nBestBlockTrust = pindexBest->nHeight != 0 ? (pindexBest->nChainTrust - pindexBest->pprev->nChainTrust) : pindexBest->nChainTrust;
 
     // remove some unneeded log messages to reduce disk thrashing
     /* 
@@ -3058,7 +3052,7 @@ bool CBlock::CheckDevRewards(CTransaction tx, int64_t nHeight, int64_t nReward, 
     // Check that the transaction contains
     // the 3 dev reward outputs with the
     // appropriate % of the total nReward for the block
-    int64_t nActualReward = nReward - nFees;
+
     int64_t nDevReward = 0.02 * nReward; // 2% per dev reward
 
     if (nHeight > PEPE_REBRAND_PF_HEIGHT)
@@ -4125,16 +4119,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             pfrom->Misbehaving(20);
             return error("message inv size() = %u", vInv.size());
         }
-
-        // find last block in inv vector
-        unsigned int nLastBlock = (unsigned int)(-1);
-        for (unsigned int nInv = 0; nInv < vInv.size(); nInv++) {
-            if (vInv[vInv.size() - 1 - nInv].type == MSG_BLOCK) {
-                nLastBlock = vInv.size() - 1 - nInv;
-                break;
-            }
-        }
-
+        
         LOCK(cs_main);
         CTxDB txdb("r");
 

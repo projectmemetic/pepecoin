@@ -140,8 +140,8 @@ bool RecvLine(SOCKET hSocket, string& strLine)
     {
         char c;
         int nBytes = recv(hSocket, &c, 1, MSG_DONTWAIT);
-    if(ShutdownRequested())
-        return false;
+        if(ShutdownRequested())
+            return false;
 
         if (nBytes > 0)
         {
@@ -1449,8 +1449,7 @@ void ThreadMessageHandler()
         if (!vNodesCopy.empty())
             pnodeTrickle = vNodesCopy[GetRand(vNodesCopy.size())];
 
-        bool fSleep = true;
-
+        
         BOOST_FOREACH(CNode* pnode, vNodesCopy)
         {
             if (pnode->fDisconnect)
@@ -1461,7 +1460,7 @@ void ThreadMessageHandler()
                 TRY_LOCK(pnode->cs_vRecvMsg, lockRecv);
                 if (lockRecv)
                 {
-		    ProcessMessages(pnode);
+		            ProcessMessages(pnode);
                 }
             }
             boost::this_thread::interruption_point();
