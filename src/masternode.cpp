@@ -114,7 +114,7 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
         
 
         //search existing masternode list, this is where we update existing masternodes with new dsee broadcasts
-	LOCK(cs_masternodes);
+	LOCK2(cs_masternodes, cs_main);
         BOOST_FOREACH(CMasterNode& mn, vecMasternodes) {
             if(mn.vin.prevout == vin.prevout) {
                 // count == -1 when it's a new entry
@@ -159,8 +159,7 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
         tx.vin.push_back(vin);
         tx.vout.push_back(vout);
         //if(AcceptableInputs(mempool, state, tx)){
-	bool* pfMissingInputs;
-    LOCK(cs_main);
+	bool* pfMissingInputs;    
 	if(AcceptableInputs(mempool, tx, false, pfMissingInputs)){
             if(fDebug) LogPrintf("dsee - Accepted masternode entry %i %i\n", count, current);
 
