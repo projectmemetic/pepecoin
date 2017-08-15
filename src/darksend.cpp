@@ -2144,8 +2144,11 @@ void ThreadCheckDarkSendPool()
                 if(mn.addr.IsRFC1918()) continue; //local network
                 if(mn.IsEnabled()) {
                     if(fDebug) LogPrintf("Sending masternode entry - %s \n", mn.addr.ToString().c_str());
-		    BOOST_FOREACH(CNode* pnode, vNodes) {
-                        pnode->PushMessage("dsee", mn.vin, mn.addr, mn.sig, mn.now, mn.pubkey, mn.pubkey2, count, i, mn.lastTimeSeen, mn.protocolVersion);
+                LOCK(cs_vNodes)
+                {
+    		          BOOST_FOREACH(CNode* pnode, vNodes) {
+                            pnode->PushMessage("dsee", mn.vin, mn.addr, mn.sig, mn.now, mn.pubkey, mn.pubkey2, count, i, mn.lastTimeSeen, mn.protocolVersion);
+                }
 		}   
              }
             
