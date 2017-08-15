@@ -1054,7 +1054,8 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     darkSendPool.InitCollateralAddress();
 
-    threadGroup.create_thread(boost::bind(&ThreadCheckDarkSendPool));
+    if(!fLiteMode) //don't start this thread in lite mode
+        threadGroup.create_thread(boost::bind(&ThreadCheckDarkSendPool));
 
 
 
