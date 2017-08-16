@@ -180,6 +180,7 @@ std::string HelpMessage()
 {
     string strUsage = _("Options:") + "\n";
     strUsage += "  -?                     " + _("This help message") + "\n";
+    strUsage += "  -messagewall           " + _("Enable caching of pepe message wall messages. (default: false)") + "\n";
     strUsage += "  -conf=<file>           " + _("Specify configuration file (default: pepecoin.conf)") + "\n";
     strUsage += "  -pid=<file>            " + _("Specify pid file (default: pepecoind.pid)") + "\n";
     strUsage += "  -datadir=<dir>         " + _("Specify data directory") + "\n";
@@ -1053,7 +1054,8 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     darkSendPool.InitCollateralAddress();
 
-    threadGroup.create_thread(boost::bind(&ThreadCheckDarkSendPool));
+    if(!fLiteMode) //don't start this thread in lite mode
+        threadGroup.create_thread(boost::bind(&ThreadCheckDarkSendPool));
 
 
 

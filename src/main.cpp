@@ -399,6 +399,7 @@ bool IsStandardTx(const CTransaction& tx, string& reason)
 bool IsFinalTx(const CTransaction &tx, int nBlockHeight, int64_t nBlockTime)
 {
     AssertLockHeld(cs_main);
+    
     // Time based nLockTime implemented in 0.1.6
     if (tx.nLockTime == 0)
         return true;
@@ -843,7 +844,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CTransaction &tx, bool fLimitFree,
 bool AcceptableInputs(CTxMemPool& pool, const CTransaction &txo, bool fLimitFree,
                          bool* pfMissingInputs, bool fRejectInsaneFee, bool isDSTX)
 {
-    AssertLockHeld(cs_main);
+    //AssertLockHeld(cs_main);
     if (pfMissingInputs)
         *pfMissingInputs = false;
 
@@ -2352,8 +2353,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
     {
         CAmount masternodePaymentAmount = 0;
         if(IsProofOfStake())
-        {
-            int64_t nActualReward = nStakeReward - nFees;
+        {            
             int64_t nDevReward = 0.02 * nStakeReward; // 2% per dev reward
 
             if (pindex->nHeight > PEPE_REBRAND_PF_HEIGHT)
@@ -2381,7 +2381,6 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         {
             bool foundPaymentAmount = false;
             bool foundPayee = false;
-            bool foundPaymentAndPayee = false;
 
             CScript payee;
             if(!masternodePayments.GetBlockPayee(pindex->nHeight, payee) || payee == CScript()){
@@ -2399,8 +2398,6 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
                     foundPaymentAmount = true;
                 if(vtx[vtxIndex].vout[i].scriptPubKey == payee )
                     foundPayee = true;
-                if(vtx[vtxIndex].vout[i].nValue == masternodePaymentAmount && vtx[vtxIndex].vout[i].scriptPubKey == payee)
-                    foundPaymentAndPayee = true;
             }
 
             if(!foundPaymentAmount || !foundPayee) {
@@ -2710,8 +2707,6 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
     nBestChainTrust = pindexNew->nChainTrust;
     nTimeBestReceived = GetTime();
     mempool.AddTransactionsUpdated(1);
-
-    uint256 nBestBlockTrust = pindexBest->nHeight != 0 ? (pindexBest->nChainTrust - pindexBest->pprev->nChainTrust) : pindexBest->nChainTrust;
 
     // remove some unneeded log messages to reduce disk thrashing
     /* 
@@ -3057,7 +3052,7 @@ bool CBlock::CheckDevRewards(CTransaction tx, int64_t nHeight, int64_t nReward, 
     // Check that the transaction contains
     // the 3 dev reward outputs with the
     // appropriate % of the total nReward for the block
-    int64_t nActualReward = nReward - nFees;
+
     int64_t nDevReward = 0.02 * nReward; // 2% per dev reward
 
     if (nHeight > PEPE_REBRAND_PF_HEIGHT)
@@ -3274,25 +3269,27 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     }
 
     // Cache any found pepe messages
-    CTxDB txdb("rw");
-    BOOST_FOREACH(const CTransaction& tx, pblock->vtx)
+    if(GetBoolArg("-messagewall", false))
     {
-        BOOST_FOREACH(const CTxOut vout, tx.vout)
+        CTxDB txdb("rw");
+        BOOST_FOREACH(const CTransaction& tx, pblock->vtx)
         {
-            if(vout.scriptPubKey.size() > 0 && vout.scriptPubKey[0] == OP_RETURN)
+            BOOST_FOREACH(const CTxOut vout, tx.vout)
             {
-                std::vector<unsigned char> vch(vout.scriptPubKey.begin()+2,vout.scriptPubKey.end());                
-                std::string astring(vch.begin(), vch.end());
-                CPepeMessage pmsg;
-                pmsg.nTime = tx.nTime;
-                pmsg.msg = astring;
-                txdb.WritePepeMessage(pmsg.GetHash(), pmsg);
-                if(mapPepeMessages.count(pmsg.GetHash()) == 0)
-                    mapPepeMessages.insert(make_pair(pmsg.GetHash(), pmsg));
+                if(vout.scriptPubKey.size() > 0 && vout.scriptPubKey[0] == OP_RETURN)
+                {
+                    std::vector<unsigned char> vch(vout.scriptPubKey.begin()+2,vout.scriptPubKey.end());                
+                    std::string astring(vch.begin(), vch.end());
+                    CPepeMessage pmsg;
+                    pmsg.nTime = tx.nTime;
+                    pmsg.msg = astring;
+                    txdb.WritePepeMessage(pmsg.GetHash(), pmsg);
+                    if(mapPepeMessages.count(pmsg.GetHash()) == 0)
+                        mapPepeMessages.insert(make_pair(pmsg.GetHash(), pmsg));
+                }
             }
         }
-    }
-        
+    }   
 
     LogPrintf("ProcessBlock: ACCEPTED\n");
 
@@ -4122,16 +4119,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             pfrom->Misbehaving(20);
             return error("message inv size() = %u", vInv.size());
         }
-
-        // find last block in inv vector
-        unsigned int nLastBlock = (unsigned int)(-1);
-        for (unsigned int nInv = 0; nInv < vInv.size(); nInv++) {
-            if (vInv[vInv.size() - 1 - nInv].type == MSG_BLOCK) {
-                nLastBlock = vInv.size() - 1 - nInv;
-                break;
-            }
-        }
-
+        
         LOCK(cs_main);
         CTxDB txdb("r");
 
@@ -4489,10 +4477,13 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         if (fSecMsgEnabled)
             SecureMsgReceiveData(pfrom, strCommand, vRecv);
 
-        ProcessMessageDarksend(pfrom, strCommand, vRecv);
-        ProcessMessageMasternode(pfrom, strCommand, vRecv);
-        ProcessMessageInstantX(pfrom, strCommand, vRecv);
-        ProcessSpork(pfrom, strCommand, vRecv);
+	if(!fLiteMode)
+	{
+            ProcessMessageDarksend(pfrom, strCommand, vRecv);
+            ProcessMessageMasternode(pfrom, strCommand, vRecv);
+            ProcessMessageInstantX(pfrom, strCommand, vRecv);
+            ProcessSpork(pfrom, strCommand, vRecv);
+	}
 
         // Ignore unknown commands for extensibility
     }
