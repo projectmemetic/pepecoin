@@ -1,6 +1,6 @@
 # PepeCoin - PEPE 
 
-v. 2.4.1.1 - KEKDAQ Prep & Mastertoads Release
+v. 2.4.4.1 - Optimization and bug-fix Release
 ####
 Pepecoin is digital decentralized crypto-currency, a hybrid zombie mix of seven other cryptocurrency projects, plus a lot of custom code and goals.
 
