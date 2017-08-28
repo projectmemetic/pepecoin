@@ -2193,7 +2193,6 @@ void RebuildAddressIndexFromHeight(int64_t nStartHeight)
     CTxDB txdbAddr("rw");
     while(pblockAddrIndex && pblockAddrIndex->nHeight <= nStopHeight)
     {
-        bool ReadFromDisk(const CBlockIndex* pindex, bool fReadTransactions=true);
         CBlock pblockAddr;
         if(pblockAddr.ReadFromDisk(pblockAddrIndex, true))
             pblockAddr.RebuildAddressIndex(txdbAddr);
@@ -2205,10 +2204,8 @@ void RebuildAddressIndexFromHeight(int64_t nStartHeight)
 void RebuildAddressIndexForBlock(int64_t nBlockHeight)
 {
     LogPrintf("RebuildAddressIndexForBlock(): nBlockHeight: %d\n", nBlockHeight);
-    uint64_t nStopHeight = pindexBest->nHeight;
-    CBlockIndex* pblockAddrIndex = FindBlockByHeight(nStartHeight);
+    CBlockIndex* pblockAddrIndex = FindBlockByHeight(nBlockHeight);
     CTxDB txdbAddr("rw");
-    bool ReadFromDisk(const CBlockIndex* pindex, bool fReadTransactions=true);
     CBlock pblockAddr;
     if(pblockAddr.ReadFromDisk(pblockAddrIndex, true))
         pblockAddr.RebuildAddressIndex(txdbAddr);
