@@ -173,9 +173,7 @@ Value rebuildaddressindexfrom(const Array& params, bool fHelp)
 
     RebuildAddressIndexFromHeight(nHeight);
 
-    Object result;
-    result.push_back("Complete");
-    return result;
+    return true;
 }
 
 Value rebuildaddressindexfor(const Array& params, bool fHelp)
@@ -191,9 +189,7 @@ Value rebuildaddressindexfor(const Array& params, bool fHelp)
 
     RebuildAddressIndexForBlock(nHeight);
 
-    Object result;
-    result.push_back("Complete");
-    return result;
+    return true;
 }
 
 Value getmessage(const Array& params, bool fHelp)
