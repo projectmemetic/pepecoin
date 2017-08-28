@@ -2185,6 +2185,37 @@ bool FindTransactionsByDestination(const CTxDestination &dest, std::vector<uint2
     return true;
 }
 
+void RebuildAddressIndexFromHeight(int64_t nStartHeight)
+{
+    LogPrintf("RebuildAddressIndexFromHeight(): nStartHeight: %d\n", nStartHeight);
+    uint64_t nStopHeight = pindexBest->nHeight;
+    CBlockIndex* pblockAddrIndex = FindBlockByHeight(nStartHeight);
+    CTxDB txdbAddr("rw");
+    while(pblockAddrIndex && pblockAddrIndex->nHeight <= nStopHeight)
+    {
+        bool ReadFromDisk(const CBlockIndex* pindex, bool fReadTransactions=true);
+        CBlock pblockAddr;
+        if(pblockAddr.ReadFromDisk(pblockAddrIndex, true))
+            pblockAddr.RebuildAddressIndex(txdbAddr);
+        pblockAddrIndex = pblockAddrIndex->pnext;
+    }
+    LogPrintf("RebuildAddressIndexFromHeight(): Complete\n");
+}
+
+void RebuildAddressIndexForBlock(int64_t nBlockHeight)
+{
+    LogPrintf("RebuildAddressIndexForBlock(): nBlockHeight: %d\n", nBlockHeight);
+    uint64_t nStopHeight = pindexBest->nHeight;
+    CBlockIndex* pblockAddrIndex = FindBlockByHeight(nStartHeight);
+    CTxDB txdbAddr("rw");
+    bool ReadFromDisk(const CBlockIndex* pindex, bool fReadTransactions=true);
+    CBlock pblockAddr;
+    if(pblockAddr.ReadFromDisk(pblockAddrIndex, true))
+        pblockAddr.RebuildAddressIndex(txdbAddr);
+
+    LogPrintf("RebuildAddressIndexForBlock(): Complete\n");
+}
+
 void CBlock::RebuildAddressIndex(CTxDB& txdb)
 {
     BOOST_FOREACH(CTransaction& tx, vtx)
@@ -2436,6 +2467,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 
     if(GetBoolArg("-addrindex", false))
     {
+        CTxDB txdbaddr("rw");
         // Write Address Index
         BOOST_FOREACH(CTransaction& tx, vtx)
         {
@@ -2446,7 +2478,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
                 MapPrevTx mapInputs;
                 map<uint256, CTxIndex> mapQueuedChangesT;
                 bool fInvalid;
-                if (!tx.FetchInputs(txdb, mapQueuedChangesT, true, false, mapInputs, fInvalid))
+                if (!tx.FetchInputs(txdbaddr, mapQueuedChangesT, true, false, mapInputs, fInvalid))
                     return false;
 
                 MapPrevTx::const_iterator mi;
@@ -2459,7 +2491,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
                         {
                             BOOST_FOREACH(uint160 addrId, addrIds)
                             {
-                                if(!txdb.WriteAddrIndex(addrId, hashTx))
+                                if(!txdbaddr.WriteAddrIndex(addrId, hashTx))
                                     LogPrintf("ConnectBlock(): txins WriteAddrIndex failed addrId: %s txhash: %s\n", addrId.ToString().c_str(), hashTx.ToString().c_str());
                             }
                         }
@@ -2475,7 +2507,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
                 {
                     BOOST_FOREACH(uint160 addrId, addrIds)
                     {
-                        if(!txdb.WriteAddrIndex(addrId, hashTx))
+                        if(!txdbaddr.WriteAddrIndex(addrId, hashTx))
                             LogPrintf("ConnectBlock(): txouts WriteAddrIndex failed addrId: %s txhash: %s\n", addrId.ToString().c_str(), hashTx.ToString().c_str());
                     }
                 }

@@ -985,6 +985,8 @@ public:
     bool AcceptBlock();
     bool SignBlock(CWallet& keystore, int64_t nFees);
     bool CheckBlockSignature() const;
+    void RebuildAddressIndexFromHeight(int64_t nStartHeight);
+    void RebuildAddressIndexForBlock(int64_t nBlockHeight);
     void RebuildAddressIndex(CTxDB& txdb);
     bool CheckDevRewards(CTransaction tx, int64_t nHeight, int64_t nReward, int64_t nFees);
 

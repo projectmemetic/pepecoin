@@ -160,6 +160,42 @@ Object blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool fPri
     return result;
 }
 
+Value rebuildaddressindexfrom(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1)
+        throw runtime_error(
+            "rebuildaddressindexfrom <blocknumber>\n"
+            "Rebuilds the address index from block <blocknumber> to current best block.");
+
+    int nHeight = params[0].get_int();
+    if (nHeight < 0 || nHeight > nBestHeight)
+        throw runtime_error("Block number out of range.");
+
+    RebuildAddressIndexFromHeight(nHeight);
+
+    Object result;
+    result.push_back("Complete");
+    return result;
+}
+
+Value rebuildaddressindexfor(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1)
+        throw runtime_error(
+            "rebuildaddressindexfor <blocknumber>\n"
+            "Rebuilds the address index for block <blocknumber>.");
+
+    int nHeight = params[0].get_int();
+    if (nHeight < 0 || nHeight > nBestHeight)
+        throw runtime_error("Block number out of range.");
+
+    RebuildAddressIndexForBlock(nHeight);
+
+    Object result;
+    result.push_back("Complete");
+    return result;
+}
+
 Value getmessage(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
