@@ -252,6 +252,9 @@ void Misbehaving(NodeId nodeid, int howmuch);
 
 int64_t GetMasternodePayment(int nHeight, int64_t blockValue);
 
+void RebuildAddressIndexFromHeight(int64_t nStartHeight);
+void RebuildAddressIndexForBlock(int64_t nBlockHeight);
+
 /** Message cached from op_return **/
 class CPepeMessage
 {

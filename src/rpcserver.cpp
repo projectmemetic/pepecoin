@@ -247,6 +247,8 @@ static const CRPCCommand vRPCCommands[] =
     { "validatepubkey",         &validatepubkey,         true,      false,     false },
     { "verifymessage",          &verifymessage,          false,     false,     false },
     { "searchrawtransactions",  &searchrawtransactions,  false,     false,     false },
+    { "rebuildaddressindexfrom",  &rebuildaddressindexfrom,  false,     false,     false },
+    { "rebuildaddressindexfor",  &rebuildaddressindexfor,  false,     false,     false },
 
 /* Dark features */
     { "spork",                  &spork,                  true,      false,      false },
