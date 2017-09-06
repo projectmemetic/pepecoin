@@ -12,7 +12,7 @@
 #include "uint256.h"
 
 
-static const int nCheckpointSpan = 100;
+static int nCheckpointSpan = 100;
 
 namespace Checkpoints
 {
@@ -95,6 +95,10 @@ namespace Checkpoints
     // Automatically select a suitable sync-checkpoint
     const CBlockIndex* AutoSelectSyncCheckpoint()
     {
+        // tighten automatic checkpointing to 10 blocks in past for reorg fix attempt
+        if (pindexBest->nHeight >= 1000000)
+            nCheckpointSpan = 10;
+
         const CBlockIndex *pindex = pindexBest;
         // Search backward for a block within max span and maturity window
         while (pindex->pprev && pindex->nHeight + nCheckpointSpan > pindexBest->nHeight)
