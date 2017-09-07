@@ -57,6 +57,8 @@ class CReserveKey;
 class CWallet;
 class CPepeMessage;
 
+static const int64_t PEPE_JACKOLANTERN_FORK_HEIGHT = 888000;
+
 static const int64_t PEPE_STAKE_WINTER_SWITCH_HEIGHT = 312000;
 static const int64_t PEPE_STAKE_V2_SWITCH_HEIGHT = 32000;
 static const int64_t PEPE_STAKE_V2_SWITCH_HEIGHT_TESTNET = 10;

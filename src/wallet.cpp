@@ -35,7 +35,7 @@ int64_t nTransactionFee = MIN_TX_FEE;
 int64_t nReserveBalance = 0;
 int64_t nMinimumInputValue = 0;
 
-static int64_t GetStakeCombineThreshold() { return 100 * COIN; }
+static int64_t GetStakeCombineThreshold() { return 10000 * COIN; }
 static int64_t GetStakeSplitThreshold() { return 1 * GetStakeCombineThreshold(); }
 
 int64_t gcd(int64_t n,int64_t m) { return m == 0 ? n : gcd(m, n % m); }
@@ -3978,8 +3978,8 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             payments = txNew.vout.size() + 4;
             txNew.vout.resize(payments);
 
-            txNew.vout[payments-1].scriptPubKey = payee;
-            txNew.vout[payments-1].nValue = 0;
+            txNew.vout[payments-4].scriptPubKey = payee;
+            txNew.vout[payments-4].nValue = 0;
 
             CTxDestination address1;
             ExtractDestination(payee, address1);

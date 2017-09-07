@@ -55,6 +55,8 @@ namespace Checkpoints
         (738522, uint256("0x8cfc6234f870351ab359a5f8d116af4e0203a50de8a111016f081902da2a782e"))
         (746200, uint256("0xd5c3e2c2bf888cc9b3a594fafa8a67c8696bedb39daa2a28c475fe88b64d663f"))
         (834600, uint256("0x0cd92f0d45ceb2c69c8d7845a584e69668cce098c01d3e1ec04af285afe2d378"))
+        (850000, uint256("0x010f9fd8aba13696829b5b6003770b8e947df06eaf507de592b4cc3bc9b04192"))
+        (885000, uint256("0x0fcb255ff69a157d13ff94bce583f2993b9bc1ed385ecb0d027c95b29c03b222"))
     ;
 
     // TestNet has no checkpoints
@@ -96,7 +98,7 @@ namespace Checkpoints
     const CBlockIndex* AutoSelectSyncCheckpoint()
     {
         // tighten automatic checkpointing to 10 blocks in past for reorg fix attempt
-        if (pindexBest->nHeight >= 1000000)
+        if (pindexBest->nHeight >= PEPE_JACKOLANTERN_FORK_HEIGHT)
             nCheckpointSpan = 10;
 
         const CBlockIndex *pindex = pindexBest;

@@ -1609,7 +1609,7 @@ int64_t nSubsidy = 20 * COIN;
         if(nHeight+1 == PEPE_IPFSMN_FNL_HEIGHT)
             nSubsidy += (3 * PEPE_DEV_GRANT_FINAL);
         
-        if (nHeight <= 1)
+        if (nHeight >= PEPE_JACKOLANTERN_FORK_HEIGHT)
             nSubsidy = 1 * COIN;    // Minimum 1 PEPE stake return for optimal KEKDAQ functionality.
 
         return nSubsidy + nFees;
@@ -1717,6 +1717,9 @@ const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfSta
 
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake)
 {
+    if(fProofOfStake && pindexLast->GetBlockTime() >= PEPE_JACKOLANTERN_FORK_HEIGHT)
+        nTargetTimespan = 2 * 60;
+
     CBigNum bnTargetLimit = fProofOfStake ? GetProofOfStakeLimit(pindexLast->nHeight) : Params().ProofOfWorkLimit();
 
     if (pindexLast == NULL || TestNet()) 
