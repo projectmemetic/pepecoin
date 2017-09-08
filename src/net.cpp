@@ -839,7 +839,7 @@ void ThreadSocketHandler()
                 if (nErr != WSAEWOULDBLOCK)
                     LogPrintf("socket error accept failed: %d\n", nErr);
             }
-            else if (nInbound >= GetArg("-maxconnections", 25) - MAX_OUTBOUND_CONNECTIONS)
+            else if (nInbound >= GetArg("-maxconnections", 16) - MAX_OUTBOUND_CONNECTIONS)
             {
                 closesocket(hSocket);
             }
