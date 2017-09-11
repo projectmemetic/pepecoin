@@ -1717,7 +1717,7 @@ const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfSta
 
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake)
 {
-    if(fProofOfStake && pindexLast->GetBlockTime() >= PEPE_JACKOLANTERN_FORK_HEIGHT)
+    if(fProofOfStake && pindexLast->nHeight >= PEPE_JACKOLANTERN_FORK_HEIGHT)
         nTargetTimespan = 2 * 60;
 
     CBigNum bnTargetLimit = fProofOfStake ? GetProofOfStakeLimit(pindexLast->nHeight) : Params().ProofOfWorkLimit();
