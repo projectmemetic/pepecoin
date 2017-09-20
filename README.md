@@ -1,6 +1,6 @@
 # PepeCoin - PEPE 
 
-v. 2.5.0.0 - Jack O Lantern Hardfork at blockheight 888,000
+v. 2.5.2.0 - Jack O Lantern Hardfork at blockheight 888,000
 ####
 Pepecoin is digital decentralized crypto-currency, a hybrid zombie mix of seven other cryptocurrency projects, plus a lot of custom code and goals.
 
@@ -48,7 +48,7 @@ PepeCoin is a decentralized, encrypted project that supports the preservation of
 - JSON-RPC functions to externally query all public wall messages
 - IPFS-based  data hashing storage currently under development
 - Masternode functionality in progress, expected node ownership fee of 50k PEPE
-- *More to follow on upcoming roadmap  4/27/2017*
+See BitcoinTalk post for more info: https://bitcointalk.org/index.php?topic=1391598.0
 
 
 -------------------------------
@@ -72,16 +72,11 @@ PepeCoin uses libsecp256k1, libgmp, Boost1.55+, Openssl1.01p, Berkeley DB 4.8+, 
 
 To build the GUI with Qt 5 you need the following:
 
-    sudo apt-get install libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler
+    sudo apt-get install libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler qt5 qt5-default
     git clone https://github.com/pepeteam/pepecoin.git
     cd pepecoin 
     qmake
 
-
-
-**Mac Wallet**
-
-Pending community involvement
 
 ***
 ![](http://i.imgur.com/EfYNxub.png) 
@@ -90,27 +85,28 @@ Pending community involvement
 --------------------
 Links
 --------------------
-*(pending PepeCoin rename)*
 
 **Information**
 [Bitcointalk ANN](https://bitcointalk.org/index.php?topic=1391598.0) 
+
 Windows Wallet:  [Download](https://github.com/pepeteam/pepecoin/releases) 
 
-https://pepecoin.co Website - Coming 4/23/17
-https://roadmap.pepecoin.co - Coming 4/27/17
 
-
+**Website**
+https://memetic.ai
+https://pepecoin.co
 
 
 **Exchanges**
 
 [https://bittrex.com/Market/Index?MarketName=BTC-MEME  ](https://bittrex.com/Market/Index?MarketName=BTC-MEME  ) 
+[https://www.cryptopia.co.nz/Exchange?market=PEPE_BTC](https://www.cryptopia.co.nz/Exchange?market=PEPE_BTC)
 [https://www.coinexchange.io/market/MEME/BTC](https://www.coinexchange.io/market/MEME/BTC) 
 
 
 **Block Explorers**
 
-[https://poswallet.com/blockChain/meme](https://poswallet.com/blockChain/meme) 
+[http://memetic.thecryptochat.net/](http://memetic.thecryptochat.net/) 
 [https://prohashing.com/explorer/Memeticcoin/](https://prohashing.com/explorer/Memeticcoin/) 
 
 
@@ -125,17 +121,13 @@ https://cryptocoinview.com/MEME
 
 **Social**
 [https://twitter.com/pepecoins](https://twitter.com/pepecoins) https://twitter.com/pepecoins
-Telegram group:  [Get invite](https://t.me/joinchat/AAAAAEB2DY0HG7sKzDWUYA) 
+Telegram group:  [Get invite](https://t.me/jpepecoins) 
 
 
 ***
 
 **Nodes**
-addnode=nyc.pepecoin.co
-addnode=dallas.pepecoin.co
-addnode=tokyo.pepecoin.co
-addnode=netherlands.pepecoin.co
-addnode=paris.pepecoin.co
+addnode=seed.kekdaq.com
 addnode=seed.pepecoin.co
 
 ![pepecoin-256](https://i.imgur.com/xnSJvT9.jpg  "pepecoin-256")
