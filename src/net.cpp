@@ -1024,7 +1024,7 @@ void ThreadMapPort()
             }
         }
 
-        string strDesc = "Crave " + FormatFullVersion();
+        string strDesc = "PepeCoin " + FormatFullVersion();
 
         try {
           while (!ShutdownRequested()) {
@@ -1566,7 +1566,7 @@ bool BindListenPort(const CService &addrBind, string& strError)
     {
         int nErr = WSAGetLastError();
         if (nErr == WSAEADDRINUSE)
-            strError = strprintf(_("Unable to bind to %s on this computer. Crave is probably already running."), addrBind.ToString());
+            strError = strprintf(_("Unable to bind to %s on this computer. PepeCoin is probably already running."), addrBind.ToString());
         else
             strError = strprintf(_("Unable to bind to %s on this computer (bind returned error %d, %s)"), addrBind.ToString(), nErr, strerror(nErr));
         LogPrintf("%s\n", strError);
