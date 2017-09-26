@@ -175,9 +175,9 @@ public:
  
         convertSeed6(vFixedSeeds, pnSeed6_test, ARRAYLEN(pnSeed6_test));
  
-        nLastPOWBlock = 2000;
-        nPOSStartBlock = 20;
-        nRestartPOWBlock = 320000; // when POW restarts
+        nLastPOWBlock = 250000;
+        nPOSStartBlock = 300;
+        // nRestartPOWBlock = 320000; // when POW restarts
     }
     virtual Network NetworkID() const { return CChainParams::TESTNET; }
 };
