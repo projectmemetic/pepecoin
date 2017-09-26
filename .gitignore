@@ -228,3 +228,4 @@ pip-log.txt
 # More files to ignore
 .vscode
 .qmake.stash
+.autosave
