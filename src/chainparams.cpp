@@ -2,7 +2,7 @@
 // Copyright (c) 2014 DashCoin Developers
 // Copyright (c) 2015 Transfercoin Developer
 // Copyright (c) 2015-2016 PepeCoin Developers
-// Copyright (c) 2016 The PepeCoin Developers
+// Copyright (c) 2016-2018 The PepeCoin Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
  
@@ -175,8 +175,8 @@ public:
  
         convertSeed6(vFixedSeeds, pnSeed6_test, ARRAYLEN(pnSeed6_test));
  
-        nLastPOWBlock = 250000;
-        nPOSStartBlock = 300;
+        nLastPOWBlock = 5000000;
+        nPOSStartBlock = 100;
         // nRestartPOWBlock = 320000; // when POW restarts
     }
     virtual Network NetworkID() const { return CChainParams::TESTNET; }
