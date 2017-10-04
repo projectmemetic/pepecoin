@@ -682,7 +682,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         }
         for (int n = 0; n < NET_MAX; n++) {
             enum Network net = (enum Network)n;
-            if (!nets.count(net))
+            if (!nets.count(net)){
                 SetLimited(net);
             } else {
                 SetReachable(NET_IPV4);
