@@ -1873,9 +1873,10 @@ void CWallet::AvailableCoinsForStaking(vector<COutput>& vCoins, unsigned int nSp
 
             if(found) continue;
 
-            for (unsigned int i = 0; i < pcoin->vout.size(); i++){
-                if (!(pcoin->IsSpent(i)) && IsMine(pcoin->vout[i]) && pcoin->vout[i].nValue >= nMinimumInputValue)
-                    vCoins.push_back(COutput(pcoin, i, nDepth, true));
+            for (unsigned int i = 0; i < pcoin->vout.size(); i++) {
+                isminetype mine = IsMine(pcoin->vout[i]);
+                if (!(pcoin->IsSpent(i)) && mine != ISMINE_NO && pcoin->vout[i].nValue >= nMinimumInputValue)
+                    vCoins.push_back(COutput(pcoin, i, nDepth, mine & ISMINE_SPENDABLE));
             }
         }
     }
