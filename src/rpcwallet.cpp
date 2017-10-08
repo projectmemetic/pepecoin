@@ -754,7 +754,8 @@ Value getbalance(const Array& params, bool fHelp)
             + HelpExampleRpc("getbalance", "\"tabby\", 10")
         );
     }
-
+    if (params.size() == 0)
+        return  ValueFromAmount(pwalletMain->GetBalance());
 
     int nMinDepth = 1;
     if (params.size() > 1)
@@ -763,13 +764,6 @@ Value getbalance(const Array& params, bool fHelp)
     if(params.size() > 2)
         if(params[2].get_bool())
             filter = filter | ISMINE_WATCH_ONLY;
-
-    string test = "";
-    
-    if (params.size() == 0){
-        test = "*";
-        params.push_back(test);
-    }        
 
     if (params[0].get_str() == "*") {
         // Calculate total balance a different way from GetBalance()
