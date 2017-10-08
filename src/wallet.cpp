@@ -798,8 +798,7 @@ bool CWallet::AddToWalletIfInvolvingMe(const CTransaction& tx, const CBlock* pbl
 
             return AddToWallet(wtx);
         }
-        else
-            WalletUpdateSpent(tx);
+
     }
     return false;
 }
