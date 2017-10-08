@@ -4280,6 +4280,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         vRecv >> tx;
 
         CInv inv(MSG_TX, tx.GetHash());
+	// Check for recently rejected (and do other quick existence checks)
+            if (AlreadyHave(txdb, inv))
+                return true;
+
         pfrom->AddInventoryKnown(inv);
 
         LOCK(cs_main);
@@ -4347,7 +4351,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
         LogPrint("net", "received block %s\n", hashBlock.ToString());
 
-        CInv inv(MSG_BLOCK, hashBlock);
+        // CInv inv(MSG_BLOCK, hashBlock);
+
         pfrom->AddInventoryKnown(inv);
 
         LOCK(cs_main);
