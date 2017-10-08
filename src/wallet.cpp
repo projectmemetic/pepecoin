@@ -1326,7 +1326,7 @@ void CWallet::ReacceptWalletTransactions()
 
 void CWalletTx::RelayWalletTransaction(CTxDB& txdb, std::string strCommand)
 {
-    BOOST_FOREACH(const CMerkleTx& tx, vtxPrev)
+   /* BOOST_FOREACH(const CMerkleTx& tx, vtxPrev)
     {
         if (!(tx.IsCoinBase() || tx.IsCoinStake()))
         {
@@ -1334,7 +1334,7 @@ void CWalletTx::RelayWalletTransaction(CTxDB& txdb, std::string strCommand)
             if (!txdb.ContainsTx(hash))
                 RelayTransaction((CTransaction)tx, hash);
         }
-    }
+    } */
     if (!(IsCoinBase() || IsCoinStake()))
     {
         uint256 hash = GetHash();
