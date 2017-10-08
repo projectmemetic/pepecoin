@@ -230,5 +230,3 @@ pip-log.txt
 .qmake.stash
 .autosave
 
-src/leveldb/
-src/secp256k1/
