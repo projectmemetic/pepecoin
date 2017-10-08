@@ -4278,7 +4278,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         vector<uint256> vEraseQueue;
         CTransaction tx;
         vRecv >> tx;
-	CInv inv;
         CTxDB txdb("r");	
 
         CInv inv(MSG_TX, tx.GetHash());
