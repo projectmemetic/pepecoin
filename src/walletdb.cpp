@@ -211,12 +211,12 @@ bool CWalletDB::WriteAccount(const string& strAccount, const CAccount& account)
     return Write(make_pair(string("acc"), strAccount), account);
 }
 
-bool CWalletDB::WriteAccountingEntry_Backend(const uint64_t nAccEntryNum, const CAccountingEntry& acentry)
+bool CWalletDB::WriteAccountingEntry(const uint64_t nAccEntryNum, const CAccountingEntry& acentry)
 {
     return Write(boost::make_tuple(string("acentry"), acentry.strAccount, nAccEntryNum), acentry);
 }
 
-bool CWalletDB::WriteAccountingEntry(const CAccountingEntry& acentry)
+bool CWalletDB::WriteAccountingEntry_Backend(const CAccountingEntry& acentry)
 {
     return WriteAccountingEntry(++nAccountingEntryNumber, acentry);
 }

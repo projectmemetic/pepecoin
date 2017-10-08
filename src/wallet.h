@@ -181,6 +181,7 @@ public:
     }
 
     std::map<uint256, CWalletTx> mapWallet;
+    std::list<CAccountingEntry> laccentries;
 
     typedef std::pair<CWalletTx*, CAccountingEntry*> TxPair;
     typedef std::multimap<int64_t, TxPair > TxItems;
