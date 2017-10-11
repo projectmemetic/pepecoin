@@ -1,20 +1,20 @@
-#ifndef ADDEDITADRENALINENODE_H
-#define ADDEDITADRENALINENODE_H
+#ifndef ADDEDITmastertoad_H
+#define ADDEDITmastertoad_H
 
 #include <QDialog>
 
 namespace Ui {
-class AddEditAdrenalineNode;
+class AddEditmastertoad;
 }
 
 
-class AddEditAdrenalineNode : public QDialog
+class AddEditmastertoad : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit AddEditAdrenalineNode(QWidget *parent = 0);
-    ~AddEditAdrenalineNode();
+    explicit AddEditmastertoad(QWidget *parent = 0);
+    ~AddEditmastertoad();
 
 protected:
 
@@ -25,7 +25,7 @@ private slots:
 signals:
 
 private:
-    Ui::AddEditAdrenalineNode *ui;
+    Ui::AddEditmastertoad *ui;
 };
 
-#endif // ADDEDITADRENALINENODE_H
+#endif // ADDEDITmastertoad_H

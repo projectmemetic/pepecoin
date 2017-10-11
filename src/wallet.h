@@ -152,8 +152,8 @@ public:
     MasterKeyMap mapMasterKeys;
     unsigned int nMasterKeyMaxID;
 
-    std::map<std::string, CAdrenalineNodeConfig> mapMyAdrenalineNodes;
-    bool AddAdrenalineNodeConfig(CAdrenalineNodeConfig nodeConfig);
+    std::map<std::string, CmastertoadConfig> mapMymastertoads;
+    bool AddmastertoadConfig(CmastertoadConfig nodeConfig);
 
     CWallet()
     {

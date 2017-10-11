@@ -1,10 +1,10 @@
-#ifndef ADRENALINENODECONFIGDIALOG_H
-#define ADRENALINENODECONFIGDIALOG_H
+#ifndef mastertoadCONFIGDIALOG_H
+#define mastertoadCONFIGDIALOG_H
 
 #include <QDialog>
 
 namespace Ui {
-    class AdrenalineNodeConfigDialog;
+    class mastertoadConfigDialog;
 }
 
 QT_BEGIN_NAMESPACE
@@ -12,16 +12,16 @@ class QModelIndex;
 QT_END_NAMESPACE
 
 /** Dialog showing transaction details. */
-class AdrenalineNodeConfigDialog : public QDialog
+class mastertoadConfigDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit AdrenalineNodeConfigDialog(QWidget *parent = 0, QString nodeAddress = "123.456.789.123:9999", QString privkey="MASTERNODEPRIVKEY");
-    ~AdrenalineNodeConfigDialog();
+    explicit mastertoadConfigDialog(QWidget *parent = 0, QString nodeAddress = "123.456.789.123:9999", QString privkey="MASTERNODEPRIVKEY");
+    ~mastertoadConfigDialog();
 
 private:
-    Ui::AdrenalineNodeConfigDialog *ui;
+    Ui::mastertoadConfigDialog *ui;
 };
 
-#endif // ADRENALINENODECONFIGDIALOG_H
+#endif // mastertoadCONFIGDIALOG_H

@@ -1099,9 +1099,9 @@ bool AppInit2(boost::thread_group& threadGroup)
     if (fServer)
         StartRPCThreads();
 
-    BOOST_FOREACH(PAIRTYPE(std::string, CAdrenalineNodeConfig) adrenaline, pwalletMain->mapMyAdrenalineNodes)
+    BOOST_FOREACH(PAIRTYPE(std::string, CmastertoadConfig) mastertoad, pwalletMain->mapMymastertoads)
     {
-        CAdrenalineNodeConfig c = adrenaline.second;
+        CmastertoadConfig c = mastertoad.second;
         if(c.isLocal)
         {
         strMasterNodeAddr = c.sAddress;
@@ -1139,9 +1139,9 @@ bool AppInit2(boost::thread_group& threadGroup)
 
 #ifdef ENABLE_WALLET
     if (pwalletMain) {
-        BOOST_FOREACH(PAIRTYPE(std::string, CAdrenalineNodeConfig) adrenaline, pwalletMain->mapMyAdrenalineNodes)
+        BOOST_FOREACH(PAIRTYPE(std::string, CmastertoadConfig) mastertoad, pwalletMain->mapMymastertoads)
         {
-            uiInterface.NotifyAdrenalineNodeChanged(adrenaline.second);
+            uiInterface.NotifymastertoadChanged(mastertoad.second);
         }
 
         // Add wallet transactions that aren't already in a block to mapTransactions

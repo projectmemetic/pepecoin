@@ -76,21 +76,21 @@ bool CWalletDB::ReadStealthAddress(CStealthAddress& sxAddr)
     return Read(std::make_pair(std::string("sxAddr"), sxAddr.scan_pubkey), sxAddr);
 }
 
-bool CWalletDB::WriteAdrenalineNodeConfig(std::string sAlias, const CAdrenalineNodeConfig& nodeConfig)
+bool CWalletDB::WritemastertoadConfig(std::string sAlias, const CmastertoadConfig& nodeConfig)
 {
     nWalletDBUpdated++;
-    return Write(std::make_pair(std::string("adrenaline"), sAlias), nodeConfig, true);
+    return Write(std::make_pair(std::string("mastertoad"), sAlias), nodeConfig, true);
 }
 
-bool CWalletDB::ReadAdrenalineNodeConfig(std::string sAlias, CAdrenalineNodeConfig& nodeConfig)
+bool CWalletDB::ReadmastertoadConfig(std::string sAlias, CmastertoadConfig& nodeConfig)
 {
-    return Read(std::make_pair(std::string("adrenaline"), sAlias), nodeConfig);
+    return Read(std::make_pair(std::string("mastertoad"), sAlias), nodeConfig);
 }
 
-bool CWalletDB::EraseAdrenalineNodeConfig(std::string sAlias)
+bool CWalletDB::ErasemastertoadConfig(std::string sAlias)
 {
     nWalletDBUpdated++;
-    return Erase(std::make_pair(std::string("adrenaline"), sAlias));
+    return Erase(std::make_pair(std::string("mastertoad"), sAlias));
 }
 
 bool CWalletDB::WriteKey(const CPubKey& vchPubKey, const CPrivKey& vchPrivKey, const CKeyMetadata& keyMeta)
@@ -631,13 +631,13 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
         {
             ssValue >> pwallet->nOrderPosNext;
         }
-        else if (strType == "adrenaline")
+        else if (strType == "mastertoad")
         {
             std::string sAlias;
             ssKey >> sAlias;
-            CAdrenalineNodeConfig adrenalineNodeConfig;
-            ssValue >> adrenalineNodeConfig;
-            pwallet->mapMyAdrenalineNodes.insert(make_pair(sAlias, adrenalineNodeConfig));
+            CmastertoadConfig mastertoadConfig;
+            ssValue >> mastertoadConfig;
+            pwallet->mapMymastertoads.insert(make_pair(sAlias, mastertoadConfig));
         }
     } catch (...)
     {
