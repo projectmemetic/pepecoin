@@ -1802,6 +1802,8 @@ void CWallet::AvailableCoinsForStaking(vector<COutput>& vCoins, unsigned int nSp
 
     {
         LOCK2(cs_main, cs_wallet);
+        CBlockIndex* pindexPrev = pindexBest;
+        
         int nStakeMinConfirmations = 360;
 
         if(pindexBest->nHeight >= PEPE_STAKE_WINTER_SWITCH_HEIGHT || Params().NetworkID() == CChainParams::TESTNET)
@@ -3664,6 +3666,7 @@ bool CWallet::FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNar
 
 uint64_t CWallet::GetStakeWeight() const
 {
+    CBlockIndex* pindexPrev = pindexBest;
     // Choose coins to use
     int64_t nBalance = GetBalance();
 
@@ -4014,7 +4017,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             devPayment = PEPE_DEV_GRANT_MID;
         if (pindexPrev->nHeight+1 == PEPE_IPFSMN_FNL_HEIGHT)
             devPayment = PEPE_DEV_GRANT_FINAL;            
-        if (pindexPrev->nHeight == PEPE_STAKE_CONF_HEIGHT)
+        if (pindexPrev->nHeight+1 == PEPE_STAKE_CONF_HEIGHT)
             devPayment = PEPE_DEV_GRANT;           
 
         int64_t masternodePayment = (nReward - (3 * devPayment)) * 0.375; //37.5% //GetMasternodePayment(pindexPrev->nHeight+1, nReward);
