@@ -1521,6 +1521,8 @@ int64_t nSubsidy = 20 * COIN;
         nSubsidy += (3 * PEPE_DEV_GRANT_MID);
       if(nHeight == PEPE_IPFSMN_FNL_HEIGHT)
         nSubsidy += (3 * PEPE_DEV_GRANT_FINAL);
+      if(nHeight == PEPE_STAKE_CONF_HEIGHT)
+        nSubsidy += (3 * PEPE_DEV_GRANT);  
   }
 
   	return nSubsidy + nFees;
@@ -1608,6 +1610,8 @@ int64_t nSubsidy = 20 * COIN;
             nSubsidy += (3 * PEPE_DEV_GRANT_MID);
         if(nHeight+1 == PEPE_IPFSMN_FNL_HEIGHT)
             nSubsidy += (3 * PEPE_DEV_GRANT_FINAL);
+        if(nHeight+1 == PEPE_STAKE_CONF_HEIGHT)
+            nSubsidy += (3 * PEPE_DEV_GRANT);           
         
         if (nHeight >= PEPE_JACKOLANTERN_FORK_HEIGHT)
             nSubsidy = 1 * COIN;    // Minimum 1 PEPE stake return for optimal KEKDAQ functionality.
@@ -2393,8 +2397,10 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
                 nDevReward = PEPE_DEV_GRANT;
             if (pindex->nHeight == PEPE_KEKDAQ_MID_FIX_HEIGHT)
                 nDevReward = PEPE_DEV_GRANT_MID;
-            if(pindex->nHeight == PEPE_IPFSMN_FNL_HEIGHT)
+            if (pindex->nHeight == PEPE_IPFSMN_FNL_HEIGHT)
                 nDevReward = PEPE_DEV_GRANT_FINAL;
+            if (pindex->nHeight == PEPE_STAKE_CONF_HEIGHT)
+                nDevReward = PEPE_DEV_GRANT;           
                 
             int64_t nTotalDevRewards = 3 * nDevReward;
             int64_t nMnRewardBase = nStakeReward - nTotalDevRewards;
@@ -3095,8 +3101,10 @@ bool CBlock::CheckDevRewards(CTransaction tx, int64_t nHeight, int64_t nReward, 
         nDevReward = PEPE_DEV_GRANT;
     if (nHeight == PEPE_KEKDAQ_MID_FIX_HEIGHT)
         nDevReward = PEPE_DEV_GRANT_MID;
-    if(nHeight == PEPE_IPFSMN_FNL_HEIGHT)
+    if (nHeight == PEPE_IPFSMN_FNL_HEIGHT)
         nDevReward = PEPE_DEV_GRANT_FINAL;
+    if (nHeight == PEPE_STAKE_CONF_HEIGHT)
+        nDevReward = PEPE_DEV_GRANT;           
         
     int64_t nTotalDevRewards = 3 * nDevReward;
     int64_t nFoundDevRewards = 0;
