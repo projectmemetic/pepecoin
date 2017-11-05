@@ -1807,10 +1807,9 @@ void CWallet::AvailableCoinsForStaking(vector<COutput>& vCoins, unsigned int nSp
         int nStakeMinConfirmations = 360;
 
         if(pindexBest->nHeight >= PEPE_STAKE_WINTER_SWITCH_HEIGHT || Params().NetworkID() == CChainParams::TESTNET)
-        //if((pindexBest->nHeight+1) >= PEPE_STAKE_WINTER_SWITCH_HEIGHT || Params().NetworkID() == CChainParams::TESTNET)
             nStakeMinConfirmations = 60;
-        if(pindexPrev->nHeight+1 > PEPE_KEKDAQ_MID_FIX_HEIGHT)
-            nStakeMinConfirmations = 600;
+       //  if(pindexPrev->nHeight+1 > PEPE_KEKDAQ_MID_FIX_HEIGHT)  removed to resolve block loading issue
+       //     nStakeMinConfirmations = 600;
         if(pindexPrev->nHeight+1 > PEPE_STAKE_CONF_HEIGHT)
             nStakeMinConfirmations = 360;
 
@@ -3693,8 +3692,8 @@ uint64_t CWallet::GetStakeWeight() const
     
     if(pindexBest->nHeight+1 >= PEPE_STAKE_WINTER_SWITCH_HEIGHT || Params().NetworkID() == CChainParams::TESTNET)
             nStakeMinConfirmations = 60;
-    if((pindexPrev->nHeight+1) > PEPE_KEKDAQ_MID_FIX_HEIGHT)
-            nStakeMinConfirmations = 600;
+   // if((pindexPrev->nHeight+1) > PEPE_KEKDAQ_MID_FIX_HEIGHT)
+   //         nStakeMinConfirmations = 600;
     if((pindexPrev->nHeight+1) > PEPE_STAKE_CONF_HEIGHT)
             nStakeMinConfirmations = 360;
 
