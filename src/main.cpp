@@ -2795,7 +2795,9 @@ bool CTransaction::GetCoinAge(CTxDB& txdb, const CBlockIndex* pindexPrev, uint64
         nStakeMinConfirmations = 60;
     if((pindexPrev->nHeight+1) > PEPE_KEKDAQ_MID_FIX_HEIGHT)
         nStakeMinConfirmations = 600;
-
+    if((pindexPrev->nHeight+1) > PEPE_STAKE_CONF_HEIGHT)
+        nStakeMinConfirmations = 360;
+    
     if (IsCoinBase())
         return true;
 
@@ -4260,7 +4262,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         }
 
         vector<CBlock> vHeaders;
-        int nLimit = 2000;
+        int nLimit = 500;
         LogPrint("net", "getheaders %d to %s\n", (pindex ? pindex->nHeight : -1), hashStop.ToString());
         for (; pindex; pindex = pindex->pnext)
         {
