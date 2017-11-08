@@ -1721,9 +1721,13 @@ const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfSta
 
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake)
 {
-    if(pindexLast->nHeight >= PEPE_JACKOLANTERN_FORK_HEIGHT)
+    // if(pindexLast->nHeight >= PEPE_JACKOLANTERN_FORK_HEIGHT)
+    //    nTargetTimespan = 2 * 60;
+    
+    if(pindexLast->nHeight >= PEPE_NTARGETTIMESPAN_UNSTICK_HEIGHT)
         nTargetTimespan = 2 * 60;
 
+        
     CBigNum bnTargetLimit = fProofOfStake ? GetProofOfStakeLimit(pindexLast->nHeight) : Params().ProofOfWorkLimit();
 
     if (pindexLast == NULL || TestNet()) 
@@ -3022,7 +3026,8 @@ bool CBlock::AcceptBlock()
         return DoS(50, error("AcceptBlock() : coinstake timestamp violation nTimeBlock=%d nTimeTx=%u", GetBlockTime(), vtx[1].nTime));
 
     // Check proof-of-work or proof-of-stake
-    if (nBits != GetNextTargetRequired(pindexPrev, IsProofOfStake()))
+    if (nBits != GetNextTargetRequired(pindexPrev, IsProofOfStake()) &&
+        hash != uint256("0x73f988a95293b060f1b4034c5e62a6e4439090e5d19bf078f3c90548671c5a82"))  // exception for block 886907
         return DoS(1, error("AcceptBlock() : incorrect %s", IsProofOfWork() ? "proof-of-work" : "proof-of-stake"));
 
     // Check timestamp against prev

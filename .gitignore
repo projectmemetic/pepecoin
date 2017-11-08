@@ -230,3 +230,4 @@ pip-log.txt
 .qmake.stash
 .autosave
 
+.gitignore
