@@ -1,4 +1,4 @@
-# PepeCoin - PEPE 
+# PepeCoin - PEPE  / Memetic - MEME
 
 v. 2.6.0.0
 ####
@@ -47,7 +47,9 @@ See [ANN](https://bitcointalk.org/index.php?topic=1391598.0) for more details.
 - In wallet public messaging wall
 - JSON-RPC functions to externally query all public wall messages
 - IPFS-based  data hashing storage currently under development
-- Masternode functionality in progress, expected node ownership fee of 50k PEPE
+- Kekdaq decentralized meme asset platform in testing / development stage
+- Mastertoads pay 37.5% of all POW and POS blocks distributed among MN runners
+
 
 See BitcoinTalk post for more info: https://bitcointalk.org/index.php?topic=1391598.0
 
