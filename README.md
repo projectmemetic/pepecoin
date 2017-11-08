@@ -1,19 +1,20 @@
 # PepeCoin - PEPE 
 
-v. 2.5.2.0 - Jack O Lantern Hardfork at blockheight 888,000
+v. 2.6.0.0
 ####
-Pepecoin is digital decentralized crypto-currency, a hybrid zombie mix of seven other cryptocurrency projects, plus a lot of custom code and goals.
+Pepecoin is digital decentralized crypto-currency, also known as Memetic / MEME on Bittrex and CoinMarketCap.
 
 Pepecoin incorporates both blockchain 2.0 and blockchain 3.0 technologies and is under continued development.
 
-Pepecoin is a Proof of Work (POW) /  Proof of Stake (POS) cryptocurrency fork of 6 different cryptocurrencies with many security additions.
+Pepecoin is a Proof of Work (POW) /  Proof of Stake (POS) cryptocurrency with privacy features and masternode technology.
 
 PepeCoin is decentralized, encrypted image storage in IPFS, cryptographically verified against the PepeCoin blockchain. Protect your memes and political information from censorship.
 
-PepeCoin is blockchain hash secured image / archive storage, with decentralized moderation ability.
+PepeCoin is the infrastructure for the Kekdaq decentralized meme asset exchange.
 
 PepeCoin is a decentralized, encrypted project that supports the preservation of all freedom of speech within the bounds of US law.
 
+See [ANN](https://bitcointalk.org/index.php?topic=1391598.0) for more details.
 
 ***
 
@@ -27,10 +28,9 @@ PepeCoin is a decentralized, encrypted project that supports the preservation of
  - 60 seconds block time
  - X11 mining algorithm
  - Proof of Stake - POS - 7% at block 600,000, drops by 2% yearly and stays at 3%
- - Proof of Work - POW - Restarts at block 600,000, X11  See [ANN](https://bitcointalk.org/index.php?topic=1391598.0) for more details.
-  - 40 confirmations for newly Proof of Work mined blocks
- - 100 confirmations for newly Proof of Stake minted blocks
- - 60 seconds per block time Proof of Stake
+ - Proof of Work - POW - Restarts at block 600,000, X11
+ - 100 confirmations for newly Proof of Work mined blocks
+ - 360 confirmations for newly Proof of Stake minted blocks
   - 6 hour minimum stake age (12 hour average)
   - Additional security improvements
   
@@ -48,6 +48,7 @@ PepeCoin is a decentralized, encrypted project that supports the preservation of
 - JSON-RPC functions to externally query all public wall messages
 - IPFS-based  data hashing storage currently under development
 - Masternode functionality in progress, expected node ownership fee of 50k PEPE
+
 See BitcoinTalk post for more info: https://bitcointalk.org/index.php?topic=1391598.0
 
 
@@ -107,6 +108,7 @@ https://pepecoin.co
 **Block Explorers**
 
 [http://memetic.thecryptochat.net/](http://memetic.thecryptochat.net/) 
+
 [https://prohashing.com/explorer/Memeticcoin/](https://prohashing.com/explorer/Memeticcoin/) 
 
 
@@ -148,7 +150,7 @@ License
 >Copyright (c) 2015 Transfercoin Developers
 >Copyright (c) 2015-2016 PepeCoin Developers
 >Copyright (c) 2015-2016 Memetic Developers
->Copyright (c) 2017 PepeCoin Developers
+>Copyright (c) 2017 PepeCoin / Memetic Developers
 >
 >Permission is hereby granted, free of charge, to any person obtaining a copy
 >of this software and associated documentation files (the "Software"), to deal
