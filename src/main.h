@@ -9,7 +9,7 @@
 // Copyright (c) 2014 NetCoin Developers
 // Copyright (c) 2015 Transfercoin Developer
 // Copyright (c) 2015-2016 PepeCoin Developers
-// Copyright (c) 2016-2018 The PepeCoin Developers
+// Copyright (c) 2016-2018 Memetic / PepeCoin Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -111,6 +111,8 @@ static const int64_t MIN_RELAY_TX_FEE = MIN_TX_FEE;
 /** No amount larger than this (in satoshi) is valid */
 // static const int64_t MAX_MONEY = 16628690 * COIN; // 16,628,690 POW Coins
 static const int64_t MAX_MONEY = 21628690 * COIN; // 21.6m max coins projected in long term POW + POS + MN emission
+
+// no longer used, kept for old block confirmation
 static const int PIR_LEVELS = 4; // number of entries in PIR_THRESHOLDS
 static const int64_t PIR_PHASEBLOCKS = 365 * 24 * 60; // one year for each phase
 static const int PIR_PHASES = 3; // pepe - three POS reward phases
@@ -141,7 +143,7 @@ inline int64_t FutureDrift(int64_t nTime) { return nTime + DRIFT; }
 /** "reject" message codes **/
 static const unsigned char REJECT_INVALID = 0x10;
 
-inline int64_t GetMNCollateral(int nHeight) { return 15000; }  // No change for now.
+inline int64_t GetMNCollateral(int nHeight) { return 15000; }  // 15k PEPE / MEME required for MN
 
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;

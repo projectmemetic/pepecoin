@@ -8,7 +8,8 @@
 // Copyright (c) 2014 DashCoin Developers
 // Copyright (c) 2014 NetCoin Developers
 // Copyright (c) 2015 Transfercoin Developer
-// Copyright (c) 2015-2018 PepeCoin Developers
+// Copyright (c) 2015-2016 PepeCoin Developers
+// Copyright (c) 2016-2018 Memetic / PepeCoin Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
