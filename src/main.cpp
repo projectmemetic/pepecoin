@@ -1723,10 +1723,15 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
 {
     // if(pindexLast->nHeight >= PEPE_JACKOLANTERN_FORK_HEIGHT)
     //    nTargetTimespan = 2 * 60;
-    
+
+    nTargetTimespan = 10 * 60;  // 10 mins stake difficulty retargeting
+
     if(pindexLast->nHeight >= PEPE_NTARGETTIMESPAN_UNSTICK_HEIGHT)
         nTargetTimespan = 2 * 60;
-
+    
+    // set fork-fix timespan back to 10 minutes for these blocks, to pass POW block sync sticking issues    
+    if(pindexLast->nHeight >= 886415 && pindexLast->nHeight <=888000)  
+        nTargetTimespan = 10 * 60;
         
     CBigNum bnTargetLimit = fProofOfStake ? GetProofOfStakeLimit(pindexLast->nHeight) : Params().ProofOfWorkLimit();
 
