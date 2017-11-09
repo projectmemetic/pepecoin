@@ -1730,7 +1730,7 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
         nTargetTimespan = 2 * 60;
     
     // set fork-fix timespan back to 10 minutes for these blocks, to pass POW block sync sticking issues    
-    if(pindexLast->nHeight >= 886415 && pindexLast->nHeight <=888000)  
+    if(pindexLast->nHeight >= 886415 && pindexLast->nHeight <=888057)  
         nTargetTimespan = 10 * 60;
         
     CBigNum bnTargetLimit = fProofOfStake ? GetProofOfStakeLimit(pindexLast->nHeight) : Params().ProofOfWorkLimit();
