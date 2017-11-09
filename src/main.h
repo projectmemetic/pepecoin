@@ -107,9 +107,10 @@ static const unsigned int MAX_INV_SZ = 50000;
 static const int64_t MIN_TX_FEE = 0.0001*COIN;
 /** Fees smaller than this (in satoshi) are considered zero fee (for relaying) */
 static const int64_t MIN_RELAY_TX_FEE = MIN_TX_FEE;
-/** No amount larger than this (in satoshi) is valid */
-static const int64_t MAX_MONEY = 16628690 * COIN; // 16,628,690 POW Coins
 
+/** No amount larger than this (in satoshi) is valid */
+// static const int64_t MAX_MONEY = 16628690 * COIN; // 16,628,690 POW Coins
+static const int64_t MAX_MONEY = 21628690 * COIN; // 21.6m max coins projected in long term POW + POS + MN emission
 static const int PIR_LEVELS = 4; // number of entries in PIR_THRESHOLDS
 static const int64_t PIR_PHASEBLOCKS = 365 * 24 * 60; // one year for each phase
 static const int PIR_PHASES = 3; // pepe - three POS reward phases
