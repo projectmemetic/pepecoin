@@ -3033,7 +3033,9 @@ bool CBlock::AcceptBlock()
 
     // Check proof-of-work or proof-of-stake
     if (nBits != GetNextTargetRequired(pindexPrev, IsProofOfStake()) &&
-        hash != uint256("0x73f988a95293b060f1b4034c5e62a6e4439090e5d19bf078f3c90548671c5a82"))  // exception for block 886907
+        hash != uint256("0x73f988a95293b060f1b4034c5e62a6e4439090e5d19bf078f3c90548671c5a82")  // exception for block 886907 past hard-fork stick
+        hash != uint256("0x9b345b188b1fb5cbd535666cf678b53577b58481765705592d1d3c5986ed6ac6")) // exception for block 886416 past hard-fork stick
+        
         return DoS(1, error("AcceptBlock() : incorrect %s", IsProofOfWork() ? "proof-of-work" : "proof-of-stake"));
 
     // Check timestamp against prev
