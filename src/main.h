@@ -60,9 +60,12 @@ class CPepeMessage;
 static const int64_t PEPE_JACKOLANTERN_FORK_HEIGHT = 888000;
 static const int64_t PEPE_NTARGETTIMESPAN_UNSTICK_HEIGHT = 885655;
 
+static const int64_t MASTERTOAD_LOWERTRAFFIC_FORK = 1030000;
+
 static const int64_t PEPE_STAKE_WINTER_SWITCH_HEIGHT = 312000;
 static const int64_t PEPE_STAKE_V2_SWITCH_HEIGHT = 32000;
 static const int64_t PEPE_STAKE_V2_SWITCH_HEIGHT_TESTNET = 10;
+
 
 // Rebrand Back To PEPE Hardfork
 // At this height, POS moves to 7%, POW moves to 7 for 1 month of blocks then 5 and then halving every year
