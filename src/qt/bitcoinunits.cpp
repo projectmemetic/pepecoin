@@ -41,9 +41,9 @@ QString BitcoinUnits::name(int unit)
 {
     switch(unit)
     {
-    case BTC: return QString("PEPE");
-    case mBTC: return QString("mPEPE");
-    case uBTC: return QString::fromUtf8("μPepe");
+    case BTC: return QString("PEPE / MEME");
+    case mBTC: return QString("mPEPE / mMEME");
+    case uBTC: return QString::fromUtf8("μPepe / μMEME");
     default: return QString("???");
     }
 }
@@ -52,7 +52,7 @@ QString BitcoinUnits::description(int unit)
 {
     switch(unit)
     {
-    case BTC: return QString("PepeCoin");
+    case BTC: return QString("PepeCoin / Memetic");
     case mBTC: return QString("Milli-PepeCoin (1 / 1,000)");
     case uBTC: return QString("Micro-PepeCoin (1 / 1,000,000)");
     default: return QString("???");
