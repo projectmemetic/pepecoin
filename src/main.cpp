@@ -3824,12 +3824,15 @@ bool static AlreadyHave(CTxDB& txdb, const CInv& inv)
 
 void static ProcessGetData(CNode* pfrom)
 {
+    // only proceed if we can get a lock
+    // if we can't, don't block and leave it in the queue for next time
+    TRY_LOCK(cs_main, lockMain);
+    if (!lockMain)
+        return;
 
     std::deque<CInv>::iterator it = pfrom->vRecvGetData.begin();
 
     vector<CInv> vNotFound;
-
-    LOCK(cs_main);
 
     while (it != pfrom->vRecvGetData.end()) {
         // Don't bother if send buffer is too full to respond anyway
@@ -4730,11 +4733,11 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                 pto->PushMessage("ping");
             }
         }
-/*
+
         TRY_LOCK(cs_main, lockMain); // Acquire cs_main for IsInitialBlockDownload() and CNodeState()
         if (!lockMain)
             return true;
-*/
+
         // Start block sync
         if (pto->fStartSync && !fImporting && !fReindex) {
             pto->fStartSync = false;
