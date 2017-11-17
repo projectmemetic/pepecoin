@@ -79,6 +79,7 @@ To build the GUI with Qt 5 you need the following:
     git clone https://github.com/pepeteam/pepecoin.git
     cd pepecoin 
     qmake
+    make -f Makefile -j2
 
 
 ***
