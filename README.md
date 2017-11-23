@@ -1,6 +1,6 @@
 # PepeCoin - PEPE  / Memetic - MEME
 
-v. 2.6.0.0
+v. 2.6.2.0
 ####
 Pepecoin is digital decentralized crypto-currency, also known as Memetic / MEME on Bittrex and CoinMarketCap.
 
