@@ -1605,6 +1605,10 @@ int64_t nSubsidy = 20 * COIN;
         // Now calculate the reward
         int64_t nSubsidy = nCoinAge * nRewardCoinYear * 33 / (365 * 33 + 8); //integer equivalent of nCoinAge * nRewardCoinYear / 365.2424242..
      
+        if (nHeight >= PEPE_JACKOLANTERN_FORK_HEIGHT)
+            nSubsidy = 1 * COIN;    // Minimum 1 PEPE stake return for optimal KEKDAQ functionality.
+
+
         if(nHeight+1 == PEPE_REBRAND_PF_HEIGHT)
             nSubsidy += (3 * PEPE_DEV_GRANT);
         if(nHeight+1 == PEPE_KEKDAQ_MID_FIX_HEIGHT)
@@ -1614,9 +1618,6 @@ int64_t nSubsidy = 20 * COIN;
         if(nHeight+1 == PEPE_STAKE_CONF_HEIGHT)
             nSubsidy += (3 * PEPE_DEV_GRANT);           
         
-        if (nHeight >= PEPE_JACKOLANTERN_FORK_HEIGHT)
-            nSubsidy = 1 * COIN;    // Minimum 1 PEPE stake return for optimal KEKDAQ functionality.
-
         return nSubsidy + nFees;
   }
 

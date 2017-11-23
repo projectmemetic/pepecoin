@@ -84,7 +84,7 @@ static const int64_t PEPE_KEKDAQ_MID_HEIGHT_TESTNET = 10000;
 static const int64_t PEPE_DEV_GRANT = 333333 * COIN;
 static const int64_t PEPE_DEV_GRANT_MID = 333333 * COIN;
 static const int64_t PEPE_DEV_GRANT_FINAL = 111111 * COIN;
-static const int64_t PEPE_STAKE_CONF_HEIGHT = 1011111;
+static const int64_t PEPE_STAKE_CONF_HEIGHT = 1021111;
 
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
 static const unsigned int MAX_BLOCK_SIZE = 20000000;
