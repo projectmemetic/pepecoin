@@ -95,14 +95,14 @@ OBJS= \
     obj/pbkdf2.o \
     obj/chainparams.o \
     obj/stealth.o \
-    obj/activemasternode.o \
+    obj/activemastertoad.o \
     obj/darksend.o \
     obj/darksend-relay.o \
     obj/instantx.o \
-    obj/masternodeconfig.o \
-    obj/masternodeman.o \
-    obj/masternode.o \
-    obj/masternode-payments.o \
+    obj/mastertoadconfig.o \
+    obj/mastertoadman.o \
+    obj/mastertoad.o \
+    obj/mastertoad-payments.o \
     obj/rpcdarksend.o \
     obj/spork.o \
     obj/crypto/hmac_sha256.o \
