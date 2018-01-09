@@ -1814,7 +1814,7 @@ void Misbehaving(NodeId pnode, int howmuch)
         if(pn->GetId() == pnode)
         {
             pn->nMisbehavior += howmuch;
-            int banscore = GetArg("-banscore", 20);
+            int banscore = GetArg("-banscore", 25);
             if (pn->nMisbehavior >= banscore && pn->nMisbehavior - howmuch < banscore)
             {
                 LogPrintf("Misbehaving: %s (%d -> %d) BAN THRESHOLD EXCEEDED\n", pn->addrName, pn->nMisbehavior-howmuch, pn->nMisbehavior);
