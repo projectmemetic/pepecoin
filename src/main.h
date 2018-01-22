@@ -61,6 +61,8 @@ static const int64_t PEPE_JACKOLANTERN_FORK_HEIGHT = 888000;
 static const int64_t PEPE_NTARGETTIMESPAN_UNSTICK_HEIGHT = 885655;
 
 static const int64_t MASTERTOAD_LOWERTRAFFIC_FORK = 1030000;
+static const int64_t MASTERTOAD_RELOWERTRAFFIC_FORK = 1177777;
+static const int64_t MASTERTOAD_DEVFEE_OFF_FORK = 1222222;
 
 static const int64_t PEPE_STAKE_WINTER_SWITCH_HEIGHT = 312000;
 static const int64_t PEPE_STAKE_V2_SWITCH_HEIGHT = 32000;
@@ -79,11 +81,13 @@ static const int64_t PEPE_REBRAND_PF_HEIGHT = 600000;
 static const int64_t PEPE_KEKDAQ_MID_HEIGHT = 733333;
 static const int64_t PEPE_KEKDAQ_MID_FIX_HEIGHT = 738500;
 static const int64_t PEPE_IPFSMN_FNL_HEIGHT = 833333;
+static const int64_t PEPE_KEKDAQ2_SWAP_HEIGHT = 1161137;
 static const int64_t PEPE_REBRAND_PF_HEIGHT_TESTNET = 200;
 static const int64_t PEPE_KEKDAQ_MID_HEIGHT_TESTNET = 10000;
 static const int64_t PEPE_DEV_GRANT = 333333 * COIN;
 static const int64_t PEPE_DEV_GRANT_MID = 333333 * COIN;
 static const int64_t PEPE_DEV_GRANT_FINAL = 111111 * COIN;
+static const int64_t DEVFEE_OFF_FINAL = 777777 * COIN;
 static const int64_t PEPE_STAKE_CONF_HEIGHT = 1021111;
 
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
@@ -113,8 +117,7 @@ static const int64_t MIN_RELAY_TX_FEE = MIN_TX_FEE;
 
 /** No amount larger than this (in satoshi) is valid */
 // static const int64_t MAX_MONEY = 16628690 * COIN; // 16,628,690 POW Coins
-static const int64_t MAX_MONEY = 21628690 * COIN; // 21.6m max coins projected in long term POW + POS + MN emission
-
+static const int64_t MAX_MONEY = 28600000 * COIN; // more realistic target project of 28.6m total coins by 2024 minus KDAQ burns
 // no longer used, kept for old block confirmation
 static const int PIR_LEVELS = 4; // number of entries in PIR_THRESHOLDS
 static const int64_t PIR_PHASEBLOCKS = 365 * 24 * 60; // one year for each phase

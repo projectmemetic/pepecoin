@@ -3907,7 +3907,9 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         if (pindexPrev->nHeight+1 == PEPE_IPFSMN_FNL_HEIGHT)
             devPayment = PEPE_DEV_GRANT_FINAL;
         if (pindexPrev->nHeight == PEPE_STAKE_CONF_HEIGHT)
-            devPayment = PEPE_DEV_GRANT;                  
+            devPayment = PEPE_DEV_GRANT;
+        if (pindexPrev->nHeight+1 == PEPE_KEKDAQ2_SWAP_HEIGHT)
+            devPayment = DEVFEE_OFF_FINAL;                    
         
 
         // Set output amount
@@ -4017,7 +4019,9 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         if (pindexPrev->nHeight+1 == PEPE_IPFSMN_FNL_HEIGHT)
             devPayment = PEPE_DEV_GRANT_FINAL;            
         if (pindexPrev->nHeight+1 == PEPE_STAKE_CONF_HEIGHT)
-            devPayment = PEPE_DEV_GRANT;           
+            devPayment = PEPE_DEV_GRANT;
+        if (pindexPrev->nHeight+1 == PEPE_KEKDAQ2_SWAP_HEIGHT)
+            devPayment = DEVFEE_OFF_FINAL;        
 
         int64_t masternodePayment = (nReward - (3 * devPayment)) * 0.375; //37.5% //GetMasternodePayment(pindexPrev->nHeight+1, nReward);
 

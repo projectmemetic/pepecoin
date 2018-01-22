@@ -1523,7 +1523,10 @@ int64_t nSubsidy = 20 * COIN;
       if(nHeight == PEPE_IPFSMN_FNL_HEIGHT)
         nSubsidy += (3 * PEPE_DEV_GRANT_FINAL);
       if(nHeight == PEPE_STAKE_CONF_HEIGHT)
-        nSubsidy += (3 * PEPE_DEV_GRANT);  
+        nSubsidy += (3 * PEPE_DEV_GRANT);
+      if(nHeight == PEPE_KEKDAQ2_SWAP_HEIGHT)
+        nSubsidy += (3 * DEVFEE_OFF_FINAL);
+
   }
 
   	return nSubsidy + nFees;
@@ -1616,8 +1619,10 @@ int64_t nSubsidy = 20 * COIN;
         if(nHeight+1 == PEPE_IPFSMN_FNL_HEIGHT)
             nSubsidy += (3 * PEPE_DEV_GRANT_FINAL);
         if(nHeight+1 == PEPE_STAKE_CONF_HEIGHT)
-            nSubsidy += (3 * PEPE_DEV_GRANT);           
-        
+            nSubsidy += (3 * PEPE_DEV_GRANT);
+        if(nHeight+1 == PEPE_KEKDAQ2_SWAP_HEIGHT)
+            nSubsidy += (3 * DEVFEE_OFF_FINAL);
+
         return nSubsidy + nFees;
   }
 
@@ -1627,6 +1632,7 @@ int64_t nSubsidy = 20 * COIN;
   {
         int64_t nHeight = pindexPrev->nHeight;
         int64_t nRewardCoinYear = 1 * CENT; // 1% per year
+
 
         // PEPE Stake Reward table
         // Amount       Year 1      Year 2      Year 3+
@@ -1712,6 +1718,7 @@ int64_t nSubsidy = 20 * COIN;
 
 
 static int64_t nTargetTimespan = 10 * 60;  // 10 mins stake difficulty retargeting
+
 
 // ppcoin: find last block index up to pindex
 const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake)
@@ -2359,7 +2366,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
                    nReward));
 
         // If after rebrand hardfork, check that dev rewards are present
-        if(pindex->nHeight >= PEPE_REBRAND_PF_HEIGHT)
+        if(pindex->nHeight >= PEPE_REBRAND_PF_HEIGHT && pindex->nHeight <= MASTERTOAD_DEVFEE_OFF_FORK)
             if(!CheckDevRewards(vtx[0], pindex->nHeight, nReward, nFees))
                 return error("ConnectBlock(): check proof-of-work failed for block, dev rewards mising.");
     }
@@ -2377,7 +2384,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
             return DoS(100, error("ConnectBlock() : coinstake pays too much(actual=%d vs calculated=%d)", nStakeReward, nCalculatedStakeReward));
 
         // If after rebrand hardfork, check that dev rewards are present
-        if(pindex->nHeight >= PEPE_REBRAND_PF_HEIGHT)
+        if(pindex->nHeight >= PEPE_REBRAND_PF_HEIGHT && pindex->nHeight <= MASTERTOAD_DEVFEE_OFF_FORK)
             if(!CheckDevRewards(vtx[1], pindex->nHeight, nStakeReward, nFees))
                 return error("ConnectBlock(): check proof-of-stake failed for block, dev rewards mising.");
     }
@@ -2411,8 +2418,12 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
             if (pindex->nHeight == PEPE_IPFSMN_FNL_HEIGHT)
                 nDevReward = PEPE_DEV_GRANT_FINAL;
             if (pindex->nHeight == PEPE_STAKE_CONF_HEIGHT)
-                nDevReward = PEPE_DEV_GRANT;           
-                
+                nDevReward = PEPE_DEV_GRANT;
+            if (pindex->nHeight == PEPE_KEKDAQ2_SWAP_HEIGHT)
+                nDevReward = DEVFEE_OFF_FINAL;
+            if (pindex->nHeight >= MASTERTOAD_DEVFEE_OFF_FORK)     
+                nDevReward = 0;
+
             int64_t nTotalDevRewards = 3 * nDevReward;
             int64_t nMnRewardBase = nStakeReward - nTotalDevRewards;
             masternodePaymentAmount = GetMasternodePayment(pindex->nHeight, nMnRewardBase);
@@ -3118,7 +3129,9 @@ bool CBlock::CheckDevRewards(CTransaction tx, int64_t nHeight, int64_t nReward, 
     if (nHeight == PEPE_IPFSMN_FNL_HEIGHT)
         nDevReward = PEPE_DEV_GRANT_FINAL;
     if (nHeight == PEPE_STAKE_CONF_HEIGHT)
-        nDevReward = PEPE_DEV_GRANT;           
+        nDevReward = PEPE_DEV_GRANT;
+    if (nHeight == PEPE_KEKDAQ2_SWAP_HEIGHT)
+        nDevReward = DEVFEE_OFF_FINAL;              
         
     int64_t nTotalDevRewards = 3 * nDevReward;
     int64_t nFoundDevRewards = 0;
