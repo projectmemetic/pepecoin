@@ -107,6 +107,11 @@ namespace Checkpoints
         if (pindexBest->nHeight >= PEPE_JACKOLANTERN_FORK_HEIGHT)
             nCheckpointSpan = 10;
 
+        // set autocheckpointing to 25 blocks max to limit forced resyncs
+        if (pindexBest->nHeight >= PEPE_STAKE_CONF_TWEAK)
+            nCheckpointSpan = 25;
+
+
         const CBlockIndex *pindex = pindexBest;
         // Search backward for a block within max span and maturity window
         while (pindex->pprev && pindex->nHeight + nCheckpointSpan > pindexBest->nHeight)
