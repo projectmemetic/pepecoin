@@ -487,7 +487,7 @@ bool CNode::Misbehaving(int howmuch)
     }
 
     nMisbehavior += howmuch;
-    if (nMisbehavior >= GetArg("-banscore", 100))
+    if (nMisbehavior >= GetArg("-banscore", 30))
     {
         int64_t banTime = GetTime()+GetArg("-bantime", 60*60*48);  // Default 24-hour ban
         LogPrintf("Misbehaving: %s (%d -> %d) DISCONNECTING\n", addr.ToString(), nMisbehavior-howmuch, nMisbehavior);
