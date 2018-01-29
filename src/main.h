@@ -62,7 +62,6 @@ static const int64_t PEPE_NTARGETTIMESPAN_UNSTICK_HEIGHT = 885655;
 
 static const int64_t MASTERTOAD_LOWERTRAFFIC_FORK = 1030000;
 static const int64_t MASTERTOAD_RELOWERTRAFFIC_FORK = 1177777;
-static const int64_t MASTERTOAD_DEVFEE_OFF_FORK = 1222222;
 
 static const int64_t PEPE_STAKE_WINTER_SWITCH_HEIGHT = 312000;
 static const int64_t PEPE_STAKE_V2_SWITCH_HEIGHT = 32000;
@@ -87,8 +86,9 @@ static const int64_t PEPE_KEKDAQ_MID_HEIGHT_TESTNET = 10000;
 static const int64_t PEPE_DEV_GRANT = 333333 * COIN;
 static const int64_t PEPE_DEV_GRANT_MID = 333333 * COIN;
 static const int64_t PEPE_DEV_GRANT_FINAL = 111111 * COIN;
-static const int64_t DEVFEE_OFF_FINAL = 777777 * COIN;
+static const int64_t DEVFEE_OFF_SWAP_FINAL = 777777 * COIN;
 static const int64_t PEPE_STAKE_CONF_HEIGHT = 1021111;
+static const int64_t PEPE_STAKE_CONF_TWEAK = 1177777;
 
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
 static const unsigned int MAX_BLOCK_SIZE = 20000000;
