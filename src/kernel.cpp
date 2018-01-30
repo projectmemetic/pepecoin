@@ -325,7 +325,7 @@ bool CheckProofOfStake(CBlockIndex* pindexPrev, const CTransaction& tx, unsigned
     if((pindexPrev->nHeight+1) > PEPE_STAKE_CONF_HEIGHT)
         nStakeMinConfirmations = 360;
     if((pindexPrev->nHeight+1) > PEPE_STAKE_CONF_TWEAK)
-        nStakeMinConfirmations = 720;
+        nStakeMinConfirmations = 600;
 
 
     if (IsConfirmedInNPrevBlocks(txindex, pindexPrev, nStakeMinConfirmations - 1, nDepth))
@@ -382,7 +382,7 @@ bool CheckKernel(CBlockIndex* pindexPrev, unsigned int nBits, int64_t nTime, con
         if((pindexPrev->nHeight+1) > PEPE_STAKE_CONF_HEIGHT)
             nStakeMinConfirmations = 360;
         if((pindexPrev->nHeight+1) > PEPE_STAKE_CONF_TWEAK)
-            nStakeMinConfirmations = 720;                   
+            nStakeMinConfirmations = 600;                   
 
         if (IsConfirmedInNPrevBlocks(txindex, pindexPrev, nStakeMinConfirmations - 1, nDepth))
             return false;

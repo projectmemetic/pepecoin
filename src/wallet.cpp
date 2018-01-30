@@ -1813,7 +1813,7 @@ void CWallet::AvailableCoinsForStaking(vector<COutput>& vCoins, unsigned int nSp
         if(pindexPrev->nHeight+1 > PEPE_STAKE_CONF_HEIGHT)
             nStakeMinConfirmations = 360;
         if(pindexPrev->nHeight+1 > PEPE_STAKE_CONF_TWEAK)
-            nStakeMinConfirmations = 720;    
+            nStakeMinConfirmations = 600;    
 
         for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
         {
@@ -3699,7 +3699,7 @@ uint64_t CWallet::GetStakeWeight() const
     if((pindexPrev->nHeight+1) > PEPE_STAKE_CONF_HEIGHT)
             nStakeMinConfirmations = 360;
     if((pindexPrev->nHeight+1) > PEPE_STAKE_CONF_TWEAK)
-            nStakeMinConfirmations = 720;
+            nStakeMinConfirmations = 600;
 
     BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
     {

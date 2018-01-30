@@ -2824,7 +2824,7 @@ bool CTransaction::GetCoinAge(CTxDB& txdb, const CBlockIndex* pindexPrev, uint64
     if((pindexPrev->nHeight+1) > PEPE_STAKE_CONF_HEIGHT)
         nStakeMinConfirmations = 360;
     if((pindexPrev->nHeight+1) > PEPE_STAKE_CONF_TWEAK)
-        nStakeMinConfirmations = 720;
+        nStakeMinConfirmations = 600;
 
     if (IsCoinBase())
         return true;
