@@ -11,7 +11,7 @@
 const std::string CLIENT_NAME("PepeCoin-Memetic-2.7.0.0");
 
 // Client version number
-#define CLIENT_VERSION_SUFFIX   "-Launchpad"
+#define CLIENT_VERSION_SUFFIX   "-Stage"
 
 
 // The following part of the code determines the CLIENT_BUILD variable.
@@ -37,7 +37,7 @@ const std::string CLIENT_NAME("PepeCoin-Memetic-2.7.0.0");
 // git will put "#define GIT_ARCHIVE 1" on the next line inside archives.
 #define GIT_ARCHIVE 1
 #ifdef GIT_ARCHIVE
-#    define GIT_COMMIT_ID "61413"
+#    define GIT_COMMIT_ID "61414"
 #endif
 
 #define BUILD_DESC_FROM_COMMIT(maj,min,rev,build,commit) \
