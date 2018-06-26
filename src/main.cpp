@@ -2524,7 +2524,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
                     {
                         std::vector<uint160> addrIds;
                         
-                        if(atxout.scriptPubKey != addrDevOne && atxout.scriptPubKey != addrDevTwo && atxout.scriptPubKey != addrDevThree)
+                        if(atxout.scriptPubKey != payeeDevOne && atxout.scriptPubKey != payeeDevTwo && atxout.scriptPubKey != payeeDevThree)
                         {
                             if(BuildAddrIndex(atxout.scriptPubKey, addrIds))
                             {
@@ -2542,7 +2542,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
             // outputs
             BOOST_FOREACH(const CTxOut &atxout, tx.vout)
             {
-                if(atxout.scriptPubKey != addrDevOne && atxout.scriptPubKey != addrDevTwo && atxout.scriptPubKey != addrDevThree)
+                if(atxout.scriptPubKey != payeeDevOne && atxout.scriptPubKey != payeeDevTwo && atxout.scriptPubKey != payeeDevThree)
                 {
                     std::vector<uint160> addrIds;
                     if(BuildAddrIndex(atxout.scriptPubKey, addrIds))
