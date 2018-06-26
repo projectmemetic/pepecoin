@@ -16,7 +16,7 @@
 class CBasicKeyStore;
 class CWallet;
 class uint256;
-class CAdrenalineNodeConfig;
+class CmastertoadConfig;
 
 /** General change type (added, updated, removed). */
 enum ChangeType
@@ -98,7 +98,7 @@ public:
     /** Show progress e.g. for verifychain */
     boost::signals2::signal<void (const std::string &title, int nProgress)> ShowProgress;
 
-    boost::signals2::signal<void (CAdrenalineNodeConfig nodeConfig)> NotifyAdrenalineNodeChanged;
+    boost::signals2::signal<void (CmastertoadConfig nodeConfig)> NotifymastertoadChanged;
 };
 
 extern CClientUIInterface uiInterface;

@@ -1,5 +1,5 @@
-#include "addeditadrenalinenode.h"
-#include "ui_addeditadrenalinenode.h"
+#include "addeditmastertoad.h"
+#include "ui_addeditmastertoad.h"
 
 #include "walletdb.h"
 #include "wallet.h"
@@ -11,21 +11,21 @@
 #include "base58.h"
 #include <QMessageBox>
 
-AddEditAdrenalineNode::AddEditAdrenalineNode(QWidget *parent) :
+AddEditmastertoad::AddEditmastertoad(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::AddEditAdrenalineNode)
+    ui(new Ui::AddEditmastertoad)
 {
     ui->setupUi(this);
 
 }
 
-AddEditAdrenalineNode::~AddEditAdrenalineNode()
+AddEditmastertoad::~AddEditmastertoad()
 {
     delete ui;
 }
 
 
-void AddEditAdrenalineNode::on_okButton_clicked()
+void AddEditmastertoad::on_okButton_clicked()
 {
     if(ui->aliasLineEdit->text() == "")
     {
@@ -43,7 +43,7 @@ void AddEditAdrenalineNode::on_okButton_clicked()
     }
     else
     {
-	CAdrenalineNodeConfig c;
+	CmastertoadConfig c;
         c.sAlias = ui->aliasLineEdit->text().toStdString();
 	c.sAddress = ui->addressLineEdit->text().toStdString();
         CKey secret;
@@ -88,15 +88,15 @@ void AddEditAdrenalineNode::on_okButton_clicked()
 
         c.sCollateralAddress = CBitcoinAddress(account.vchPubKey.GetID()).ToString();
 
-        pwalletMain->mapMyAdrenalineNodes.insert(make_pair(c.sAddress, c));
-	walletdb.WriteAdrenalineNodeConfig(c.sAddress, c);
-        uiInterface.NotifyAdrenalineNodeChanged(c);
+        pwalletMain->mapMymastertoads.insert(make_pair(c.sAddress, c));
+	walletdb.WritemastertoadConfig(c.sAddress, c);
+        uiInterface.NotifymastertoadChanged(c);
 
         accept();
     }
 }
 
-void AddEditAdrenalineNode::on_cancelButton_clicked()
+void AddEditmastertoad::on_cancelButton_clicked()
 {
     reject();
 }

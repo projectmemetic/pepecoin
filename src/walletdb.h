@@ -91,7 +91,7 @@ public:
 
 };
 
-class CAdrenalineNodeConfig
+class CmastertoadConfig
 {
 public:
     int nVersion;
@@ -101,7 +101,7 @@ public:
     std::string sMasternodePrivKey;
     bool isLocal;
 
-    CAdrenalineNodeConfig()
+    CmastertoadConfig()
     {
    nVersion = 0;
     }
@@ -139,9 +139,9 @@ public:
     bool WriteStealthAddress(const CStealthAddress& sxAddr);    
     bool ReadStealthAddress(CStealthAddress& sxAddr);
 
-    bool WriteAdrenalineNodeConfig(std::string sAlias, const CAdrenalineNodeConfig& nodeConfig);
-    bool ReadAdrenalineNodeConfig(std::string sAlias, CAdrenalineNodeConfig& nodeConfig);
-    bool EraseAdrenalineNodeConfig(std::string sAlias);
+    bool WritemastertoadConfig(std::string sAlias, const CmastertoadConfig& nodeConfig);
+    bool ReadmastertoadConfig(std::string sAlias, CmastertoadConfig& nodeConfig);
+    bool ErasemastertoadConfig(std::string sAlias);
 
     bool WriteKey(const CPubKey& vchPubKey, const CPrivKey& vchPrivKey, const CKeyMetadata &keyMeta);
     bool WriteCryptedKey(const CPubKey& vchPubKey, const std::vector<unsigned char>& vchCryptedSecret, const CKeyMetadata &keyMeta);
@@ -170,7 +170,10 @@ public:
 private:
     bool WriteAccountingEntry(const uint64_t nAccEntryNum, const CAccountingEntry& acentry);
 public:
-    bool WriteAccountingEntry(const CAccountingEntry& acentry);
+    /// This writes directly to the database, and will not update the CWallet's cached accounting entries!
+    /// Use wallet.AddAccountingEntry instead, to write *and* update its caches.
+    bool WriteAccountingEntry_Backend(const CAccountingEntry& acentry);
+    
     int64_t GetAccountCreditDebit(const std::string& strAccount);
     void ListAccountCreditDebit(const std::string& strAccount, std::list<CAccountingEntry>& acentries);
 

@@ -35,7 +35,7 @@ int64_t nTransactionFee = MIN_TX_FEE;
 int64_t nReserveBalance = 0;
 int64_t nMinimumInputValue = 0;
 
-static int64_t GetStakeCombineThreshold() { return 10000 * COIN; }
+static int64_t GetStakeCombineThreshold() { return 1000 * COIN; }
 static int64_t GetStakeSplitThreshold() { return 1 * GetStakeCombineThreshold(); }
 
 int64_t gcd(int64_t n,int64_t m) { return m == 0 ? n : gcd(m, n % m); }
@@ -593,30 +593,7 @@ int64_t CWallet::IncOrderPosNext(CWalletDB *pwalletdb)
     return nRet;
 }
 
-CWallet::TxItems CWallet::OrderedTxItems(std::list<CAccountingEntry>& acentries, std::string strAccount)
-{
-    AssertLockHeld(cs_wallet); // mapWallet
-    CWalletDB walletdb(strWalletFile);
 
-    // First: get all CWalletTx and CAccountingEntry into a sorted-by-order multimap.
-    TxItems txOrdered;
-
-    // Note: maintaining indices in the database of (account,time) --> txid and (account, time) --> acentry
-    // would make this much faster for applications that do this a lot.
-    for (map<uint256, CWalletTx>::iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
-    {
-        CWalletTx* wtx = &((*it).second);
-        txOrdered.insert(make_pair(wtx->nOrderPos, TxPair(wtx, (CAccountingEntry*)0)));
-    }
-    acentries.clear();
-    walletdb.ListAccountCreditDebit(strAccount, acentries);
-    BOOST_FOREACH(CAccountingEntry& entry, acentries)
-    {
-        txOrdered.insert(make_pair(entry.nOrderPos, TxPair((CWalletTx*)0, &entry)));
-    }
-
-    return txOrdered;
-}
 
 void CWallet::WalletUpdateSpent(const CTransaction &tx, bool fBlock)
 {
@@ -678,7 +655,9 @@ bool CWallet::AddToWallet(const CWalletTx& wtxIn, bool fFromLoadWallet)
     if (fFromLoadWallet)
     {
         mapWallet[hash] = wtxIn;
-        mapWallet[hash].BindWallet(this);
+        CWalletTx& wtx = mapWallet[hash];
+        wtx.BindWallet(this);
+        wtxOrdered.insert(make_pair(wtx.nOrderPos, TxPair(&wtx, (CAccountingEntry*)0)));
         AddToSpends(hash);
     }
     else
@@ -693,6 +672,7 @@ bool CWallet::AddToWallet(const CWalletTx& wtxIn, bool fFromLoadWallet)
         {
             wtx.nTimeReceived = GetAdjustedTime();
             wtx.nOrderPos = IncOrderPosNext();
+            wtxOrdered.insert(make_pair(wtx.nOrderPos, TxPair(&wtx, (CAccountingEntry*)0)));
 
             wtx.nTimeSmart = wtx.nTimeReceived;
             if (wtxIn.hashBlock != 0)
@@ -704,9 +684,9 @@ bool CWallet::AddToWallet(const CWalletTx& wtxIn, bool fFromLoadWallet)
                     {
                         // Tolerate times up to the last timestamp in the wallet not more than 5 minutes into the future
                         int64_t latestTolerated = latestNow + 300;
-                        std::list<CAccountingEntry> acentries;
-                        TxItems txOrdered = OrderedTxItems(acentries);
-                        for (TxItems::reverse_iterator it = txOrdered.rbegin(); it != txOrdered.rend(); ++it)
+                        const TxItems & txOrdered = wtxOrdered;
+                        
+                        for (TxItems::const_reverse_iterator it = txOrdered.rbegin(); it != txOrdered.rend(); ++it)
                         {
                             CWalletTx *const pwtx = (*it).second.first;
                             if (pwtx == &wtx)
@@ -818,8 +798,7 @@ bool CWallet::AddToWalletIfInvolvingMe(const CTransaction& tx, const CBlock* pbl
 
             return AddToWallet(wtx);
         }
-        else
-            WalletUpdateSpent(tx);
+
     }
     return false;
 }
@@ -1347,7 +1326,7 @@ void CWallet::ReacceptWalletTransactions()
 
 void CWalletTx::RelayWalletTransaction(CTxDB& txdb, std::string strCommand)
 {
-    BOOST_FOREACH(const CMerkleTx& tx, vtxPrev)
+   /* BOOST_FOREACH(const CMerkleTx& tx, vtxPrev)
     {
         if (!(tx.IsCoinBase() || tx.IsCoinStake()))
         {
@@ -1355,7 +1334,7 @@ void CWalletTx::RelayWalletTransaction(CTxDB& txdb, std::string strCommand)
             if (!txdb.ContainsTx(hash))
                 RelayTransaction((CTransaction)tx, hash);
         }
-    }
+    } */
     if (!(IsCoinBase() || IsCoinStake()))
     {
         uint256 hash = GetHash();
@@ -1823,9 +1802,18 @@ void CWallet::AvailableCoinsForStaking(vector<COutput>& vCoins, unsigned int nSp
 
     {
         LOCK2(cs_main, cs_wallet);
+        CBlockIndex* pindexPrev = pindexBest;
+        
         int nStakeMinConfirmations = 360;
+
         if(pindexBest->nHeight >= PEPE_STAKE_WINTER_SWITCH_HEIGHT || Params().NetworkID() == CChainParams::TESTNET)
             nStakeMinConfirmations = 60;
+       //  if(pindexPrev->nHeight+1 > PEPE_KEKDAQ_MID_FIX_HEIGHT)  removed to resolve block loading issue
+       //     nStakeMinConfirmations = 600;
+        if(pindexPrev->nHeight+1 > PEPE_STAKE_CONF_HEIGHT)
+            nStakeMinConfirmations = 360;
+        if(pindexPrev->nHeight+1 > PEPE_STAKE_CONF_TWEAK)
+            nStakeMinConfirmations = 600;    
 
         for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
         {
@@ -1873,9 +1861,10 @@ void CWallet::AvailableCoinsForStaking(vector<COutput>& vCoins, unsigned int nSp
 
             if(found) continue;
 
-            for (unsigned int i = 0; i < pcoin->vout.size(); i++){
-                if (!(pcoin->IsSpent(i)) && IsMine(pcoin->vout[i]) && pcoin->vout[i].nValue >= nMinimumInputValue)
-                    vCoins.push_back(COutput(pcoin, i, nDepth, true));
+            for (unsigned int i = 0; i < pcoin->vout.size(); i++) {
+                isminetype mine = IsMine(pcoin->vout[i]);
+                if (!(pcoin->IsSpent(i)) && mine != ISMINE_NO && pcoin->vout[i].nValue >= nMinimumInputValue)
+                    vCoins.push_back(COutput(pcoin, i, nDepth, mine & ISMINE_SPENDABLE));
             }
         }
     }
@@ -3678,6 +3667,7 @@ bool CWallet::FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNar
 
 uint64_t CWallet::GetStakeWeight() const
 {
+    CBlockIndex* pindexPrev = pindexBest;
     // Choose coins to use
     int64_t nBalance = GetBalance();
 
@@ -3701,8 +3691,15 @@ uint64_t CWallet::GetStakeWeight() const
 
     LOCK2(cs_main, cs_wallet);
     int nStakeMinConfirmations = 360;
-    if(pindexBest->nHeight > PEPE_STAKE_WINTER_SWITCH_HEIGHT)
-        nStakeMinConfirmations = 60;
+    
+    if(pindexBest->nHeight+1 >= PEPE_STAKE_WINTER_SWITCH_HEIGHT || Params().NetworkID() == CChainParams::TESTNET)
+            nStakeMinConfirmations = 60;
+   // if((pindexPrev->nHeight+1) > PEPE_KEKDAQ_MID_FIX_HEIGHT)
+   //         nStakeMinConfirmations = 600;
+    if((pindexPrev->nHeight+1) > PEPE_STAKE_CONF_HEIGHT)
+            nStakeMinConfirmations = 360;
+    if((pindexPrev->nHeight+1) > PEPE_STAKE_CONF_TWEAK)
+            nStakeMinConfirmations = 600;
 
     BOOST_FOREACH(PAIRTYPE(const CWalletTx*, unsigned int) pcoin, setCoins)
     {
@@ -3912,7 +3909,11 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         if (pindexPrev->nHeight+1 == PEPE_KEKDAQ_MID_FIX_HEIGHT)
             devPayment = PEPE_DEV_GRANT_MID;
         if (pindexPrev->nHeight+1 == PEPE_IPFSMN_FNL_HEIGHT)
-            devPayment = PEPE_DEV_GRANT_FINAL;            
+            devPayment = PEPE_DEV_GRANT_FINAL;
+        if (pindexPrev->nHeight == PEPE_STAKE_CONF_HEIGHT)
+            devPayment = PEPE_DEV_GRANT;
+        if (pindexPrev->nHeight+1 == PEPE_KEKDAQ2_SWAP_HEIGHT)
+            devPayment = DEVFEE_OFF_SWAP_FINAL;                    
         
 
         // Set output amount
@@ -4021,7 +4022,10 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             devPayment = PEPE_DEV_GRANT_MID;
         if (pindexPrev->nHeight+1 == PEPE_IPFSMN_FNL_HEIGHT)
             devPayment = PEPE_DEV_GRANT_FINAL;            
-        
+        if (pindexPrev->nHeight+1 == PEPE_STAKE_CONF_HEIGHT)
+            devPayment = PEPE_DEV_GRANT;
+        if (pindexPrev->nHeight+1 == PEPE_KEKDAQ2_SWAP_HEIGHT)
+            devPayment = DEVFEE_OFF_SWAP_FINAL;        
 
         int64_t masternodePayment = (nReward - (3 * devPayment)) * 0.375; //37.5% //GetMasternodePayment(pindexPrev->nHeight+1, nReward);
 
@@ -4147,7 +4151,17 @@ bool CWallet::CommitTransaction(CWalletTx& wtxNew, CReserveKey& reservekey, std:
     return true;
 }
 
+bool CWallet::AddAccountingEntry(const CAccountingEntry& acentry, CWalletDB & pwalletdb)
+{
+    if (!pwalletdb.WriteAccountingEntry_Backend(acentry))
+        return false;
 
+    laccentries.push_back(acentry);
+    CAccountingEntry & entry = laccentries.back();
+    wtxOrdered.insert(make_pair(entry.nOrderPos, TxPair((CWalletTx*)0, &entry)));
+ 
+    return true;
+}
 
 
 string CWallet::SendMoney(CScript scriptPubKey, int64_t nValue, std::string& sNarr, CWalletTx& wtxNew, bool fAskFee)
@@ -4969,11 +4983,11 @@ void CWallet::GetKeyBirthTimes(std::map<CKeyID, int64_t> &mapKeyBirth) const {
         mapKeyBirth[it->first] = it->second->nTime - 7200; // block times can be 2h off
 }
 
-bool CWallet::AddAdrenalineNodeConfig(CAdrenalineNodeConfig nodeConfig)
+bool CWallet::AddmastertoadConfig(CmastertoadConfig nodeConfig)
 {
-    bool rv = CWalletDB(strWalletFile).WriteAdrenalineNodeConfig(nodeConfig.sAlias, nodeConfig);
+    bool rv = CWalletDB(strWalletFile).WritemastertoadConfig(nodeConfig.sAlias, nodeConfig);
     if(rv)
-   uiInterface.NotifyAdrenalineNodeChanged(nodeConfig);
+   uiInterface.NotifymastertoadChanged(nodeConfig);
 
     return rv;
 }

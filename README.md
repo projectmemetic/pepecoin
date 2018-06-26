@@ -1,19 +1,20 @@
-# PepeCoin - PEPE 
+# PepeCoin - PEPE  / Memetic - MEME
 
-v. 2.5.0.0 - Jack O Lantern Hardfork at blockheight 888,000
+v. 2.7.0.0
 ####
-Pepecoin is digital decentralized crypto-currency, a hybrid zombie mix of seven other cryptocurrency projects, plus a lot of custom code and goals.
+Pepecoin is digital decentralized crypto-currency, also known as Memetic / MEME on Bittrex and CoinMarketCap.
 
 Pepecoin incorporates both blockchain 2.0 and blockchain 3.0 technologies and is under continued development.
 
-Pepecoin is a Proof of Work (POW) /  Proof of Stake (POS) cryptocurrency fork of 6 different cryptocurrencies with many security additions.
+Pepecoin is a Proof of Work (POW) /  Proof of Stake (POS) cryptocurrency with privacy features and masternode technology.
 
 PepeCoin is decentralized, encrypted image storage in IPFS, cryptographically verified against the PepeCoin blockchain. Protect your memes and political information from censorship.
 
-PepeCoin is blockchain hash secured image / archive storage, with decentralized moderation ability.
+PepeCoin is the infrastructure for the Kekdaq decentralized meme asset exchange.
 
 PepeCoin is a decentralized, encrypted project that supports the preservation of all freedom of speech within the bounds of US law.
 
+See [ANN](https://bitcointalk.org/index.php?topic=1391598.0) for more details.
 
 ***
 
@@ -27,10 +28,9 @@ PepeCoin is a decentralized, encrypted project that supports the preservation of
  - 60 seconds block time
  - X11 mining algorithm
  - Proof of Stake - POS - 7% at block 600,000, drops by 2% yearly and stays at 3%
- - Proof of Work - POW - Restarts at block 600,000, X11  See [ANN](https://bitcointalk.org/index.php?topic=1391598.0) for more details.
-  - 40 confirmations for newly Proof of Work mined blocks
- - 100 confirmations for newly Proof of Stake minted blocks
- - 60 seconds per block time Proof of Stake
+ - Proof of Work - POW - Restarts at block 600,000, X11
+ - 100 confirmations for newly Proof of Work mined blocks
+ - 360 confirmations for newly Proof of Stake minted blocks
   - 6 hour minimum stake age (12 hour average)
   - Additional security improvements
   
@@ -47,8 +47,11 @@ PepeCoin is a decentralized, encrypted project that supports the preservation of
 - In wallet public messaging wall
 - JSON-RPC functions to externally query all public wall messages
 - IPFS-based  data hashing storage currently under development
-- Masternode functionality in progress, expected node ownership fee of 50k PEPE
-- *More to follow on upcoming roadmap  4/27/2017*
+- Kekdaq decentralized meme asset platform in testing / development stage
+- Mastertoads pay 37.5% of all POW and POS blocks distributed among MN runners
+
+
+See BitcoinTalk post for more info: https://bitcointalk.org/index.php?topic=1391598.0
 
 
 -------------------------------
@@ -62,26 +65,27 @@ https://github.com/pepeteam/pepecoin/releases
 
 **Linux Builds:**
 
-PepeCoin uses libsecp256k1, libgmp, Boost1.55+, Openssl1.01p, Berkeley DB 4.8+, QT5 to compile
+PepeCoin uses libsecp256k1, libgmp, Boost1.55+, Openssl1.01p, Berkeley DB 4.8+, QT5 to compile.
+
+Ubuntu 18.04 you will also need to install the libssl1.0-dev package.
 
 
 	sudo apt-get install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev libboost-thread-dev libminiupnpc-dev libgmp3-dev libdb-dev libdb++-dev libgmp3-dev
+	
+	(for Ubuntu 18.04 / Debian 9):  sudo apt install libssl1.0-dev
+	
 	git clone https://github.com/pepeteam/pepecoin.git
 	cd pepecoin/src
 	make -f makefile.unix USE_UPNP=-1
 
 To build the GUI with Qt 5 you need the following:
 
-    sudo apt-get install libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler
+    sudo apt-get install libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler qt5 qt5-default
     git clone https://github.com/pepeteam/pepecoin.git
     cd pepecoin 
     qmake
+    make -f Makefile -j2
 
-
-
-**Mac Wallet**
-
-Pending community involvement
 
 ***
 ![](http://i.imgur.com/EfYNxub.png) 
@@ -90,27 +94,29 @@ Pending community involvement
 --------------------
 Links
 --------------------
-*(pending PepeCoin rename)*
 
 **Information**
 [Bitcointalk ANN](https://bitcointalk.org/index.php?topic=1391598.0) 
+
 Windows Wallet:  [Download](https://github.com/pepeteam/pepecoin/releases) 
 
-https://pepecoin.co Website - Coming 4/23/17
-https://roadmap.pepecoin.co - Coming 4/27/17
 
-
+**Website**
+https://memetic.ai
+https://pepecoin.co
 
 
 **Exchanges**
 
 [https://bittrex.com/Market/Index?MarketName=BTC-MEME  ](https://bittrex.com/Market/Index?MarketName=BTC-MEME  ) 
+[https://www.cryptopia.co.nz/Exchange?market=PEPE_BTC](https://www.cryptopia.co.nz/Exchange?market=PEPE_BTC)
 [https://www.coinexchange.io/market/MEME/BTC](https://www.coinexchange.io/market/MEME/BTC) 
 
 
 **Block Explorers**
 
-[https://poswallet.com/blockChain/meme](https://poswallet.com/blockChain/meme) 
+[http://memetic.thecryptochat.net/](http://memetic.thecryptochat.net/) 
+
 [https://prohashing.com/explorer/Memeticcoin/](https://prohashing.com/explorer/Memeticcoin/) 
 
 
@@ -125,17 +131,13 @@ https://cryptocoinview.com/MEME
 
 **Social**
 [https://twitter.com/pepecoins](https://twitter.com/pepecoins) https://twitter.com/pepecoins
-Telegram group:  [Get invite](https://t.me/joinchat/AAAAAEB2DY0HG7sKzDWUYA) 
+Telegram group:  [Get invite](https://t.me/jpepecoins) 
 
 
 ***
 
 **Nodes**
-addnode=nyc.pepecoin.co
-addnode=dallas.pepecoin.co
-addnode=tokyo.pepecoin.co
-addnode=netherlands.pepecoin.co
-addnode=paris.pepecoin.co
+addnode=seed.kekdaq.com
 addnode=seed.pepecoin.co
 
 ![pepecoin-256](https://i.imgur.com/xnSJvT9.jpg  "pepecoin-256")
@@ -156,7 +158,7 @@ License
 >Copyright (c) 2015 Transfercoin Developers
 >Copyright (c) 2015-2016 PepeCoin Developers
 >Copyright (c) 2015-2016 Memetic Developers
->Copyright (c) 2017 PepeCoin Developers
+>Copyright (c) 2017 PepeCoin / Memetic Developers
 >
 >Permission is hereby granted, free of charge, to any person obtaining a copy
 >of this software and associated documentation files (the "Software"), to deal

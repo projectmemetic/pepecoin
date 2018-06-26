@@ -2121,7 +2121,16 @@ void ThreadCheckDarkSendPool()
         //LogPrintf("ThreadCheckDarkSendPool::check timeout\n");
         darkSendPool.CheckTimeout();
 
-        if(c % 60 == 0){
+        int mtTimeout = 60;
+
+        if(pindexBest->nHeight >= MASTERTOAD_LOWERTRAFFIC_FORK)
+            mtTimeout = 120;    // every 2 minutes
+
+        if(pindexBest->nHeight >= MASTERTOAD_RELOWERTRAFFIC_FORK)
+            mtTimeout = 150;    // every 2.5 minutes
+        
+
+        if(c % mtTimeout == 0){
             LOCK(cs_main);
             /*
                 cs_main is required for doing masternode.Check because something
@@ -2170,8 +2179,17 @@ void ThreadCheckDarkSendPool()
             CleanTransactionLocksList();
         }
 
-        //try to sync the masternode list and payment list every 5 seconds from at least 3 nodes
-        if(c % 5 == 0 && RequestedMasterNodeList < 3){
+
+        int mtRefresh = 5;  //try to sync the masternode list and payment list every 5 seconds from at least 3 nodes
+
+        if(pindexBest->nHeight >= MASTERTOAD_LOWERTRAFFIC_FORK)
+            mtRefresh = 30;    // every 30 seconds instead of 5
+        
+        if(pindexBest->nHeight >= MASTERTOAD_RELOWERTRAFFIC_FORK)
+            mtRefresh = 90;    // every 90 seconds instead of 30
+
+        
+        if(c % mtRefresh == 0 && RequestedMasterNodeList < 3){
             bool fIsInitialDownload = IsInitialBlockDownload();
             if(!fIsInitialDownload) {
                 LOCK(cs_vNodes);
@@ -2193,8 +2211,17 @@ void ThreadCheckDarkSendPool()
                 }
             }
         }
+        
 
-        if(c % MASTERNODE_PING_SECONDS == 0){
+        int mtPingSeconds = MASTERNODE_PING_SECONDS;
+
+        if(pindexBest->nHeight >= MASTERTOAD_LOWERTRAFFIC_FORK)
+            mtPingSeconds = 10;     // 10 seconds
+
+        if(pindexBest->nHeight >= MASTERTOAD_RELOWERTRAFFIC_FORK)
+            mtPingSeconds = 20;     // 20 seconds
+
+        if(c % mtPingSeconds == 0){
             activeMasternode.ManageStatus();
         }
 

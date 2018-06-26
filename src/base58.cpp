@@ -6,6 +6,7 @@
 
 #include "hash.h"
 #include "uint256.h"
+#include "chainparams.h"
 
 #include <assert.h>
 #include <stdint.h>
@@ -237,6 +238,9 @@ namespace {
         bool operator()(const CStealthAddress &stxAddr) const { return false; }
     };
 };
+
+CChainParams::Base58Type pubkey_address = (CChainParams::Base58Type)0;
+CChainParams::Base58Type script_address = (CChainParams::Base58Type)5;
 
 bool CBitcoinAddress::Set(const CKeyID &id) {
     SetData(Params().Base58Prefix(CChainParams::PUBKEY_ADDRESS), &id, 20);

@@ -2,7 +2,7 @@
 // Copyright (c) 2014 DashCoin Developers
 // Copyright (c) 2015 Transfercoin Developer
 // Copyright (c) 2015-2016 PepeCoin Developers
-// Copyright (c) 2016 The PepeCoin Developers
+// Copyright (c) 2016-2018 The PepeCoin Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
  
@@ -55,7 +55,7 @@ public:
         pchMessageStart[1] = 0xc4;
         pchMessageStart[2] = 0x2c;
         pchMessageStart[3] = 0x2f;
-        vAlertPubKey = ParseHex("0x040587d9629c4e90638de65513cde8b3c2f21bdd32552394888aea60da17cb9ee957e97519a6c9918e5635719703493619cbb7732ed69b77be3ea6e5d5c82751d6");
+        vAlertPubKey = ParseHex("0x0451d55bb3330f555fed011b93a04a9d00ec542dd805c80b1babd7e29bca08dd7fc796cb822dfd20087421a5dc21c0a2fdd6dbb5c82229f41eb9f57e4a076dd4ed");
         nDefaultPort = 29377;
         nRPCPort = 29376;
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 16);
@@ -175,9 +175,9 @@ public:
  
         convertSeed6(vFixedSeeds, pnSeed6_test, ARRAYLEN(pnSeed6_test));
  
-        nLastPOWBlock = 2000;
-        nPOSStartBlock = 20;
-        nRestartPOWBlock = 320000; // when POW restarts
+        nLastPOWBlock = 5000000;
+        nPOSStartBlock = 100;
+        // nRestartPOWBlock = 320000; // when POW restarts
     }
     virtual Network NetworkID() const { return CChainParams::TESTNET; }
 };
