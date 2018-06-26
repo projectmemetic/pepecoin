@@ -320,6 +320,13 @@ bool CheckProofOfStake(CBlockIndex* pindexPrev, const CTransaction& tx, unsigned
     nStakeMinConfirmations = 360; // 6 hours
     if((pindexPrev->nHeight+1) >= PEPE_STAKE_WINTER_SWITCH_HEIGHT || Params().NetworkID() == CChainParams::TESTNET)
         nStakeMinConfirmations = 60;
+    // if((pindexPrev->nHeight+1) > PEPE_KEKDAQ_MID_FIX_HEIGHT)  //revert fix until stake_conf_height to resolve block loading issue
+    //    nStakeMinConfirmations = 600;
+    if((pindexPrev->nHeight+1) > PEPE_STAKE_CONF_HEIGHT)
+        nStakeMinConfirmations = 360;
+    if((pindexPrev->nHeight+1) > PEPE_STAKE_CONF_TWEAK)
+        nStakeMinConfirmations = 600;
+
 
     if (IsConfirmedInNPrevBlocks(txindex, pindexPrev, nStakeMinConfirmations - 1, nDepth))
         return tx.DoS(100, error("CheckProofOfStake() : tried to stake at depth %d", nDepth + 1));
@@ -372,6 +379,10 @@ bool CheckKernel(CBlockIndex* pindexPrev, unsigned int nBits, int64_t nTime, con
         int nStakeMinConfirmations = 360; // 6 hours
         if((pindexPrev->nHeight+1) >= PEPE_STAKE_WINTER_SWITCH_HEIGHT)
             nStakeMinConfirmations = 60;
+        if((pindexPrev->nHeight+1) > PEPE_STAKE_CONF_HEIGHT)
+            nStakeMinConfirmations = 360;
+        if((pindexPrev->nHeight+1) > PEPE_STAKE_CONF_TWEAK)
+            nStakeMinConfirmations = 600;                   
 
         if (IsConfirmedInNPrevBlocks(txindex, pindexPrev, nStakeMinConfirmations - 1, nDepth))
             return false;

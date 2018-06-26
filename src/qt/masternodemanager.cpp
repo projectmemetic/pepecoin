@@ -1,7 +1,7 @@
 #include "masternodemanager.h"
 #include "ui_masternodemanager.h"
-#include "addeditadrenalinenode.h"
-#include "adrenalinenodeconfigdialog.h"
+#include "addeditmastertoad.h"
+#include "mastertoadconfigdialog.h"
 
 #include "sync.h"
 #include "clientmodel.h"
@@ -56,7 +56,7 @@ MasternodeManager::~MasternodeManager()
     delete ui;
 }
 
-static void NotifyAdrenalineNodeUpdated(MasternodeManager *page, CAdrenalineNodeConfig nodeConfig)
+static void NotifymastertoadUpdated(MasternodeManager *page, CmastertoadConfig nodeConfig)
 {
     // alias, address, privkey, collateral address
     QString alias = QString::fromStdString(nodeConfig.sAlias);
@@ -64,7 +64,7 @@ static void NotifyAdrenalineNodeUpdated(MasternodeManager *page, CAdrenalineNode
     QString privkey = QString::fromStdString(nodeConfig.sMasternodePrivKey);
     QString collateral = QString::fromStdString(nodeConfig.sCollateralAddress);
     
-    QMetaObject::invokeMethod(page, "updateAdrenalineNode", Qt::QueuedConnection,
+    QMetaObject::invokeMethod(page, "updatemastertoad", Qt::QueuedConnection,
                               Q_ARG(QString, alias),
                               Q_ARG(QString, addr),
                               Q_ARG(QString, privkey),
@@ -75,13 +75,13 @@ static void NotifyAdrenalineNodeUpdated(MasternodeManager *page, CAdrenalineNode
 void MasternodeManager::subscribeToCoreSignals()
 {
     // Connect signals to core
-    uiInterface.NotifyAdrenalineNodeChanged.connect(boost::bind(&NotifyAdrenalineNodeUpdated, this, _1));
+    uiInterface.NotifymastertoadChanged.connect(boost::bind(&NotifymastertoadUpdated, this, _1));
 }
 
 void MasternodeManager::unsubscribeFromCoreSignals()
 {
     // Disconnect signals from core
-    uiInterface.NotifyAdrenalineNodeChanged.disconnect(boost::bind(&NotifyAdrenalineNodeUpdated, this, _1));
+    uiInterface.NotifymastertoadChanged.disconnect(boost::bind(&NotifymastertoadUpdated, this, _1));
 }
 
 void MasternodeManager::on_tableWidget_2_itemSelectionChanged()
@@ -96,9 +96,9 @@ void MasternodeManager::on_tableWidget_2_itemSelectionChanged()
     }
 }
 
-void MasternodeManager::updateAdrenalineNode(QString alias, QString addr, QString privkey, QString collateral)
+void MasternodeManager::updatemastertoad(QString alias, QString addr, QString privkey, QString collateral)
 {
-    LOCK(cs_adrenaline);
+    LOCK(cs_mastertoad);
     bool bFound = false;
     int nodeRow = 0;
     for(int i=0; i < ui->tableWidget_2->rowCount(); i++)
@@ -201,7 +201,7 @@ void MasternodeManager::setWalletModel(WalletModel *model)
 
 void MasternodeManager::on_createButton_clicked()
 {
-    AddEditAdrenalineNode* aenode = new AddEditAdrenalineNode();
+    AddEditmastertoad* aenode = new AddEditmastertoad();
     aenode->exec();
 }
 
@@ -244,9 +244,9 @@ void MasternodeManager::on_getConfigButton_clicked()
     QModelIndex index = selected.at(0);
     int r = index.row();
     std::string sAddress = ui->tableWidget_2->item(r, 1)->text().toStdString();
-    CAdrenalineNodeConfig c = pwalletMain->mapMyAdrenalineNodes[sAddress];
+    CmastertoadConfig c = pwalletMain->mapMymastertoads[sAddress];
     std::string sPrivKey = c.sMasternodePrivKey;
-    AdrenalineNodeConfigDialog* d = new AdrenalineNodeConfigDialog(this, QString::fromStdString(sAddress), QString::fromStdString(sPrivKey));
+    mastertoadConfigDialog* d = new mastertoadConfigDialog(this, QString::fromStdString(sAddress), QString::fromStdString(sPrivKey));
     d->exec();
 }
 
@@ -265,15 +265,15 @@ void MasternodeManager::on_removeButton_clicked()
         QModelIndex index = selected.at(0);
         int r = index.row();
         std::string sAddress = ui->tableWidget_2->item(r, 1)->text().toStdString();
-        CAdrenalineNodeConfig c = pwalletMain->mapMyAdrenalineNodes[sAddress];
+        CmastertoadConfig c = pwalletMain->mapMymastertoads[sAddress];
         CWalletDB walletdb(pwalletMain->strWalletFile);
-        pwalletMain->mapMyAdrenalineNodes.erase(sAddress);
-        walletdb.EraseAdrenalineNodeConfig(c.sAddress);
+        pwalletMain->mapMymastertoads.erase(sAddress);
+        walletdb.ErasemastertoadConfig(c.sAddress);
         ui->tableWidget_2->clearContents();
         ui->tableWidget_2->setRowCount(0);
-        BOOST_FOREACH(PAIRTYPE(std::string, CAdrenalineNodeConfig) adrenaline, pwalletMain->mapMyAdrenalineNodes)
+        BOOST_FOREACH(PAIRTYPE(std::string, CmastertoadConfig) mastertoad, pwalletMain->mapMymastertoads)
         {
-            updateAdrenalineNode(QString::fromStdString(adrenaline.second.sAlias), QString::fromStdString(adrenaline.second.sAddress), QString::fromStdString(adrenaline.second.sMasternodePrivKey), QString::fromStdString(adrenaline.second.sCollateralAddress));
+            updatemastertoad(QString::fromStdString(mastertoad.second.sAlias), QString::fromStdString(mastertoad.second.sAddress), QString::fromStdString(mastertoad.second.sMasternodePrivKey), QString::fromStdString(mastertoad.second.sCollateralAddress));
         }
     }
 }
@@ -289,7 +289,7 @@ void MasternodeManager::on_startButton_clicked()
     QModelIndex index = selected.at(0);
     int r = index.row();
     std::string sAddress = ui->tableWidget_2->item(r, 1)->text().toStdString();
-    CAdrenalineNodeConfig c = pwalletMain->mapMyAdrenalineNodes[sAddress];
+    CmastertoadConfig c = pwalletMain->mapMymastertoads[sAddress];
 
     std::string errorMessage;
     bool result = activeMasternode.RegisterByPubKey(c.sAddress, c.sMasternodePrivKey, c.sCollateralAddress, errorMessage);
@@ -314,7 +314,7 @@ void MasternodeManager::on_stopButton_clicked()
     QModelIndex index = selected.at(0);
     int r = index.row();
     std::string sAddress = ui->tableWidget_2->item(r, 1)->text().toStdString();
-    CAdrenalineNodeConfig c = pwalletMain->mapMyAdrenalineNodes[sAddress];
+    CmastertoadConfig c = pwalletMain->mapMymastertoads[sAddress];
 
     std::string errorMessage;
     bool result = activeMasternode.StopMasterNode(c.sAddress, c.sMasternodePrivKey, errorMessage);
@@ -333,9 +333,9 @@ void MasternodeManager::on_stopButton_clicked()
 void MasternodeManager::on_startAllButton_clicked()
 {
     std::string results;
-    BOOST_FOREACH(PAIRTYPE(std::string, CAdrenalineNodeConfig) adrenaline, pwalletMain->mapMyAdrenalineNodes)
+    BOOST_FOREACH(PAIRTYPE(std::string, CmastertoadConfig) mastertoad, pwalletMain->mapMymastertoads)
     {
-        CAdrenalineNodeConfig c = adrenaline.second;
+        CmastertoadConfig c = mastertoad.second;
 	std::string errorMessage;
         bool result = activeMasternode.RegisterByPubKey(c.sAddress, c.sMasternodePrivKey, c.sCollateralAddress, errorMessage);
 	if(result)
@@ -356,9 +356,9 @@ void MasternodeManager::on_startAllButton_clicked()
 void MasternodeManager::on_stopAllButton_clicked()
 {
     std::string results;
-    BOOST_FOREACH(PAIRTYPE(std::string, CAdrenalineNodeConfig) adrenaline, pwalletMain->mapMyAdrenalineNodes)
+    BOOST_FOREACH(PAIRTYPE(std::string, CmastertoadConfig) mastertoad, pwalletMain->mapMymastertoads)
     {
-        CAdrenalineNodeConfig c = adrenaline.second;
+        CmastertoadConfig c = mastertoad.second;
 	std::string errorMessage;
         bool result = activeMasternode.StopMasterNode(c.sAddress, c.sMasternodePrivKey, errorMessage);
 	if(result)
@@ -380,9 +380,9 @@ void MasternodeManager::on_localButton_clicked()
 {
     bool bAlreadyHaveLocalNode = false;
     // Check if a local Mastertoad already exists
-    BOOST_FOREACH(PAIRTYPE(std::string, CAdrenalineNodeConfig) adrenaline, pwalletMain->mapMyAdrenalineNodes)
+    BOOST_FOREACH(PAIRTYPE(std::string, CmastertoadConfig) mastertoad, pwalletMain->mapMymastertoads)
     {
-        if(adrenaline.second.isLocal)
+        if(mastertoad.second.isLocal)
     {
         bAlreadyHaveLocalNode = true;
         break;
@@ -422,7 +422,7 @@ void MasternodeManager::on_localButton_clicked()
     }
 
     // Automatically create an entry for the local address
-    CAdrenalineNodeConfig c;
+    CmastertoadConfig c;
         c.sAlias = "Local Mastertoad";
     c.sAddress = GetLocalAddress(NULL).ToStringIPPort();
         CKey secret;
@@ -469,9 +469,9 @@ void MasternodeManager::on_localButton_clicked()
 
         c.isLocal = true;
 
-        pwalletMain->mapMyAdrenalineNodes.insert(make_pair(c.sAddress, c));
-    walletdb.WriteAdrenalineNodeConfig(c.sAddress, c);
-        uiInterface.NotifyAdrenalineNodeChanged(c);
+        pwalletMain->mapMymastertoads.insert(make_pair(c.sAddress, c));
+    walletdb.WritemastertoadConfig(c.sAddress, c);
+        uiInterface.NotifymastertoadChanged(c);
 
         strMasterNodeAddr = c.sAddress;
     strMasterNodePrivKey = c.sMasternodePrivKey;
