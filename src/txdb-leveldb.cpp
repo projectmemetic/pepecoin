@@ -118,6 +118,11 @@ CTxDB::CTxDB(const char* pszMode)
         fReadOnly = fTmp;
     }
 
+    if (!Read('S', salt)) {
+        salt = GetRandHash();
+        Write('S', salt);
+    }
+
     LogPrintf("Opened LevelDB successfully\n");
 }
 
@@ -198,30 +203,37 @@ bool CTxDB::ScanBatch(const CDataStream &key, string *value, bool *deleted) cons
 }
 
 bool CTxDB::WriteAddrIndex(uint160 addrHash, uint256 txHash)
-{
-    std::vector<uint256> txHashes;
-    if(!ReadAddrIndex(addrHash, txHashes))
-    {
-	txHashes.push_back(txHash);
-        return Write(make_pair(string("adr"), addrHash), txHashes);
-    }
-    else
-    {
-	if(std::find(txHashes.begin(), txHashes.end(), txHash) == txHashes.end()) 
-    	{
-    	    txHashes.push_back(txHash);
-            return Write(make_pair(string("adr"), addrHash), txHashes);
-	}
-	else
-	{
-	    return true; // already have this tx hash
-	}
-    }
+{    
+    unsigned char foo[0];
+    CHashWriter ss(SER_GETHASH, 0);
+    ss << salt;
+    ss << addrHash;
+    return Write(make_pair(make_pair('a', UintToArith256(ss.GetHash()).GetLow64()), txHash), FLATDATA(foo));
 }
 
 bool CTxDB::ReadAddrIndex(uint160 addrHash, std::vector<uint256>& txHashes)
 {
-    return Read(make_pair(string("adr"), addrHash), txHashes);
+    leveldb::Iterator *iterator = pdb->NewIterator(leveldb::ReadOptions());
+    uint64_t lookupid;
+    {
+        CHashWriter ss(SER_GETHASH, 0);
+        ss << salt;
+        ss << addrid;
+        lookupid = UintToArith256(ss.GetHash()).GetLow64();
+    }
+
+    iterator->Seek(make_pair('a', lookupid));
+    while (iterator->Valid()) {
+        std::pair<std::pair<char, uint64_t>, uint256> key;
+        if (iterator->GetKey(key) && key.first.first == 'a' && key.first.second == lookupid) {
+            txHashes.push_back(key.second);
+        } else {
+            break;
+        }
+        pcursor->Next();
+    }
+
+    return true;
 }
 
 bool CTxDB::WritePepeMessage(uint256 hash, const CPepeMessage& pmsg)
