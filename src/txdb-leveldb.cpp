@@ -222,7 +222,10 @@ bool CTxDB::ReadAddrIndex(uint160 addrHash, std::vector<uint256>& txHashes)
         lookupid = ss.GetHash().GetLow64();
     }
 
-    iterator->Seek(make_pair('a', lookupid));
+    CDataStream ssStartKey(SER_DISK, CLIENT_VERSION);
+    ssStartKey << make_pair(string("a"), lookupid);    
+    iterator->Seek(ssStartKey.str());
+
     while (iterator->Valid()) {
         std::pair<std::pair<char, uint64_t>, uint256> key;
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);        
