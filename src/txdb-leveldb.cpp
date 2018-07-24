@@ -208,7 +208,7 @@ bool CTxDB::WriteAddrIndex(uint160 addrHash, uint256 txHash)
     CHashWriter ss(SER_GETHASH, 0);
     ss << salt;
     ss << addrHash;
-    return Write(make_pair(make_pair('a', UintToArith256(ss.GetHash()).GetLow64()), txHash), FLATDATA(foo));
+    return Write(make_pair(make_pair('a', ss.GetHash().GetLow64()), txHash), FLATDATA(foo));
 }
 
 bool CTxDB::ReadAddrIndex(uint160 addrHash, std::vector<uint256>& txHashes)
@@ -219,18 +219,21 @@ bool CTxDB::ReadAddrIndex(uint160 addrHash, std::vector<uint256>& txHashes)
         CHashWriter ss(SER_GETHASH, 0);
         ss << salt;
         ss << addrid;
-        lookupid = UintToArith256(ss.GetHash()).GetLow64();
+        lookupid = ss.GetHash().GetLow64();
     }
 
     iterator->Seek(make_pair('a', lookupid));
     while (iterator->Valid()) {
         std::pair<std::pair<char, uint64_t>, uint256> key;
-        if (iterator->GetKey(key) && key.first.first == 'a' && key.first.second == lookupid) {
+        CDataStream ssKey(SER_DISK, CLIENT_VERSION);        
+        ssKey.write(iterator->key().data(), iterator->key().size());
+        ssKey >> key;
+        if (key.first.first == 'a' && key.first.second == lookupid) {
             txHashes.push_back(key.second);
         } else {
             break;
         }
-        pcursor->Next();
+        iterator->Next();
     }
 
     return true;
