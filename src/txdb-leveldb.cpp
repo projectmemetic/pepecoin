@@ -218,7 +218,7 @@ bool CTxDB::ReadAddrIndex(uint160 addrHash, std::vector<uint256>& txHashes)
     {
         CHashWriter ss(SER_GETHASH, 0);
         ss << salt;
-        ss << addrid;
+        ss << addrHash;
         lookupid = ss.GetHash().GetLow64();
     }
 
