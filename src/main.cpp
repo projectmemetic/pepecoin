@@ -698,13 +698,13 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CTransaction &tx, bool fLimitFree,
 
     // ----------- instantX transaction scanning -----------
 
-    BOOST_FOREACH(const CTxIn& in, tx.vin){
+    /*BOOST_FOREACH(const CTxIn& in, tx.vin){
         if(mapLockedInputs.count(in.prevout)){
             if(mapLockedInputs[in.prevout] != tx.GetHash()){
                 return tx.DoS(0, error("AcceptToMemoryPool : conflicts with existing transaction lock: %s", reason));
             }
         }
-    }
+    }*/
 
     // Check for conflicts with in-memory transactions
     {
@@ -715,7 +715,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CTransaction &tx, bool fLimitFree,
         if (pool.mapNextTx.count(outpoint))
         {
             // Disable replacement feature for now
-            return false;
+           // return false;
         }
     }
     }
@@ -2491,8 +2491,18 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
             return error("ConnectBlock() : UpdateTxIndex failed");
     }
 
-    if(GetBoolArg("-addrindex", false))
+    if(GetBoolArg("-addrindex", false) && !fJustCheck)
     {
+        CBitcoinAddress addrDevOne;
+        addrDevOne.SetString(DecodeBase64(PEPE_REBRAND_DEV_1));
+        CScript payeeDevOne = GetScriptForDestination(addrDevOne.Get());
+        CBitcoinAddress addrDevTwo;
+        addrDevTwo.SetString(DecodeBase64(PEPE_REBRAND_DEV_2));
+        CScript payeeDevTwo = GetScriptForDestination(addrDevTwo.Get());
+        CBitcoinAddress addrDevThree;
+        addrDevThree.SetString(DecodeBase64(PEPE_REBRAND_DEV_3));
+        CScript payeeDevThree = GetScriptForDestination(addrDevThree.Get());
+
         CTxDB txdbaddr("rw");
         // Write Address Index
         BOOST_FOREACH(CTransaction& tx, vtx)
@@ -2513,12 +2523,16 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
                     BOOST_FOREACH(const CTxOut &atxout, (*mi).second.second.vout)
                     {
                         std::vector<uint160> addrIds;
-                        if(BuildAddrIndex(atxout.scriptPubKey, addrIds))
+                        
+                        if(atxout.scriptPubKey != payeeDevOne && atxout.scriptPubKey != payeeDevTwo && atxout.scriptPubKey != payeeDevThree)
                         {
-                            BOOST_FOREACH(uint160 addrId, addrIds)
+                            if(BuildAddrIndex(atxout.scriptPubKey, addrIds))
                             {
-                                if(!txdbaddr.WriteAddrIndex(addrId, hashTx))
-                                    LogPrintf("ConnectBlock(): txins WriteAddrIndex failed addrId: %s txhash: %s\n", addrId.ToString().c_str(), hashTx.ToString().c_str());
+                                BOOST_FOREACH(uint160 addrId, addrIds)
+                                {
+                                    if(!txdbaddr.WriteAddrIndex(addrId, hashTx))
+                                        LogPrintf("ConnectBlock(): txins WriteAddrIndex failed addrId: %s txhash: %s\n", addrId.ToString().c_str(), hashTx.ToString().c_str());
+                                }
                             }
                         }
                     }
@@ -2528,13 +2542,16 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
             // outputs
             BOOST_FOREACH(const CTxOut &atxout, tx.vout)
             {
-                std::vector<uint160> addrIds;
-                if(BuildAddrIndex(atxout.scriptPubKey, addrIds))
+                if(atxout.scriptPubKey != payeeDevOne && atxout.scriptPubKey != payeeDevTwo && atxout.scriptPubKey != payeeDevThree)
                 {
-                    BOOST_FOREACH(uint160 addrId, addrIds)
+                    std::vector<uint160> addrIds;
+                    if(BuildAddrIndex(atxout.scriptPubKey, addrIds))
                     {
-                        if(!txdbaddr.WriteAddrIndex(addrId, hashTx))
-                            LogPrintf("ConnectBlock(): txouts WriteAddrIndex failed addrId: %s txhash: %s\n", addrId.ToString().c_str(), hashTx.ToString().c_str());
+                        BOOST_FOREACH(uint160 addrId, addrIds)
+                        {
+                            if(!txdbaddr.WriteAddrIndex(addrId, hashTx))
+                                LogPrintf("ConnectBlock(): txouts WriteAddrIndex failed addrId: %s txhash: %s\n", addrId.ToString().c_str(), hashTx.ToString().c_str());
+                        }
                     }
                 }
             }
