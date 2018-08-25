@@ -211,6 +211,12 @@ bool CBase58Data::SetString(const std::string& str) {
     return SetString(str.c_str());
 }
 
+std::string CBase58Data::ToKekdaqString() const {
+    std::vector<unsigned char> vch = Params().Base58Prefix(CChainParams::KEKDAQ_SECRET_KEY);
+    vch.insert(vch.end(), vchData.begin(), vchData.end());
+    return EncodeBase58Check(vch);
+}
+
 std::string CBase58Data::ToString() const {
     std::vector<unsigned char> vch = vchVersion;
     vch.insert(vch.end(), vchData.begin(), vchData.end());
@@ -296,6 +302,13 @@ void CBitcoinSecret::SetKey(const CKey& vchSecret) {
         vchData.push_back(1);
 }
 
+void CBitcoinSecret::SetKekdaqKey(const CKey& vchSecret) {
+    assert(vchSecret.IsValid());
+    SetData(Params().Base58Prefix(CChainParams::KEKDAQ_SECRET_KEY), vchSecret.begin(), vchSecret.size());
+    if (vchSecret.IsCompressed())
+        vchData.push_back(1);
+}
+
 CKey CBitcoinSecret::GetKey() {
     CKey ret;
     ret.Set(&vchData[0], &vchData[32], vchData.size() > 32 && vchData[32] == 1);
@@ -304,7 +317,7 @@ CKey CBitcoinSecret::GetKey() {
 
 bool CBitcoinSecret::IsValid() const {
     bool fExpectedFormat = vchData.size() == 32 || (vchData.size() == 33 && vchData[32] == 1);
-    bool fCorrectVersion = vchVersion == Params().Base58Prefix(CChainParams::SECRET_KEY);
+    bool fCorrectVersion = vchVersion == Params().Base58Prefix(CChainParams::SECRET_KEY) || vchVersion == Params().Base58Prefix(CChainParams::KEKDAQ_SECRET_KEY);
     return fExpectedFormat && fCorrectVersion;
 }
 
