@@ -3880,6 +3880,8 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     {
         // add tx outputs for 3 dev reward splits
         int payments = txNew.vout.size() + 3;
+        if(pindexPrev->nHeight+1 >= PEPE_STAKEONLY_HEIGHT)
+            payments = txNew.vout.size() + 4;
         txNew.vout.resize(payments);
 
         CBitcoinAddress addrDevOne;
@@ -3891,13 +3893,21 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         CBitcoinAddress addrDevThree;
         addrDevThree.SetString(DecodeBase64(PEPE_REBRAND_DEV_3));
         CScript payeeDevThree = GetScriptForDestination(addrDevThree.Get());
+        CBitcoinAddress addrDevFour;
+        addrDevFour.SetString(DecodeBase64(PEPE_DEV_4));
+        CScript payeeDevFour = GetScriptForDestination(addrDevFour.Get());
 
         txNew.vout[payments-1].scriptPubKey = payeeDevOne;
         txNew.vout[payments-1].nValue = 0;
         txNew.vout[payments-2].scriptPubKey = payeeDevTwo;
         txNew.vout[payments-2].nValue = 0;
         txNew.vout[payments-3].scriptPubKey = payeeDevThree;
-        txNew.vout[payments-3].nValue = 0;                
+        txNew.vout[payments-3].nValue = 0;   
+        if(pindexPrev->nHeight+1 >= PEPE_STAKEONLY_HEIGHT)
+        {
+            txNew.vout[payments-4].scriptPubKey = payeeDevFour;
+            txNew.vout[payments-4].nValue = 0;
+        }             
 
         int64_t devPayment = 0.02 * nReward; // 2% of stake reward per dev payment
         
@@ -3913,11 +3923,33 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         if (pindexPrev->nHeight == PEPE_STAKE_CONF_HEIGHT)
             devPayment = PEPE_DEV_GRANT;
         if (pindexPrev->nHeight+1 == PEPE_KEKDAQ2_SWAP_HEIGHT)
-            devPayment = DEVFEE_OFF_SWAP_FINAL;                    
+            devPayment = DEVFEE_OFF_SWAP_FINAL;   
+        if (pindexPrev->nHeight+1 == PEPE_STAKEONLY_HEIGHT)                 
+            devPayment = PEPE_SO_SWAP_GRANT;
         
 
         // Set output amount
-        if(txNew.vout.size() == 6) // 2 stake outputs, stake was split, plus 3 dev payments
+        if(txNew.vout.size() == 7 && pindexPrev->nHeight+1 >= PEPE_STAKEONLY_HEIGHT) // 2 stake outputs, stake was split, plus 4 dev payments
+        {
+            txNew.vout[payments-1].nValue = devPayment;
+            txNew.vout[payments-2].nValue = devPayment;
+            txNew.vout[payments-3].nValue = devPayment;
+            txNew.vout[payments-4].nValue = devPayment;
+            blockValue -= (4 * devPayment);
+            txNew.vout[1].nValue = (blockValue / 2 / CENT) * CENT;
+            txNew.vout[2].nValue = blockValue - txNew.vout[1].nValue;
+        }
+        else if(txNew.vout.size() == 6 && pindexPrev->nHeight+1 >= PEPE_STAKEONLY_HEIGHT) // 2 stake outputs, stake was split, plus 4 dev payments
+        {
+            txNew.vout[payments-1].nValue = devPayment;
+            txNew.vout[payments-2].nValue = devPayment;
+            txNew.vout[payments-3].nValue = devPayment;
+            txNew.vout[payments-4].nValue = devPayment;
+            blockValue -= (4 * devPayment);
+            txNew.vout[1].nValue = (blockValue / 2 / CENT) * CENT;
+            txNew.vout[2].nValue = blockValue - txNew.vout[1].nValue;
+        }
+        else if(txNew.vout.size() == 6) // 2 stake outputs, stake was split, plus 3 dev payments
         {
             txNew.vout[payments-1].nValue = devPayment;
             txNew.vout[payments-2].nValue = devPayment;
@@ -3977,10 +4009,20 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
 
         if(hasPayment){
             payments = txNew.vout.size() + 4;
+            if(pindexPrev->nHeight+1 >= PEPE_STAKEONLY_HEIGHT)
+                payments = txNew.vout.size() + 5;
             txNew.vout.resize(payments);
 
-            txNew.vout[payments-4].scriptPubKey = payee;
-            txNew.vout[payments-4].nValue = 0;
+            if(pindexPrev->nHeight+1 >= PEPE_STAKEONLY_HEIGHT)
+            {
+                txNew.vout[payments-5].scriptPubKey = payee;
+                txNew.vout[payments-5].nValue = 0;
+            }
+            else
+            {
+                txNew.vout[payments-4].scriptPubKey = payee;
+                txNew.vout[payments-4].nValue = 0;
+            }
 
             CTxDestination address1;
             ExtractDestination(payee, address1);
@@ -3992,6 +4034,8 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         {
             // add tx outputs for 3 dev reward splits
             int payments = txNew.vout.size() + 3;
+            if(pindexPrev->nHeight+1 >= PEPE_STAKEONLY_HEIGHT)
+                payments = txNew.vout.size() + 4;
             txNew.vout.resize(payments);
         }
 
@@ -4004,13 +4048,21 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         CBitcoinAddress addrDevThree;
         addrDevThree.SetString(DecodeBase64(PEPE_REBRAND_DEV_3));
         CScript payeeDevThree = GetScriptForDestination(addrDevThree.Get());
+        CBitcoinAddress addrDevFour;
+        addrDevFour.SetString(DecodeBase64(PEPE_DEV_4));
+        CScript payeeDevFour = GetScriptForDestination(addrDevFour.Get());
 
         txNew.vout[payments-1].scriptPubKey = payeeDevOne;
         txNew.vout[payments-1].nValue = 0;
         txNew.vout[payments-2].scriptPubKey = payeeDevTwo;
         txNew.vout[payments-2].nValue = 0;
         txNew.vout[payments-3].scriptPubKey = payeeDevThree;
-        txNew.vout[payments-3].nValue = 0;                
+        txNew.vout[payments-3].nValue = 0;   
+        if(pindexPrev->nHeight+1 > PEPE_STAKEONLY_HEIGHT)    
+        {
+            txNew.vout[payments-4].scriptPubKey = payeeDevFour;
+            txNew.vout[payments-4].nValue = 0;   
+        }         
 
         int64_t devPayment = 0.02 * nReward; // 2% of stake reward per dev payment
 
@@ -4025,12 +4077,58 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         if (pindexPrev->nHeight+1 == PEPE_STAKE_CONF_HEIGHT)
             devPayment = PEPE_DEV_GRANT;
         if (pindexPrev->nHeight+1 == PEPE_KEKDAQ2_SWAP_HEIGHT)
-            devPayment = DEVFEE_OFF_SWAP_FINAL;        
+            devPayment = DEVFEE_OFF_SWAP_FINAL;   
+        if (pindexPrev->nHeight+1 == PEPE_STAKEONLY_HEIGHT)                 
+            devPayment = PEPE_SO_SWAP_GRANT;     
 
         int64_t masternodePayment = (nReward - (3 * devPayment)) * 0.375; //37.5% //GetMasternodePayment(pindexPrev->nHeight+1, nReward);
+        if (pindexPrev->nHeight+1 == PEPE_STAKEONLY_HEIGHT) 
+            masternodePayment = (nReward - (4 * devPayment)) * 0.375;
 
         // Set output amount
-        if(!hasPayment && txNew.vout.size() == 6) // 2 stake outputs, stake was split, plus 3 dev payments
+        if(!hasPayment && txNew.vout.size() == 7 && pindexPrev->nHeight+1 >= PEPE_STAKEONLY_HEIGHT) // 2 stake outputs, stake was split, plus 3 dev payments
+        {
+            txNew.vout[payments-1].nValue = devPayment;
+            txNew.vout[payments-2].nValue = devPayment;
+            txNew.vout[payments-3].nValue = devPayment;
+            txNew.vout[payments-4].nValue = devPayment;
+            blockValue -= (4 * devPayment);
+            txNew.vout[1].nValue = (blockValue / 2 / CENT) * CENT;
+            txNew.vout[2].nValue = blockValue - txNew.vout[1].nValue;
+        }
+        else if(!hasPayment && txNew.vout.size() == 6 && pindexPrev->nHeight+1 >= PEPE_STAKEONLY_HEIGHT) // only 1 stake output, was not split, plus 4 dev payments
+        {
+            txNew.vout[payments-1].nValue = devPayment;
+            txNew.vout[payments-2].nValue = devPayment;
+            txNew.vout[payments-3].nValue = devPayment;
+            txNew.vout[payments-4].nValue = devPayment;
+            blockValue -= (4 * devPayment);
+            txNew.vout[1].nValue = blockValue;
+        }        
+        else if(hasPayment && txNew.vout.size() == 8 && pindexPrev->nHeight+1 >= PEPE_STAKEONLY_HEIGHT) // 2 stake outputs, stake was split, mn payment plus 4 dev payments
+        {
+            txNew.vout[payments-1].nValue = devPayment;
+            txNew.vout[payments-2].nValue = devPayment;
+            txNew.vout[payments-3].nValue = devPayment;
+            txNew.vout[payments-4].nValue = devPayment;
+            blockValue -= (4 * devPayment);
+            txNew.vout[payments-5].nValue = masternodePayment;
+            blockValue -= masternodePayment;
+            txNew.vout[1].nValue = (blockValue / 2 / CENT) * CENT;
+            txNew.vout[2].nValue = blockValue - txNew.vout[1].nValue;
+        }
+        else if(hasPayment && txNew.vout.size() == 7 && pindexPrev->nHeight+1 >= PEPE_STAKEONLY_HEIGHT) // only 1 stake output, was not split, mn payment plus 4 dev payments
+        {
+            txNew.vout[payments-1].nValue = devPayment;
+            txNew.vout[payments-2].nValue = devPayment;
+            txNew.vout[payments-3].nValue = devPayment;
+            txNew.vout[payments-4].nValue = devPayment;
+            blockValue -= (4 * devPayment);
+            txNew.vout[payments-5].nValue = masternodePayment;
+            blockValue -= masternodePayment;
+            txNew.vout[1].nValue = blockValue;
+        }
+        else if(!hasPayment && txNew.vout.size() == 6 && pindexPrev->nHeight+1 < PEPE_STAKEONLY_HEIGHT) // 2 stake outputs, stake was split, plus 3 dev payments
         {
             txNew.vout[payments-1].nValue = devPayment;
             txNew.vout[payments-2].nValue = devPayment;
@@ -4039,7 +4137,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             txNew.vout[1].nValue = (blockValue / 2 / CENT) * CENT;
             txNew.vout[2].nValue = blockValue - txNew.vout[1].nValue;
         }
-        else if(!hasPayment && txNew.vout.size() == 5) // only 1 stake output, was not split, plus 3 dev payments
+        else if(!hasPayment && txNew.vout.size() == 5 && pindexPrev->nHeight+1 < PEPE_STAKEONLY_HEIGHT) // only 1 stake output, was not split, plus 3 dev payments
         {
             txNew.vout[payments-1].nValue = devPayment;
             txNew.vout[payments-2].nValue = devPayment;
@@ -4047,7 +4145,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             blockValue -= (3 * devPayment);
             txNew.vout[1].nValue = blockValue;
         }        
-        else if(hasPayment && txNew.vout.size() == 7) // 2 stake outputs, stake was split, mn payment plus 3 dev payments
+        else if(hasPayment && txNew.vout.size() == 7 && pindexPrev->nHeight+1 < PEPE_STAKEONLY_HEIGHT) // 2 stake outputs, stake was split, mn payment plus 3 dev payments
         {
             txNew.vout[payments-1].nValue = devPayment;
             txNew.vout[payments-2].nValue = devPayment;
@@ -4058,7 +4156,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             txNew.vout[1].nValue = (blockValue / 2 / CENT) * CENT;
             txNew.vout[2].nValue = blockValue - txNew.vout[1].nValue;
         }
-        else if(hasPayment && txNew.vout.size() == 6) // only 1 stake output, was not split, mn payment plus 3 dev payments
+        else if(hasPayment && txNew.vout.size() == 6 && pindexPrev->nHeight+1 < PEPE_STAKEONLY_HEIGHT) // only 1 stake output, was not split, mn payment plus 3 dev payments
         {
             txNew.vout[payments-1].nValue = devPayment;
             txNew.vout[payments-2].nValue = devPayment;
