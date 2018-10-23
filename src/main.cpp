@@ -1616,7 +1616,7 @@ int64_t nSubsidy = 20 * COIN;
             // adopt the proof-of-work reward schedule when swap over to stake only
             // this will pick up the current pow reward of 3.25 at fork height with halving
             nSubsidy = 15 * COIN;  
-            nSubsidy >>= ((nHeight - PEPE_REBRAND_HEIGHT) / 525600); // block reward halves once a year
+            nSubsidy >>= ((nHeight - PEPE_STAKEONLY_HEIGHT) / 525600); // block reward halves once a year
 
             if(nSubsidy < 1 * COIN)  // minimum 1 PEPE stake return
                 nSubsidy = 1 * COIN;
