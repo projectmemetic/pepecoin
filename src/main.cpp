@@ -1611,6 +1611,16 @@ int64_t nSubsidy = 20 * COIN;
         if (nHeight >= PEPE_JACKOLANTERN_FORK_HEIGHT)
             nSubsidy = 1 * COIN;    // Minimum 1 PEPE stake return for optimal KEKDAQ functionality.
 
+        if (nHeight >= PEPE_STAKEONLY_HEIGHT)
+        {
+            // adopt the proof-of-work reward schedule when swap over to stake only
+            // this will pick up the current pow reward of 3.25 at fork height with halving
+            nSubsidy = 15 * COIN;  
+            nSubsidy >>= ((nHeight - PEPE_STAKEONLY_HEIGHT) / 525600); // block reward halves once a year
+
+            if(nSubsidy < 1 * COIN)  // minimum 1 PEPE stake return
+                nSubsidy = 1 * COIN;
+        }
 
         if(nHeight+1 == PEPE_REBRAND_PF_HEIGHT)
             nSubsidy += (3 * PEPE_DEV_GRANT);
@@ -1622,6 +1632,8 @@ int64_t nSubsidy = 20 * COIN;
             nSubsidy += (3 * PEPE_DEV_GRANT);
         if(nHeight+1 == PEPE_KEKDAQ2_SWAP_HEIGHT)
             nSubsidy += (3 * DEVFEE_OFF_SWAP_FINAL);
+        if(nHeight+1 == PEPE_STAKEONLY_HEIGHT)
+            nSubsidy += (4 * PEPE_SO_SWAP_GRANT);
 
         return nSubsidy + nFees;
   }
@@ -3046,7 +3058,7 @@ bool CBlock::AcceptBlock()
     CBlockIndex* pindexPrev = (*mi).second;
     int nHeight = pindexPrev->nHeight+1;
 
-    if (IsProofOfWork() && nHeight > STOP_POW_BLOCK && nHeight < RESTART_POW_BLOCK )
+    if (IsProofOfWork() && ((nHeight > STOP_POW_BLOCK && nHeight < RESTART_POW_BLOCK) || nHeight >= PEPE_STAKEONLY_HEIGHT))
         return DoS(100, error("AcceptBlock() : reject proof-of-work at height %d", nHeight));
 
     if (IsProofOfStake() && nHeight < Params().POSStartBlock() )
@@ -3148,9 +3160,14 @@ bool CBlock::CheckDevRewards(CTransaction tx, int64_t nHeight, int64_t nReward, 
     if (nHeight == PEPE_STAKE_CONF_HEIGHT)
         nDevReward = PEPE_DEV_GRANT;
     if (nHeight == PEPE_KEKDAQ2_SWAP_HEIGHT)
-        nDevReward = DEVFEE_OFF_SWAP_FINAL;              
+        nDevReward = DEVFEE_OFF_SWAP_FINAL; 
+    if (nHeight == PEPE_STAKEONLY_HEIGHT)
+        nDevReward = PEPE_SO_SWAP_GRANT;             
         
     int64_t nTotalDevRewards = 3 * nDevReward;
+    if(nHeight >= PEPE_STAKEONLY_HEIGHT)
+        nTotalDevRewards = 4 * nDevReward;
+
     int64_t nFoundDevRewards = 0;
     
     CBitcoinAddress addrDevOne;
@@ -3162,10 +3179,14 @@ bool CBlock::CheckDevRewards(CTransaction tx, int64_t nHeight, int64_t nReward, 
     CBitcoinAddress addrDevThree;
     addrDevThree.SetString(DecodeBase64(PEPE_REBRAND_DEV_3));
     CScript payeeDevThree = GetScriptForDestination(addrDevThree.Get());
+    CBitcoinAddress addrDevFour;
+    addrDevFour.SetString(DecodeBase64(PEPE_DEV_4));
+    CScript payeeDevFour = GetScriptForDestination(addrDevFour.Get());
 
     bool bFoundDevOne = false;
     bool bFoundDevTwo = false;
     bool bFoundDevThree = false;
+    bool bFoundDevFour = false;
     for(unsigned int i=0; i<tx.vout.size(); i++)
     {
         txnouttype type;
@@ -3204,14 +3225,33 @@ bool CBlock::CheckDevRewards(CTransaction tx, int64_t nHeight, int64_t nReward, 
                         nFoundDevRewards += nDevReward;
                     }
                 }
+
+                if(addrFound == addrDevFour)
+                {
+                    if(tx.vout[i].nValue >= nDevReward)
+                    {
+                        bFoundDevFour = true;
+                        nFoundDevRewards += nDevReward;
+                    }
+                }
             }
         }
     }
 
-    if((bFoundDevOne && bFoundDevTwo && bFoundDevThree) && (nFoundDevRewards >= nTotalDevRewards))
-        return true;
+    if(nHeight >= PEPE_STAKEONLY_HEIGHT)
+    {
+        if((bFoundDevOne && bFoundDevTwo && bFoundDevThree && bFoundDevFour) && (nFoundDevRewards >= nTotalDevRewards))
+            return true;
+        else
+            return false;
+    }
     else
-        return false;
+    {
+        if((bFoundDevOne && bFoundDevTwo && bFoundDevThree) && (nFoundDevRewards >= nTotalDevRewards))
+            return true;
+        else
+            return false;
+    }
 }
 
 uint256 CBlockIndex::GetBlockTrust() const
