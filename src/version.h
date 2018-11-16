@@ -36,13 +36,13 @@ static const int PROTOCOL_VERSION = 61416;
 static const int INIT_PROTO_VERSION = 209;
 
 // disconnect from peers older than this proto version
-static const int MIN_PEER_PROTO_VERSION = 61414;
+static const int MIN_PEER_PROTO_VERSION = 61416;
 
 // minimum peer version accepted by DarkSendPool
-static const int MIN_POOL_PEER_PROTO_VERSION = 61414;
+static const int MIN_POOL_PEER_PROTO_VERSION = 61416;
 
-static const int MIN_INSTANTX_PROTO_VERSION = 61414;
-static const int MIN_MN_PROTO_VERSION = 61414;
+static const int MIN_INSTANTX_PROTO_VERSION = 61416;
+static const int MIN_MN_PROTO_VERSION = 61416;
 
 //! minimum peer version that can receive masternode payments
 // V1 - Last protocol version before update
