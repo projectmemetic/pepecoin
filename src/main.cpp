@@ -1766,7 +1766,7 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     if (pindexPrevPrev->pprev == NULL)
         return bnTargetLimit.GetCompact(); // second block
 
-    if (pindexLast->nHeight == PEPE_STAKEONLY_HEIGHT)
+    if (pindexLast->nHeight+1 == PEPE_STAKEONLY_HEIGHT)
         return bnTargetLimit.GetCompact();
 
     int64_t nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
