@@ -2435,6 +2435,8 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
                 nDevReward = DEVFEE_OFF_SWAP_FINAL;
 
             int64_t nTotalDevRewards = 3 * nDevReward;
+            if(pindex->nHeight >= PEPE_STAKEONLY_HEIGHT)
+                nTotalDevRewards = 4 * nDevReward;
             int64_t nMnRewardBase = nStakeReward - nTotalDevRewards;
             masternodePaymentAmount = GetMasternodePayment(pindex->nHeight, nMnRewardBase);
         }
