@@ -2,7 +2,7 @@
 
 v. 2.8.1.0
 ####
-Pepecoin is digital decentralized crypto-currency, also known as Memetic / MEME on Bittrex and CoinMarketCap.
+Pepecoin is digital decentralized crypto-currency, listed as as Memetic / MEME on Bittrex, Upbit, Coinmarkets and CoinMarketCap.
 
 Pepecoin incorporates both blockchain 2.0 and blockchain 3.0 technologies and is under continued development.
 
@@ -10,9 +10,9 @@ Pepecoin is a Proof of Work (POW) /  Proof of Stake (POS) cryptocurrency with pr
 
 PepeCoin is decentralized, encrypted image storage in IPFS, cryptographically verified against the PepeCoin blockchain. Protect your memes and political information from censorship.
 
-PepeCoin is the infrastructure for the Kekdaq decentralized meme asset exchange.
+PepeCoin is the base infrastructure for the Kekdaq decentralized meme asset exchange.
 
-PepeCoin is a decentralized, encrypted project that supports the preservation of all freedom of speech within the bounds of US law.
+PepeCoin is a decentralized, encrypted project that supports the preservation of all freedom of speech that is within the bounds of US law.
 
 See [ANN](https://bitcointalk.org/index.php?topic=1391598.0) for more details.
 
@@ -28,10 +28,10 @@ See [ANN](https://bitcointalk.org/index.php?topic=1391598.0) for more details.
  - 60 seconds block time
  - X11 mining algorithm
  - Proof of Stake - POS - 7% at block 600,000, drops by 2% yearly and stays at 3%
- - Proof of Work - POW - Restarts at block 600,000, X11
- - 100 confirmations for newly Proof of Work mined blocks
- - 360 confirmations for newly Proof of Stake minted blocks
-  - 6 hour minimum stake age (12 hour average)
+ - Proof of Work - POW ended at block 1700000 to reduce chain reorgs to improve the stability of Kekdaq. 
+ - PEPE/MEME is Full Proof-of-Stake beginning at block 1700000. The POW reward rate was moved to POS at 3.25% per year, reducing 50% each year.
+ - 600 confirmations for newly Proof of Stake minted blocks
+  - 6 hour minimum stake age with 16 hour average
   - Additional security improvements
   
  **Features**
@@ -39,12 +39,12 @@ See [ANN](https://bitcointalk.org/index.php?topic=1391598.0) for more details.
 - Decentralized encrypted private messaging
 - Stealth Addresses
 - Fully blockchain based, public decentralized encrypted messaging chat wall in wallet
-- Integrated Bittrex trading functions
 - Integrated block explorer
 - Image timestamping on the blockchain for proof of ownership
 - In-wallet hash image verification checking functions
 - JSON-RPC functions to externally query blockchain for hashed image datas
-- In wallet public messaging wall
+- In wallet public messaging wall  - set messagewall=1 in pepecoin.conf to enable
+- Integrated Bittrex trading functions
 - JSON-RPC functions to externally query all public wall messages
 - IPFS-based  data hashing storage currently under development
 - Kekdaq decentralized meme asset platform in testing / development stage
@@ -81,6 +81,7 @@ Ubuntu 18.04 you will also need to install the libssl1.0-dev package.
 To build the GUI with Qt 5 you need the following:
 
     sudo apt-get install libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler qt5 qt5-default
+    
     git clone https://github.com/pepeteam/pepecoin.git
     cd pepecoin 
     qmake
@@ -111,11 +112,11 @@ https://pepecoin.co
 [https://bittrex.com/Market/Index?MarketName=BTC-MEME  ](https://bittrex.com/Market/Index?MarketName=BTC-MEME  ) 
 [https://www.cryptopia.co.nz/Exchange?market=PEPE_BTC](https://www.cryptopia.co.nz/Exchange?market=PEPE_BTC)
 [https://www.coinexchange.io/market/MEME/BTC](https://www.coinexchange.io/market/MEME/BTC) 
+[https://upbit.com/exchange?code=CRIX.UPBIT.BTC-MEME ](https://upbit.com/exchange?code=CRIX.UPBIT.BTC-MEME)
 
 
 **Block Explorers**
-
-[http://memetic.thecryptochat.net/](http://memetic.thecryptochat.net/) 
+[http://explorer.memetic.ai/](http://explorer.memetic.ai/)
 
 [https://prohashing.com/explorer/Memeticcoin/](https://prohashing.com/explorer/Memeticcoin/) 
 
@@ -128,17 +129,20 @@ https://www.cryptocompare.com/coins/meme/charts/BTC
 https://bitinfocharts.com/markets/bittrex/meme-btc-1m.html
 https://cryptocoinview.com/MEME
 
+https://www.coingecko.com/en/coins/memetic
+https://coinlib.io/coin/MEME/Pepe+Memetic
 
 **Social**
 [https://twitter.com/pepecoins](https://twitter.com/pepecoins) https://twitter.com/pepecoins
-Telegram group:  [Get invite](https://t.me/jpepecoins) 
+Telegram group:  [Get invite](https://t.me/pepecoins) 
 
 
 ***
 
 **Nodes**
-addnode=seed.kekdaq.com
 addnode=seed.pepecoin.co
+addnode=seed.kekdaq.com
+
 
 ![pepecoin-256](https://i.imgur.com/xnSJvT9.jpg  "pepecoin-256")
 
@@ -154,11 +158,11 @@ License
 >Copyright (c) 2014 BlackCoin Developers
 >Copyright (c) 2014 Digibyte Developers
 >Copyright (c) 2014 DashCoin Developers
->Copyright (c) 2014 NetCoin Developers
 >Copyright (c) 2015 Transfercoin Developers
 >Copyright (c) 2015-2016 PepeCoin Developers
 >Copyright (c) 2015-2016 Memetic Developers
->Copyright (c) 2017 PepeCoin / Memetic Developers
+>Copyright (c) 2017-2018 PepeCoin / Memetic Developers
+
 >
 >Permission is hereby granted, free of charge, to any person obtaining a copy
 >of this software and associated documentation files (the "Software"), to deal
