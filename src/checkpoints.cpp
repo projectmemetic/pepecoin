@@ -57,6 +57,12 @@ namespace Checkpoints
         (834600, uint256("0x0cd92f0d45ceb2c69c8d7845a584e69668cce098c01d3e1ec04af285afe2d378"))
         (850000, uint256("0x010f9fd8aba13696829b5b6003770b8e947df06eaf507de592b4cc3bc9b04192"))
         (885000, uint256("0x0fcb255ff69a157d13ff94bce583f2993b9bc1ed385ecb0d027c95b29c03b222"))
+        (889777, uint256("0x86a3ad3af9a93f4a5c5c6d5e020f1a323af4cd1d43fee72d6747177e71320d9e"))
+        (982877, uint256("0x5f2d4d7ab746a3373b82a45ec194d854688dff19b354038d71f410ed7bb15ea9"))
+        (984066, uint256("0x3497b6650d00fce42f448c1731327ad31616f073b4855331d4bc83923c11312a"))
+        (1034505, uint256("0x638a260d83c15e99959b08b1814cbf376136571900f8ba525c66deb8a8965167"))
+        (1090777, uint256("0x4c68bdbb07f106476bda8f98417c7ded56d26b8a46a4cd5d102e65076e63d293"))
+        (1118701, uint256("0x43481ac2839e6f4ab94d14d7fd683789d4f5a493cbef39f9cc7dcf9348163564"))
     ;
 
     // TestNet has no checkpoints
@@ -100,6 +106,11 @@ namespace Checkpoints
         // tighten automatic checkpointing to 10 blocks in past for reorg fix attempt
         if (pindexBest->nHeight >= PEPE_JACKOLANTERN_FORK_HEIGHT)
             nCheckpointSpan = 10;
+
+        // set autocheckpointing to 25 blocks max to limit forced resyncs
+        if (pindexBest->nHeight >= PEPE_STAKE_CONF_TWEAK)
+            nCheckpointSpan = 25;
+
 
         const CBlockIndex *pindex = pindexBest;
         // Search backward for a block within max span and maturity window

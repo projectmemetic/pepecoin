@@ -9,7 +9,7 @@
 // Copyright (c) 2014 NetCoin Developers
 // Copyright (c) 2015 Transfercoin Developer
 // Copyright (c) 2015-2016 PepeCoin Developers
-// Copyright (c) 2016-2018 The PepeCoin Developers
+// Copyright (c) 2016-2018 Memetic / PepeCoin Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -58,10 +58,15 @@ class CWallet;
 class CPepeMessage;
 
 static const int64_t PEPE_JACKOLANTERN_FORK_HEIGHT = 888000;
+static const int64_t PEPE_NTARGETTIMESPAN_UNSTICK_HEIGHT = 885655;
+
+static const int64_t MASTERTOAD_LOWERTRAFFIC_FORK = 1030000;
+static const int64_t MASTERTOAD_RELOWERTRAFFIC_FORK = 1177777;
 
 static const int64_t PEPE_STAKE_WINTER_SWITCH_HEIGHT = 312000;
 static const int64_t PEPE_STAKE_V2_SWITCH_HEIGHT = 32000;
 static const int64_t PEPE_STAKE_V2_SWITCH_HEIGHT_TESTNET = 10;
+
 
 // Rebrand Back To PEPE Hardfork
 // At this height, POS moves to 7%, POW moves to 7 for 1 month of blocks then 5 and then halving every year
@@ -71,16 +76,22 @@ static const int64_t PEPE_REBRAND_HEIGHT_TESTNET = 100;
 static const std::string PEPE_REBRAND_DEV_1 = "UE5hSlMzbVBNY1FjNmdZc0xKMUg4endHSDZIMVh4VG40OA==";
 static const std::string PEPE_REBRAND_DEV_2 = "UFJyeFZQWGNUQjN2TGNjZlBVRlRNVzJ6NTd3Skd3ZEd1ag==";
 static const std::string PEPE_REBRAND_DEV_3 = "UExSY1ZHVmNZdkE2NmJNWGVQd2hSUTJleFdNdlBvVm83MQ==";
+static const std::string PEPE_DEV_4 =         "UFUxWm05N3R6NmRyQ0FuQmZNYjVFd2s3R0NSa3FYV2dZeA==";
 static const int64_t PEPE_REBRAND_PF_HEIGHT = 600000;
 static const int64_t PEPE_KEKDAQ_MID_HEIGHT = 733333;
 static const int64_t PEPE_KEKDAQ_MID_FIX_HEIGHT = 738500;
 static const int64_t PEPE_IPFSMN_FNL_HEIGHT = 833333;
+static const int64_t PEPE_KEKDAQ2_SWAP_HEIGHT = 1161137;
 static const int64_t PEPE_REBRAND_PF_HEIGHT_TESTNET = 200;
-static const int64_t PEPE_KEKDAQ_MID_HEIGHT_TESTNET = 333;
+static const int64_t PEPE_KEKDAQ_MID_HEIGHT_TESTNET = 10000;
 static const int64_t PEPE_DEV_GRANT = 333333 * COIN;
 static const int64_t PEPE_DEV_GRANT_MID = 333333 * COIN;
 static const int64_t PEPE_DEV_GRANT_FINAL = 111111 * COIN;
-
+static const int64_t DEVFEE_OFF_SWAP_FINAL = 777777 * COIN;
+static const int64_t PEPE_SO_SWAP_GRANT = 888888 * COIN;
+static const int64_t PEPE_STAKE_CONF_HEIGHT = 1021111;
+static const int64_t PEPE_STAKE_CONF_TWEAK = 1177777;
+static const int64_t PEPE_STAKEONLY_HEIGHT = 1700000;
 
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
 static const unsigned int MAX_BLOCK_SIZE = 20000000;
@@ -99,16 +110,18 @@ static const unsigned int MAX_TX_SIGOPS = MAX_BLOCK_SIGOPS/5;
 /** The maximum number of orphan transactions kept in memory */
 static const unsigned int MAX_ORPHAN_TRANSACTIONS = MAX_BLOCK_SIZE/100;
 /** Default for -maxorphanblocks, maximum number of orphan blocks kept in memory */
-static const unsigned int DEFAULT_MAX_ORPHAN_BLOCKS = 10000;
+static const unsigned int DEFAULT_MAX_ORPHAN_BLOCKS = 4000;
 /** The maximum number of entries in an 'inv' protocol message */
 static const unsigned int MAX_INV_SZ = 50000;
 /** Fees smaller than this (in satoshi) are considered zero fee (for transaction creation) */
 static const int64_t MIN_TX_FEE = 0.0001*COIN;
 /** Fees smaller than this (in satoshi) are considered zero fee (for relaying) */
 static const int64_t MIN_RELAY_TX_FEE = MIN_TX_FEE;
-/** No amount larger than this (in satoshi) is valid */
-static const int64_t MAX_MONEY = 16628690 * COIN; // 16,628,690 POW Coins
 
+/** No amount larger than this (in satoshi) is valid */
+// static const int64_t MAX_MONEY = 16628690 * COIN; // 16,628,690 POW Coins
+static const int64_t MAX_MONEY = 28600000 * COIN; // more realistic target project of 28.6m total coins by 2024 minus KDAQ burns
+// no longer used, kept for old block confirmation
 static const int PIR_LEVELS = 4; // number of entries in PIR_THRESHOLDS
 static const int64_t PIR_PHASEBLOCKS = 365 * 24 * 60; // one year for each phase
 static const int PIR_PHASES = 3; // pepe - three POS reward phases
@@ -139,7 +152,7 @@ inline int64_t FutureDrift(int64_t nTime) { return nTime + DRIFT; }
 /** "reject" message codes **/
 static const unsigned char REJECT_INVALID = 0x10;
 
-inline int64_t GetMNCollateral(int nHeight) { return 15000; }  // No change for now.
+inline int64_t GetMNCollateral(int nHeight) { return 15000; }  // 15k PEPE / MEME required for MN
 
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;

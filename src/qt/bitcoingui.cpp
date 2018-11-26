@@ -98,7 +98,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent):
     nWeight(0)
 {
     resize(900, 520);
-    setWindowTitle(tr("PepeCoin") + " - " + tr("Wallet"));
+    setWindowTitle(tr("PepeCoin / Memetic") + " - " + tr("Wallet"));
     qApp->setStyleSheet("QMainWindow { background-image:url(:images/bkg);border:none; }");
 
 #ifndef Q_OS_MAC
@@ -766,7 +766,7 @@ void BitcoinGUI::setNumBlocks(int count)
 
 void BitcoinGUI::message(const QString &title, const QString &message, bool modal, unsigned int style)
 {
-    QString strTitle = tr("PepeCoin") + " - ";
+    QString strTitle = tr("PepeCoin / Memetic") + " - ";
     // Default to information icon
     int nMBoxIcon = QMessageBox::Information;
     int nNotifyIcon = Notificator::Information;
