@@ -1,5 +1,6 @@
+![Memetic Logo](http://i.imgur.com/zLMetXi.png  "Memetic Logo") ![PepeCoin Logo](https://imgur.com/9KNdKWJ.png "PepeCoin Logo")
+***
 # PepeCoin - PEPE  / Memetic - MEME
-
 #### v. 2.8.1.0
 
 Memetic, also known as PepeCoin, is a digital decentralized crypto-currency, listed as as Memetic / MEME on Bittrex, Upbit, Coinmarkets, and CoinMarketCap.
@@ -19,10 +20,6 @@ PepeCoin is a fully open source, decentralized, encrypted project that supports 
 ####Join the offical [Telegram](https://t.me/pepecoins) room for technical support and to participate our community.
 
 See [Bitcointalk ANN](https://bitcointalk.org/index.php?topic=1391598.0) for more details.
-***
-
-![Memetic Logo](http://i.imgur.com/zLMetXi.png  "Memetic Logo") ![PepeCoin Logo](https://imgur.com/9KNdKWJ.png "PepeCoin Logo")
-
 
 ***
 **Blockchain Specifications**
