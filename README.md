@@ -6,7 +6,7 @@ Memetic, also known as PepeCoin, is a digital decentralized crypto-currency, lis
 
 Memetic, AKA PepeCoin, incorporates both blockchain 2.0 and blockchain 3.0 technologies and is under continued development.
 
-Memetic / Pepecoin is a Proof of Stake (POS) cryptocurrency with privacy features and masternode technology. Mastertoad (masternode) and stakers are rewarded for processing transactions and ensuring the security of the network.
+Memetic / Pepecoin is a Proof of Stake (POS) cryptocurrency with privacy features and masternode technology. Mastertoad (masternode) and stakers are rewarded for processing transactions and collectively ensuring the security of the network.
 
 Previously, we were a Proof of Stake and Proof of Work hybrid but due to the rise of 51% attacks we have shifted to POS until more technology improvements are discovered.
 
@@ -61,7 +61,6 @@ See [Bitcointalk ANN](https://bitcointalk.org/index.php?topic=1391598.0) for mor
 - Mastertoads pay 37.5% of all mined POS blocks, distributed among MT owners
 
 See [bitcointalk.org](https://bitcointalk.org/index.php?topic=1391598.0) post for more info: https://bitcointalk.org/index.php?topic=1391598.0
-
 
 -------------------------------
 ##Downloading & Compiling
