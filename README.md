@@ -22,16 +22,18 @@ PepeCoin is a fully open source, decentralized, encrypted project that supports 
 See [Bitcointalk ANN](https://bitcointalk.org/index.php?topic=1391598.0) for more details.
 
 ***
-**Blockchain Specifications**
+####Technical Specifications
 #####
  - Default port 29377 
  - RPC port 29376
- - 60 seconds block time
+ - 60 second block time
 
 #####
- - Proof of Stake - POS - 7% at block 600,000, reducing yearly.  Currently 3.25% per year, reducing 50% each year.
- - Proof of Work - POW ended at block 1,700,000 in late 2018 to reduce chain reorganization issues &improve the stability of Kekdaq
- - X11 mining algorithm (Sequential mixing of Blake256, BMW, Grostl, JH, Keccak, Skein, Luffa, Cubehash, SHA-3, SIMD, and ECHO)
+ - Proof of Stake - POS - 7% at block 600,000, reducing yearly.  Currently 3.25% per year, reducing 50% each year
+
+ - Proof of Work - POW ended at block 1,700,000 in late 2018 to reduce chain reorganization issues and improve the stability of Kekdaq
+ #####
+- X11 mining algorithm (Sequential mixing of Blake256, BMW, Grostl, JH, Keccak, Skein, Luffa, Cubehash, SHA-3, SIMD, and ECHO)
  #####
  - PEPE / MEME is Full Proof-of-Stake beginning at block 1700000. The POW reward rate was migrated to the POS reward, at 3.25% per year, reducing 50% each year.
  - 600 confirmations for newly Proof of Stake minted blocks
@@ -68,15 +70,17 @@ See [bitcointalk.org](https://bitcointalk.org/index.php?topic=1391598.0) post fo
 https://github.com/pepeteam/pepecoin/releases
 
 
-**Linux Builds:**
+####Linux Builds:
 
 PepeCoin uses libsecp256k1, libgmp, Boost1.55+, Openssl1.01p, Berkeley DB 4.8+, QT5 to compile.
 
 Ubuntu 18.04+ or Debian 9+ is recommended.
 
 
-
-	sudo apt-get install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev libboost-thread-dev libminiupnpc-dev libgmp3-dev libdb-dev libdb++-dev libgmp3-dev lzma-dev libssl1.0-dev
+####Instructions for Building Command Line Daemon
+	sudo apt-get install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils \
+    libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev \
+    libboost-thread-dev libminiupnpc-dev libgmp3-dev libdb-dev libdb++-dev libgmp3-dev lzma-dev libssl1.0-dev
 	
 	git clone https://github.com/pepeteam/pepecoin.git
 	cd pepecoin/src
@@ -84,11 +88,14 @@ Ubuntu 18.04+ or Debian 9+ is recommended.
 
 Remove libssl1.0-dev from the apt-get list to compile on older versions.
 
-To build the GUI with Qt 5 you need the following:
+####Instructions for Building GUI Wallet
 
-    sudo apt-get install libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler qt5-default
+    sudo apt-get install libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev \
+    protobuf-compiler qt5-default
 
-	sudo apt-get install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev libboost-thread-dev libminiupnpc-dev libgmp3-dev libdb-dev libdb++-dev libgmp3-dev lzma-dev libssl1.0-dev
+	sudo apt-get install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils \
+    libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev \
+    libboost-thread-dev libminiupnpc-dev libgmp3-dev libdb-dev libdb++-dev libgmp3-dev lzma-dev libssl1.0-dev
 
     
     git clone https://github.com/pepeteam/pepecoin.git
@@ -96,24 +103,23 @@ To build the GUI with Qt 5 you need the following:
     qmake
     make -f Makefile -j2
 
-
-
-#Links
 --------------------
+#Links
+
 
 [Windows Wallet](https://github.com/pepeteam/pepecoin/releases) 
 
 [Bitcointalk ANN](https://bitcointalk.org/index.php?topic=1391598.0) 
 
 
-**Website**
+###Websites
 https://memetic.ai
 
 https://pepecoin.co
 
 https://kekdaq.com
 
-**Exchanges**
+###Exchanges
 
 [Bittrex (USA)](https://bittrex.com/Market/Index?MarketName=BTC-MEME) -- Largest regulated and secure US exchange
 
@@ -125,23 +131,31 @@ https://kekdaq.com
 
 <s>[Cryptopia](https://www.cryptopia.co.nz/Exchange?market=PEPE_BTC)</s> -- Remove requested after exchange hacked
 
-**Block Explorer**
+###Block Explorer
+
 [http://explorer.memetic.ai/](http://explorer.memetic.ai/)
 
-**Charts**
+###Charts
 
-(https://coinmarketcap.com/currencies/pepecoin/) 
-https://www.worldcoinindex.com/coin/memetic
-https://www.cryptocompare.com/coins/meme/charts/BTC
-https://bitinfocharts.com/markets/bittrex/meme-btc-1m.html
-https://cryptocoinview.com/MEME
+[CoinMarketCap](https://coinmarketcap.com/currencies/pepecoin/)
 
-https://www.coingecko.com/en/coins/memetic
-https://coinlib.io/coin/MEME/Pepe+Memetic
+[WorldCoinIndex](https://www.worldcoinindex.com/coin/memetic)
 
-**Social**
-[https://twitter.com/pepecoins](https://twitter.com/pepecoins) https://twitter.com/pepecoins
-Telegram group:  [Get invite](https://t.me/pepecoins) 
+[CryptoCompare](https://www.cryptocompare.com/coins/meme/charts/BTC)
+
+[BitInfoCharts](https://bitinfocharts.com/markets/bittrex/meme-btc-1m.html)
+
+[CryptoCoinView](https://cryptocoinview.com/MEME)
+
+[CoinGekko](https://www.coingecko.com/en/coins/memetic)
+
+[CoinLib](https://coinlib.io/coin/MEME/Pepe+Memetic)
+
+###Social
+
+[Twitter](https://twitter.com/pepecoins) 
+
+[Telegram](https://t.me/pepecoins)  - Official MEME / PEPE Support and Community Room
 
 
 ***
