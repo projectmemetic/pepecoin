@@ -4714,7 +4714,7 @@ bool ProcessMessages(CNode* pfrom)
     //
     bool fOk = true;
 
-    if(IsSyncing() && !pfrom.fStartSync)
+    if(IsSyncing() && !pfrom->fStartSync)
     {
         pfrom->fDisconnect = true;
         return;
