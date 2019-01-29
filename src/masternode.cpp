@@ -801,13 +801,16 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight)
 
 void CMasternodePayments::Relay(CMasternodePaymentWinner& winner)
 {
-    CInv inv(MSG_MASTERNODE_WINNER, winner.GetHash());
+    if(!fLiteMode && !IsInitialBlockDownload() && !IsSyncing())
+    {
+        CInv inv(MSG_MASTERNODE_WINNER, winner.GetHash());
 
-    vector<CInv> vInv;
-    vInv.push_back(inv);
-    LOCK(cs_vNodes);
-    BOOST_FOREACH(CNode* pnode, vNodes){
-        pnode->PushMessage("inv", vInv);
+        vector<CInv> vInv;
+        vInv.push_back(inv);
+        LOCK(cs_vNodes);
+        BOOST_FOREACH(CNode* pnode, vNodes){
+            pnode->PushMessage("inv", vInv);
+        }
     }
 }
 
