@@ -1430,7 +1430,7 @@ void ThreadMessageHandler()
             TRY_LOCK(cs_vNodes, lockNodes);
 	    if(!lockNodes)
 	    {
-		MilliSleep(100);
+		MilliSleep(10);
 		continue;
 	    }
             vNodesCopy = vNodes;
@@ -1469,7 +1469,7 @@ void ThreadMessageHandler()
             {
                 TRY_LOCK(pnode->cs_vSend, lockSend);
                 if (lockSend)
-                    SendMessages(pnode, pnode == pnodeTrickle);
+                    SendMessages(pnode, false); //pnode == pnodeTrickle);
             }
             boost::this_thread::interruption_point();
         }

@@ -3907,13 +3907,15 @@ void static ProcessGetData(CNode* pfrom)
 {
     // only proceed if we can get a lock
     // if we can't, don't block and leave it in the queue for next time
-    TRY_LOCK(cs_main, lockMain);
+    /*TRY_LOCK(cs_main, lockMain);
     if (!lockMain)
-        return;
+        return;*/
 
     std::deque<CInv>::iterator it = pfrom->vRecvGetData.begin();
 
     vector<CInv> vNotFound;
+
+    LOCK(cs_main);
 
     while (it != pfrom->vRecvGetData.end()) {
         // Don't bother if send buffer is too full to respond anyway
@@ -3953,7 +3955,7 @@ void static ProcessGetData(CNode* pfrom)
                 if(fDebug) LogPrintf("ProcessGetData -- Starting \n");
                 // Send stream from relay memory
                 bool pushed = false;
-                /*{
+                {
                     LOCK(cs_mapRelay);
                     map<CInv, CDataStream>::iterator mi = mapRelay.find(inv);
                     if (mi != mapRelay.end()) {
@@ -3961,7 +3963,8 @@ void static ProcessGetData(CNode* pfrom)
                         if(fDebug) LogPrintf("ProcessGetData -- pushed = true Rest will fail\n");
                         pushed = true;
                     }
-                }*/
+                }
+
                 if (!pushed && inv.type == MSG_TX) {
 
                     CTransaction tx;
@@ -4149,6 +4152,20 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
                 addrman.Good(addrFrom);
             }
         }
+
+        //---
+        // Ask the first connected node for block updates
+        static int nAskedForBlocks = 0;
+        if (!pfrom->fClient && !pfrom->fOneShot &&
+            (pfrom->nStartingHeight > (nBestHeight - 144)) &&
+            (pfrom->nVersion < NOBLKS_VERSION_START ||
+             pfrom->nVersion >= NOBLKS_VERSION_END) &&
+             (nAskedForBlocks < 1 || vNodes.size() <= 1))
+        {
+            nAskedForBlocks++;
+            pfrom->PushGetBlocks(pindexBest, uint256(0));
+        }
+        //---
 
         // Relay alerts
         {
