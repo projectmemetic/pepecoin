@@ -4053,6 +4053,7 @@ void static ProcessGetData(CNode* pfrom)
     }
 }
 
+static int nAskedForBlocks = 0;
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived)
 {
     RandAddSeedPerfmon();
@@ -4155,11 +4156,11 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
         //---
         // Ask the first connected node for block updates
-        static int nAskedForBlocks = 0;
-        if (!pfrom->fClient && !pfrom->fOneShot &&
+        
+        if (!pfrom->fClient && !pfrom->fOneShot && !pfrom->fDisconnect &&
             (pfrom->nStartingHeight > nBestHeight) &&
             (pfrom->nVersion < NOBLKS_VERSION_START ||
-             pfrom->nVersion >= NOBLKS_VERSION_END) &&
+             pfrom->nVersion > NOBLKS_VERSION_END) &&
              (nAskedForBlocks < 1 || vNodes.size() <= 1))
         {
             pfrom->fStartSync = true;
@@ -4673,13 +4674,13 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
 
     else
-    {        
+    {               
         if(IsSyncing() && !pfrom->fStartSync)
         {
             pfrom->fDisconnect = true;        
         }
 	    else if(!fLiteMode && !IsSyncing())
-	    {
+	    {           
             if (fSecMsgEnabled)
                 SecureMsgReceiveData(pfrom, strCommand, vRecv);
 
@@ -5001,16 +5002,24 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                 if (tNow-pto->tBlockRecving > nSyncTimeout * 1000) {
                     LogPrintf("sync peer=%d: Block download stalled for over %d seconds.\n", pto->id, nSyncTimeout);
                     pto->fDisconnect = true;
+                    pto->fStartSync = false;
+                    nAskedForBlocks = 0;
                 }
             } else if (pto->tGetblocks > pto->tBlockInvs && tNow-pto->tGetblocks > nSyncTimeout * 1000) {
                 LogPrintf("sync peer=%d: No invs of new blocks received within %d seconds.\n", pto->id, nSyncTimeout);
                 pto->fDisconnect = true;
+                pto->fStartSync = false;
+                nAskedForBlocks = 0;
             } else if (IsSyncing() && pto->tBlockRecved && tNow-pto->tBlockRecved > nSyncTimeout * 1000) {
                 LogPrintf("sync peer=%d: No block reception for over %d seconds.\n", pto->id, nSyncTimeout);
                 pto->fDisconnect = true;                
+                pto->fStartSync = false;
+                nAskedForBlocks = 0;
             } else if (pto->tGetdataBlock > pto->tBlockRecving && tNow-pto->tGetdataBlock > nSyncTimeout * 1000) {
                 LogPrintf("sync peer=%d: No block download started for over %d seconds.\n", pto->id, nSyncTimeout);
                 pto->fDisconnect = true;
+                pto->fStartSync = false;
+                nAskedForBlocks = 0;
             }
         }
 
