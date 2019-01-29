@@ -4157,12 +4157,13 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         // Ask the first connected node for block updates
         static int nAskedForBlocks = 0;
         if (!pfrom->fClient && !pfrom->fOneShot &&
-            (pfrom->nStartingHeight > nBestHeight - 144) &&
+            (pfrom->nStartingHeight > nBestHeight) &&
             (pfrom->nVersion < NOBLKS_VERSION_START ||
              pfrom->nVersion >= NOBLKS_VERSION_END) &&
              (nAskedForBlocks < 1 || vNodes.size() <= 1))
         {
-            nAskedForBlocks++;
+            pfrom.fStartSync = true;
+            nAskedForBlocks++;            
             PushGetBlocks(pfrom, pindexBest, uint256(0));
             pfrom->tGetblocks = GetTimeMillis();
         }
@@ -4712,6 +4713,13 @@ bool ProcessMessages(CNode* pfrom)
     //  (x) data
     //
     bool fOk = true;
+
+    if(IsSyncing() && !pfrom.fStartSync)
+    {
+        pfrom.fDisconnect = true;
+        return;
+    }
+
 
     if (!pfrom->vRecvGetData.empty())
         ProcessGetData(pfrom);
