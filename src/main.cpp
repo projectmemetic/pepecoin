@@ -4673,17 +4673,21 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
 
     else
-    {
-        if (fSecMsgEnabled)
-            SecureMsgReceiveData(pfrom, strCommand, vRecv);
+    {        
+        if(IsSyncing() && !pfrom->fStartSync)
+        {
+            pfrom->fDisconnect = true;        
+        }
+	    else if(!fLiteMode && !IsSyncing())
+	    {
+            if (fSecMsgEnabled)
+                SecureMsgReceiveData(pfrom, strCommand, vRecv);
 
-	if(!fLiteMode && !IsSyncing())
-	{
             ProcessMessageDarksend(pfrom, strCommand, vRecv);
             ProcessMessageMasternode(pfrom, strCommand, vRecv);
             ProcessMessageInstantX(pfrom, strCommand, vRecv);
             ProcessSpork(pfrom, strCommand, vRecv);
-	}
+	    }
 
         // Ignore unknown commands for extensibility
     }
@@ -4712,14 +4716,7 @@ bool ProcessMessages(CNode* pfrom)
     //  (4) checksum
     //  (x) data
     //
-    bool fOk = true;
-
-    if(IsSyncing() && !pfrom->fStartSync)
-    {
-        pfrom->fDisconnect = true;
-        return;
-    }
-
+    bool fOk = true;    
 
     if (!pfrom->vRecvGetData.empty())
         ProcessGetData(pfrom);
