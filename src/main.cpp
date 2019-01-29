@@ -4995,7 +4995,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             pto->PushMessage("inv", vInv);
 
         // Detect stalled peers.
-        int nSyncTimeout = GetArg("-synctimeout", 60);
+        int nSyncTimeout = GetArg("-synctimeout", 30);
         int64_t tNow = GetTimeMillis();
         if (pto->tGetblocks) {
             if (pto->tBlockRecving > pto->tBlockRecved) {
