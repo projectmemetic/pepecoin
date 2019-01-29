@@ -142,6 +142,12 @@ public:
     double dPingTime;
     double dPingWait;
     std::string addrLocal;
+    int64_t tGetblocks = 0;
+    int64_t tBlockInvs = 0;
+    int64_t tGetdataBlock = 0;
+    int64_t tBlockRecvStart = 0;
+    int64_t tBlockRecving = 0;
+    int64_t tBlockRecved = 0;
 };
 
 
@@ -157,6 +163,7 @@ public:
 
     CDataStream vRecv;              // received message data
     unsigned int nDataPos;
+    unsigned int nLastDataPos;
 
     int64_t nTime;                  // time (in microseconds) of message receipt.
 
@@ -165,6 +172,7 @@ public:
         in_data = false;
         nHdrPos = 0;
         nDataPos = 0;
+        nLastDataPos = 0;
         nTime = 0;
     }
 

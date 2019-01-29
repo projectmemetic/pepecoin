@@ -50,7 +50,7 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
         if(fLiteMode) return; //disable all darksend/masternode related functionality
 
         bool fIsInitialDownload = IsInitialBlockDownload();
-        if(fIsInitialDownload) return;
+        if(fIsInitialDownload || IsSyncing()) return;
 
         CTxIn vin;
         CService addr;
@@ -202,7 +202,7 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
     else if (strCommand == "dseep") { //DarkSend Election Entry Ping
         if(fLiteMode) return; //disable all darksend/masternode related functionality
         bool fIsInitialDownload = IsInitialBlockDownload();
-        if(fIsInitialDownload) return;
+        if(fIsInitialDownload || IsSyncing()) return;
 
         CTxIn vin;
         vector<unsigned char> vchSig;

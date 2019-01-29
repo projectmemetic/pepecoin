@@ -2118,6 +2118,10 @@ void ThreadCheckDarkSendPool()
         c++;
 
         MilliSleep(1000);
+
+        if(IsSyncing())
+            continue;
+        
         //LogPrintf("ThreadCheckDarkSendPool::check timeout\n");
         darkSendPool.CheckTimeout();
 

@@ -1808,7 +1808,7 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits)
 
 bool IsSyncing()
 {
-    return vNodes.size() < 3 || pindexBest->GetBlockTime() < GetTime() - 10 * 60;
+    return vNodes.size() < 3 || pindexBest->GetBlockTime() < GetTime() - 5 * 60;
 }
 
 bool IsInitialBlockDownload()
@@ -4157,13 +4157,14 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         // Ask the first connected node for block updates
         static int nAskedForBlocks = 0;
         if (!pfrom->fClient && !pfrom->fOneShot &&
-            (pfrom->nStartingHeight > (nBestHeight - 144)) &&
+            (pfrom->nStartingHeight > nBestHeight - 144) &&
             (pfrom->nVersion < NOBLKS_VERSION_START ||
              pfrom->nVersion >= NOBLKS_VERSION_END) &&
              (nAskedForBlocks < 1 || vNodes.size() <= 1))
         {
             nAskedForBlocks++;
             PushGetBlocks(pfrom, pindexBest, uint256(0));
+            pfrom->tGetblocks = GetTimeMillis();
         }
         //---
 
@@ -4282,7 +4283,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             }
         }
         
-        //LOCK(cs_main);
+        LOCK(cs_main);
+        int nBlocksGet = 0;
+
         CTxDB txdb("r");
 
         for (unsigned int nInv = 0; nInv < vInv.size(); nInv++)
@@ -4297,7 +4300,13 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
             if (!fAlreadyHave) {
                 if (!fImporting)
-                    pfrom->AskFor(inv);
+                    if (inv.type == MSG_BLOCK) {
+                        if (pfrom->tGetblocks > pfrom->tBlockInvs || !IsSyncing()) {
+                            pfrom->AskFor(inv.hash);
+                            nBlocksGet++;
+                        }
+                    } else
+                        pfrom->AskFor(inv);                                 
             } else if (inv.type == MSG_BLOCK && mapOrphanBlocks.count(inv.hash)) {
                 PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(inv.hash));
             } else if (nInv == nLastBlock) {
@@ -4313,6 +4322,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             // Track requests for our stuff
             g_signals.Inventory(inv.hash);
         }
+
+        if (nBlocksGet)
+            pfrom->tBlockInvs = GetTimeMillis();
     }
 
 
@@ -4484,20 +4496,31 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
     else if (strCommand == "block" && !fImporting && !fReindex) // Ignore blocks received while importing
     {
+        int size = vRecv.size();
         CBlock block;
         vRecv >> block;
         uint256 hashBlock = block.GetHash();
 
-        LogPrint("net", "received block %s\n", hashBlock.ToString());
+        //LogPrint("net", "received block %s\n", hashBlock.ToString());
 
         CInv inv(MSG_BLOCK, hashBlock);
 
         pfrom->AddInventoryKnown(inv);
 
+        int timetodownload = GetTimeMillis() - State(pfrom->id)->nLastBlockReceive/1000;
+        if (timetodownload > 1000)
+            LogPrint("net", "received block %s (%u bytes, %us, %uB/s) peer=%d\n",
+              inv.hash.ToString(), size, timetodownload / 1000, size * 1000 / timetodownload, pfrom->id);
+        else
+            LogPrint("net", "received block %s (%u bytes) peer=%d\n", inv.hash.ToString(), size, pfrom->id);
+
         LOCK(cs_main);
 
         if (ProcessBlock(pfrom, &block))
+        {
             mapAlreadyAskedFor.erase(inv);
+            pfrom->tBlockRecved = GetTimeMillis();
+        }
         if (block.nDoS) pfrom->Misbehaving(block.nDoS);
         if (fSecMsgEnabled)
             SecureMsgScanBlock(block);
@@ -4704,11 +4727,27 @@ bool ProcessMessages(CNode* pfrom)
 
         // get next message
         CNetMessage& msg = *it;
+        CMessageHeader& hdr = msg.hdr;
+        unsigned int nMessageSize = hdr.nMessageSize;
+        string strCommand = hdr.GetCommand();
 
         //if (fDebug)
         //    LogPrintf("ProcessMessages(message %u msgsz, %zu bytes, complete:%s)\n",
         //            msg.hdr.nMessageSize, msg.vRecv.size(),
         //            msg.complete() ? "Y" : "N");
+
+        if (msg.nDataPos != msg.nLastDataPos) {
+            if (strCommand == "block") {
+                if (msg.nLastDataPos == 0) {
+                    pfrom->tBlockRecvStart = GetTimeMillis();                
+                    if (pfrom->tBlockRecved)
+                        LogPrint("net", "%ums later, ", pfrom->tBlockRecvStart - pfrom->tBlockRecved);
+                    LogPrint("net", "incoming block (%u bytes) peer=%d\n", nMessageSize, pfrom->id);
+                }
+                pfrom->tBlockRecving = GetTimeMillis();
+            }
+            msg.nLastDataPos = msg.nDataPos;
+        }
 
         // end, if an incomplete message is found
         if (!msg.complete())
@@ -4725,16 +4764,16 @@ bool ProcessMessages(CNode* pfrom)
         }
 
         // Read header
-        CMessageHeader& hdr = msg.hdr;
+        //CMessageHeader& hdr = msg.hdr;
         if (!hdr.IsValid())
         {
-            LogPrintf("\n\nPROCESSMESSAGE: ERRORS IN HEADER %s\n\n\n", hdr.GetCommand());
+            LogPrintf("\n\nPROCESSMESSAGE: ERRORS IN HEADER %s\n\n\n", strCommand;
             continue;
         }
-        string strCommand = hdr.GetCommand();
+        //string strCommand = hdr.GetCommand();
 
         // Message size
-        unsigned int nMessageSize = hdr.nMessageSize;
+        //unsigned int nMessageSize = hdr.nMessageSize;
 
         // Checksum
         CDataStream& vRecv = msg.vRecv;
@@ -4949,6 +4988,30 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         if (!vInv.empty())
             pto->PushMessage("inv", vInv);
 
+        // Detect stalled peers.
+        int nSyncTimeout = GetArg("-synctimeout", 60);
+        int64_t tNow = GetTimeMillis();
+        if (pto->tGetblocks) {
+            if (pto->tBlockRecving > pto->tBlockRecved) {
+                if (tNow-pto->tBlockRecving > nSyncTimeout * 1000) {
+                    LogPrintf("sync peer=%d: Block download stalled for over %d seconds.\n",
+                        pto->id, nSyncTimeout);
+                    pto->fDisconnect = true;
+                }
+            } else if (pto->tGetblocks > pto->tBlockInvs && tNow-pto->tGetblocks > nSyncTimeout * 1000) {
+                LogPrintf("sync peer=%d: No invs of new blocks received within %d seconds.\n",
+                    pto->id, nSyncTimeout);
+                pto->fDisconnect = true;
+            } else if (IsSyncing() && pto->tBlockRecved && tNow-pto->tBlockRecved > nSyncTimeout * 1000) {
+                LogPrintf("sync peer=%d: No block reception for over %d seconds.\n",
+                    pto->id, nSyncTimeout);
+                pto->fDisconnect = true;                
+            } else if (pto->tGetdataBlock > pto->tBlockRecving && tNow-pto->tGetdataBlock > nSyncTimeout * 1000) {
+                LogPrintf("sync peer=%d: No block download started for over %d seconds.\n",
+                    pto->id, nSyncTimeout);
+                pto->fDisconnect = true;
+            }
+        }
 
         //
         // Message: getdata
@@ -4964,6 +5027,8 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                 if (fDebug)
                     LogPrint("net", "sending getdata: %s\n", inv.ToString());
                 vGetData.push_back(inv);
+                if (!pto->tGetdataBlock)
+                    pto->tGetdataBlock = GetTimeMillis();
                 if (vGetData.size() >= 1000)
                 {
                     pto->PushMessage("getdata", vGetData);

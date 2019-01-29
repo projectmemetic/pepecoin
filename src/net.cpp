@@ -522,6 +522,12 @@ void CNode::copyStats(CNodeStats &stats)
     X(nSendBytes);
     X(nRecvBytes);
     stats.fSyncNode = (this == pnodeSync);
+    X(tGetblocks);
+    X(tBlockInvs);
+    X(tGetdataBlock);
+    X(tBlockRecvStart);
+    X(tBlockRecving);
+    X(tBlockRecved);
 
     // It is common for nodes with good ping times to suddenly become lagged,
     // due to a new block arriving or other large transfer.
