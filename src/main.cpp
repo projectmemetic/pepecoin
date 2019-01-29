@@ -1808,7 +1808,8 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits)
 
 bool IsSyncing()
 {
-    return vNodes.size() < 3 || pindexBest->GetBlockTime() < GetTime() - 5 * 60;
+    int nSyncSpan = GetArg("-syncspan", 30);
+    return vNodes.size() < 3 || pindexBest->GetBlockTime() < GetTime() - 30 * 60;
 }
 
 bool IsInitialBlockDownload()

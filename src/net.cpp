@@ -1373,7 +1373,7 @@ bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOu
     // if we are syncing and if we already have an active sync node, don't open more connections
     bool bAlreadySyncing = false;
     BOOST_FOREACH(CNode* pnode, vNodes) {
-        if(pnode->fStartSync && !pnode->fDisconnect)
+        if(pnode->fStartSync && !pnode->fDisconnect && IsSyncing())
         {
             bAlreadySyncing = true;
             break;
