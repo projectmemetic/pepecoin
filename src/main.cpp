@@ -4507,7 +4507,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
         pfrom->AddInventoryKnown(inv);
 
-        int timetodownload = GetTimeMillis() - State(pfrom->id)->nLastBlockReceive/1000;
+        int timetodownload = GetTimeMillis() - pfrom->tBlockRecved/1000;
         if (timetodownload > 1000)
             LogPrint("net", "received block %s (%u bytes, %us, %uB/s) peer=%d\n",
               inv.hash.ToString(), size, timetodownload / 1000, size * 1000 / timetodownload, pfrom->id);
