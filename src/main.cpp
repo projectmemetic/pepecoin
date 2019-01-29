@@ -4302,7 +4302,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
                 if (!fImporting)
                     if (inv.type == MSG_BLOCK) {
                         if (pfrom->tGetblocks > pfrom->tBlockInvs || !IsSyncing()) {
-                            pfrom->AskFor(inv.hash);
+                            pfrom->AskFor(inv);
                             nBlocksGet++;
                         }
                     } else
@@ -4767,7 +4767,7 @@ bool ProcessMessages(CNode* pfrom)
         //CMessageHeader& hdr = msg.hdr;
         if (!hdr.IsValid())
         {
-            LogPrintf("\n\nPROCESSMESSAGE: ERRORS IN HEADER %s\n\n\n", strCommand;
+            LogPrintf("\n\nPROCESSMESSAGE: ERRORS IN HEADER %s\n\n\n", strCommand);
             continue;
         }
         //string strCommand = hdr.GetCommand();
@@ -4994,21 +4994,17 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         if (pto->tGetblocks) {
             if (pto->tBlockRecving > pto->tBlockRecved) {
                 if (tNow-pto->tBlockRecving > nSyncTimeout * 1000) {
-                    LogPrintf("sync peer=%d: Block download stalled for over %d seconds.\n",
-                        pto->id, nSyncTimeout);
+                    LogPrintf("sync peer=%d: Block download stalled for over %d seconds.\n", pto->id, nSyncTimeout);
                     pto->fDisconnect = true;
                 }
             } else if (pto->tGetblocks > pto->tBlockInvs && tNow-pto->tGetblocks > nSyncTimeout * 1000) {
-                LogPrintf("sync peer=%d: No invs of new blocks received within %d seconds.\n",
-                    pto->id, nSyncTimeout);
+                LogPrintf("sync peer=%d: No invs of new blocks received within %d seconds.\n", pto->id, nSyncTimeout);
                 pto->fDisconnect = true;
             } else if (IsSyncing() && pto->tBlockRecved && tNow-pto->tBlockRecved > nSyncTimeout * 1000) {
-                LogPrintf("sync peer=%d: No block reception for over %d seconds.\n",
-                    pto->id, nSyncTimeout);
+                LogPrintf("sync peer=%d: No block reception for over %d seconds.\n", pto->id, nSyncTimeout);
                 pto->fDisconnect = true;                
             } else if (pto->tGetdataBlock > pto->tBlockRecving && tNow-pto->tGetdataBlock > nSyncTimeout * 1000) {
-                LogPrintf("sync peer=%d: No block download started for over %d seconds.\n",
-                    pto->id, nSyncTimeout);
+                LogPrintf("sync peer=%d: No block download started for over %d seconds.\n", pto->id, nSyncTimeout);
                 pto->fDisconnect = true;
             }
         }

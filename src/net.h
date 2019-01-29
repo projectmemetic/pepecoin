@@ -141,13 +141,7 @@ public:
     bool fSyncNode;
     double dPingTime;
     double dPingWait;
-    std::string addrLocal;
-    int64_t tGetblocks = 0;
-    int64_t tBlockInvs = 0;
-    int64_t tGetdataBlock = 0;
-    int64_t tBlockRecvStart = 0;
-    int64_t tBlockRecving = 0;
-    int64_t tBlockRecved = 0;
+    std::string addrLocal;    
 };
 
 
@@ -243,6 +237,14 @@ public:
     int64_t nLastSend;
     int64_t nLastRecv;
     int64_t nTimeConnected;
+
+    int64_t tGetblocks = 0;
+    int64_t tBlockInvs = 0;
+    int64_t tGetdataBlock = 0;
+    int64_t tBlockRecvStart = 0;
+    int64_t tBlockRecving = 0;
+    int64_t tBlockRecved = 0;
+    
     CAddress addr;
     std::string addrName;
     CService addrLocal;
