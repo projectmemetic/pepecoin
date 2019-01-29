@@ -839,6 +839,11 @@ void ThreadSocketHandler()
                 if (nErr != WSAEWOULDBLOCK)
                     LogPrintf("socket error accept failed: %d\n", nErr);
             }
+            else if(IsSyncing())
+            {
+                closesocket(hSocket);
+                LogPrintf("Inbound connection from %s dropped because we are syncing.\n");
+            }
             else if (nInbound >= GetArg("-maxconnections", 125) - MAX_OUTBOUND_CONNECTIONS)
             {
                 closesocket(hSocket);
@@ -1365,6 +1370,18 @@ bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOu
     if (strDest && FindNode(strDest))
         return false;
 
+    // if we are syncing and if we already have an active sync node, don't open more connections
+    bool bAlreadySyncing = false;
+    BOOST_FOREACH(CNode* pnode, vNodes) {
+        if(pnode->fStartSync && !pnode->fDisconnect)
+        {
+            bAlreadySyncing = true;
+            break;
+        }
+    }
+    if(bAlreadySyncing)
+        return false;
+
     CNode* pnode = ConnectNode(addrConnect, strDest);
     boost::this_thread::interruption_point();
 
@@ -1400,7 +1417,7 @@ void static StartSync(const vector<CNode*> &vNodes) {
         // check preconditions for allowing a sync
         if (!pnode->fClient && !pnode->fOneShot &&
             !pnode->fDisconnect && pnode->fSuccessfullyConnected &&
-            (pnode->nStartingHeight > (nBestHeight - 144)) &&
+            (pnode->nStartingHeight > nBestHeight) &&
             (pnode->nVersion < NOBLKS_VERSION_START || pnode->nVersion >= NOBLKS_VERSION_END)) {
             // if ok, compare node's score with the best so far
             int64_t nScore = NodeSyncScore(pnode);
