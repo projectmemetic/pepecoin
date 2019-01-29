@@ -4162,7 +4162,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
              pfrom->nVersion >= NOBLKS_VERSION_END) &&
              (nAskedForBlocks < 1 || vNodes.size() <= 1))
         {
-            pfrom.fStartSync = true;
+            pfrom->fStartSync = true;
             nAskedForBlocks++;            
             PushGetBlocks(pfrom, pindexBest, uint256(0));
             pfrom->tGetblocks = GetTimeMillis();
@@ -4716,7 +4716,7 @@ bool ProcessMessages(CNode* pfrom)
 
     if(IsSyncing() && !pfrom.fStartSync)
     {
-        pfrom.fDisconnect = true;
+        pfrom->fDisconnect = true;
         return;
     }
 
