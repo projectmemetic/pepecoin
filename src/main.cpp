@@ -1805,9 +1805,15 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits)
     return true;
 }
 
+
+bool IsSyncing()
+{
+    return vNodes.size() < 3 || pindexBest->GetBlockTime() < GetTime() - 10 * 60;
+}
+
 bool IsInitialBlockDownload()
 {
-    LOCK(cs_main);
+    //LOCK(cs_main);
     if (pindexBest == NULL || nBestHeight < Checkpoints::GetTotalBlocksEstimate())
         return true;
     static int64_t nLastUpdate;
@@ -4259,7 +4265,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             }
         }
         
-        LOCK(cs_main);
+        //LOCK(cs_main);
         CTxDB txdb("r");
 
         for (unsigned int nInv = 0; nInv < vInv.size(); nInv++)
@@ -4351,7 +4357,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
     else if (strCommand == "getheaders")
     {
-        CBlockLocator locator;
+        /*CBlockLocator locator;
         uint256 hashStop;
         vRecv >> locator >> hashStop;
 
@@ -4383,7 +4389,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             if (--nLimit <= 0 || pindex->GetBlockHash() == hashStop)
                 break;
         }
-        pfrom->PushMessage("headers", vHeaders);
+        pfrom->PushMessage("headers", vHeaders);*/
     }
 
 
@@ -4630,7 +4636,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         if (fSecMsgEnabled)
             SecureMsgReceiveData(pfrom, strCommand, vRecv);
 
-	if(!fLiteMode)
+	if(!fLiteMode && !IsSyncing())
 	{
             ProcessMessageDarksend(pfrom, strCommand, vRecv);
             ProcessMessageMasternode(pfrom, strCommand, vRecv);
@@ -4809,15 +4815,15 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             }
         }
 
-        TRY_LOCK(cs_main, lockMain); // Acquire cs_main for IsInitialBlockDownload() and CNodeState()
-        if (!lockMain)
-            return true;
+        //TRY_LOCK(cs_main, lockMain); // Acquire cs_main for IsInitialBlockDownload() and CNodeState()
+        //if (!lockMain)
+        //    return true;
 
         // Start block sync
-        if (pto->fStartSync && !fImporting && !fReindex) {
+     /*   if (pto->fStartSync && !fImporting && !fReindex) {
             pto->fStartSync = false;
             PushGetBlocks(pto, pindexBest, uint256(0));
-        }
+        }*/
 
         // Resend wallet transactions that haven't gotten in a block yet
         // Except during reindex, importing and IBD, when old wallet

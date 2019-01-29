@@ -37,6 +37,7 @@ MasternodeManager::MasternodeManager(QWidget *parent) :
     ui->startButton->setEnabled(false);
     ui->stopButton->setEnabled(false);
     ui->copyAddressButton->setEnabled(false);
+    ui->removeButton->setEnabled(false);
 
     ui->tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->tableWidget_2->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
@@ -44,11 +45,11 @@ MasternodeManager::MasternodeManager(QWidget *parent) :
     subscribeToCoreSignals();
 
     timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(updateNodeList()));
-    timer->start(30000);
+    //connect(timer, SIGNAL(timeout()), this, SLOT(updateNodeList()));
+    //timer->start(30000);
 
     
-    updateNodeList();
+    //updateNodeList();
 }
 
 MasternodeManager::~MasternodeManager()
@@ -92,7 +93,8 @@ void MasternodeManager::on_tableWidget_2_itemSelectionChanged()
         ui->getConfigButton->setEnabled(true);
         ui->startButton->setEnabled(true);
         ui->stopButton->setEnabled(true);
-	ui->copyAddressButton->setEnabled(true);
+	    ui->copyAddressButton->setEnabled(true);
+        ui->removeButton->setEnabled(true);
     }
 }
 
