@@ -244,7 +244,7 @@ public:
     int64_t tBlockRecvStart = 0;
     int64_t tBlockRecving = 0;
     int64_t tBlockRecved = 0;
-    
+
     CAddress addr;
     std::string addrName;
     CService addrLocal;
@@ -299,6 +299,9 @@ public:
     std::vector<CInv> vInventoryToSend;
     CCriticalSection cs_inventory;
     std::multimap<int64_t, CInv> mapAskFor;
+
+    // Masternode based relay
+    std::set<uint256> setToadKnown;
 
     SecMsgNode smsgData;
 

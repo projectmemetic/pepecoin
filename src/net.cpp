@@ -1819,40 +1819,68 @@ void RelayDarkSendStatus(const int sessionID, const int newState, const int newE
 
 void RelayDarkSendElectionEntry(const CTxIn vin, const CService addr, const std::vector<unsigned char> vchSig, const int64_t nNow, const CPubKey pubkey, const CPubKey pubkey2, const int count, const int current, const int64_t lastUpdated, const int protocolVersion)
 {
+    CDataStream ssCheck;
+    ssCheck << "dsee" << vin << addr << vchSig << nNow << pubkey << pubkey2 << count << current << lastUpdated << protocolVersion;
+    uint256 hashCheck = SerializeHash(ssCheck);
+
     LOCK(cs_vNodes);
     BOOST_FOREACH(CNode* pnode, vNodes)
     {
         if(!pnode->fRelayTxes) continue;
+        if(pnode->setToadKnown.count(hashCheck) != 0) continue;
 
+        pnode->setToadKnown.insert(hashCheck);
         pnode->PushMessage("dsee", vin, addr, vchSig, nNow, pubkey, pubkey2, count, current, lastUpdated, protocolVersion);
     }
 }
 
 void SendDarkSendElectionEntry(const CTxIn vin, const CService addr, const std::vector<unsigned char> vchSig, const int64_t nNow, const CPubKey pubkey, const CPubKey pubkey2, const int count, const int current, const int64_t lastUpdated, const int protocolVersion)
 {
+    CDataStream ssCheck;
+    ssCheck << "dsee" << vin << addr << vchSig << nNow << pubkey << pubkey2 << count << current << lastUpdated << protocolVersion;
+    uint256 hashCheck = SerializeHash(ssCheck);
+
     LOCK(cs_vNodes);
     BOOST_FOREACH(CNode* pnode, vNodes)
     {
+        if(!pnode->fRelayTxes) continue;
+        if(pnode->setToadKnown.count(hashCheck) != 0) continue;
+
+        pnode->setToadKnown.insert(hashCheck);
         pnode->PushMessage("dsee", vin, addr, vchSig, nNow, pubkey, pubkey2, count, current, lastUpdated, protocolVersion);
     }
 }
 
 void RelayDarkSendElectionEntryPing(const CTxIn vin, const std::vector<unsigned char> vchSig, const int64_t nNow, const bool stop)
 {
+    CDataStream ssCheck;
+    ssCheck << "dseep" << vin << vchSig << nNow << stop;
+    uint256 hashCheck = SerializeHash(ssCheck);
+
     LOCK(cs_vNodes);
     BOOST_FOREACH(CNode* pnode, vNodes)
     {
         if(!pnode->fRelayTxes) continue;
+        if(pnode->setToadKnown.count(hashCheck) != 0) continue;
 
+        pnode->setToadKnown.insert(hashCheck);
         pnode->PushMessage("dseep", vin, vchSig, nNow, stop);
     }
 }
 
 void SendDarkSendElectionEntryPing(const CTxIn vin, const std::vector<unsigned char> vchSig, const int64_t nNow, const bool stop)
 {
+    CDataStream ssCheck;
+    ssCheck << "dseep" << vin << vchSig << nNow << stop;
+    uint256 hashCheck = SerializeHash(ssCheck);
+
     LOCK(cs_vNodes);
     BOOST_FOREACH(CNode* pnode, vNodes)
     {
+        if(!pnode->fRelayTxes) continue;
+        if(pnode->setToadKnown.count(hashCheck) != 0) continue;
+
+        pnode->setToadKnown.insert(hashCheck);
         pnode->PushMessage("dseep", vin, vchSig, nNow, stop);
     }
 }
