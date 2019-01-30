@@ -1821,7 +1821,7 @@ void RelayDarkSendElectionEntry(const CTxIn vin, const CService addr, const std:
 {
     CDataStream ssCheck;
     ssCheck << "dsee" << vin << addr << vchSig << nNow << pubkey << pubkey2 << count << current << lastUpdated << protocolVersion;
-    uint256 hashCheck = SerializeHash(ssCheck);
+    uint256 hashCheck = SerializeHash(std::vector<unsigned char>(ssCheck.begin(), ssCheck.end()));
 
     LOCK(cs_vNodes);
     BOOST_FOREACH(CNode* pnode, vNodes)
@@ -1838,7 +1838,7 @@ void SendDarkSendElectionEntry(const CTxIn vin, const CService addr, const std::
 {
     CDataStream ssCheck;
     ssCheck << "dsee" << vin << addr << vchSig << nNow << pubkey << pubkey2 << count << current << lastUpdated << protocolVersion;
-    uint256 hashCheck = SerializeHash(ssCheck);
+    uint256 hashCheck = SerializeHash(std::vector<unsigned char>(ssCheck.begin(), ssCheck.end()));
 
     LOCK(cs_vNodes);
     BOOST_FOREACH(CNode* pnode, vNodes)
@@ -1855,7 +1855,7 @@ void RelayDarkSendElectionEntryPing(const CTxIn vin, const std::vector<unsigned 
 {
     CDataStream ssCheck;
     ssCheck << "dseep" << vin << vchSig << nNow << stop;
-    uint256 hashCheck = SerializeHash(ssCheck);
+    uint256 hashCheck = SerializeHash(std::vector<unsigned char>(ssCheck.begin(), ssCheck.end()));
 
     LOCK(cs_vNodes);
     BOOST_FOREACH(CNode* pnode, vNodes)
@@ -1872,7 +1872,7 @@ void SendDarkSendElectionEntryPing(const CTxIn vin, const std::vector<unsigned c
 {
     CDataStream ssCheck;
     ssCheck << "dseep" << vin << vchSig << nNow << stop;
-    uint256 hashCheck = SerializeHash(ssCheck);
+    uint256 hashCheck = SerializeHash(std::vector<unsigned char>(ssCheck.begin(), ssCheck.end()));
 
     LOCK(cs_vNodes);
     BOOST_FOREACH(CNode* pnode, vNodes)
