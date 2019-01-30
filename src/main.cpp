@@ -1809,7 +1809,31 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits)
 bool IsSyncing()
 {
     int nSyncSpan = GetArg("-syncspan", 30);
-    return vNodes.size() < 3 || pindexBest->GetBlockTime() < GetTime() - 30 * 60;
+    return vNodes.size() < 3 || pindexBest->GetBlockTime() < GetTime() - nSyncSpan * 60;
+}
+
+void DropNonRespondingSyncPeer()
+{
+    // detect if the currently connected sync node has not started sending blocks
+    // within timeout period, and if so disconnect it so we can try to sync
+    // from a new peer       
+    BOOST_FOREACH(CNode* pnode, vNodes) {
+        if(pnode->fStartSync && !pnode->fDisconnect && IsSyncing())
+        {            
+            int nSyncTimeout = GetArg("-synctimeout", 30);
+            int64_t tNow = GetTimeMillis();
+            if (pto->tGetblocks) {
+                if (pto->tGetblocks > pto->tBlockInvs && tNow-pto->tGetblocks > nSyncTimeout * 1000) {
+                    LogPrintf("sync peer=%d: Block sync did not start within %d seconds. Disconnecting peer.\n", pto->id, nSyncTimeout);
+                    pto->fDisconnect = true;
+                    pto->fStartSync = false;
+                    nAskedForBlocks = 0;
+
+                    break;
+                }
+            }
+        }
+    }
 }
 
 bool IsInitialBlockDownload()

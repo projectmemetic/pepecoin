@@ -1370,6 +1370,10 @@ bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOu
     if (strDest && FindNode(strDest))
         return false;
 
+    // if we are trying to sync but the sync peer hasn't responded and started the sync
+    // drop it so we can open a connection to a new sync peer
+    DropNonRespondingSyncPeer();
+
     // if we are syncing and if we already have an active sync node, don't open more connections
     bool bAlreadySyncing = false;
     BOOST_FOREACH(CNode* pnode, vNodes) {
