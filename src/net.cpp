@@ -12,6 +12,7 @@
 #include "ui_interface.h"
 #include "darksend.h"
 #include "wallet.h"
+#include "serialize.h"
 
 #ifdef WIN32
 #include <string.h>
@@ -1819,7 +1820,7 @@ void RelayDarkSendStatus(const int sessionID, const int newState, const int newE
 
 void RelayDarkSendElectionEntry(const CTxIn vin, const CService addr, const std::vector<unsigned char> vchSig, const int64_t nNow, const CPubKey pubkey, const CPubKey pubkey2, const int count, const int current, const int64_t lastUpdated, const int protocolVersion)
 {
-    CDataStream ssCheck;
+    CDataStream ssCheck(SER_GETHASH, PROTOCOL_VERSION);
     ssCheck << CMessageHeader("dsee",0) << vin << addr << vchSig << nNow << pubkey << pubkey2 << count << current << lastUpdated << protocolVersion;
     uint256 hashCheck = SerializeHash(std::vector<unsigned char>(ssCheck.begin(), ssCheck.end()));
 
@@ -1836,7 +1837,7 @@ void RelayDarkSendElectionEntry(const CTxIn vin, const CService addr, const std:
 
 void SendDarkSendElectionEntry(const CTxIn vin, const CService addr, const std::vector<unsigned char> vchSig, const int64_t nNow, const CPubKey pubkey, const CPubKey pubkey2, const int count, const int current, const int64_t lastUpdated, const int protocolVersion)
 {
-    CDataStream ssCheck;
+    CDataStream ssCheck(SER_GETHASH, PROTOCOL_VERSION);
     ssCheck << CMessageHeader("dsee",0) << vin << addr << vchSig << nNow << pubkey << pubkey2 << count << current << lastUpdated << protocolVersion;
     uint256 hashCheck = SerializeHash(std::vector<unsigned char>(ssCheck.begin(), ssCheck.end()));
 
@@ -1853,7 +1854,7 @@ void SendDarkSendElectionEntry(const CTxIn vin, const CService addr, const std::
 
 void RelayDarkSendElectionEntryPing(const CTxIn vin, const std::vector<unsigned char> vchSig, const int64_t nNow, const bool stop)
 {
-    CDataStream ssCheck;
+    CDataStream ssCheck(SER_GETHASH, PROTOCOL_VERSION);
     ssCheck << CMessageHeader("dseep",0) << vin << vchSig << nNow << stop;
     uint256 hashCheck = SerializeHash(std::vector<unsigned char>(ssCheck.begin(), ssCheck.end()));
 
@@ -1870,7 +1871,7 @@ void RelayDarkSendElectionEntryPing(const CTxIn vin, const std::vector<unsigned 
 
 void SendDarkSendElectionEntryPing(const CTxIn vin, const std::vector<unsigned char> vchSig, const int64_t nNow, const bool stop)
 {
-    CDataStream ssCheck;
+    CDataStream ssCheck(SER_GETHASH, PROTOCOL_VERSION);
     ssCheck << CMessageHeader("dseep",0) << vin << vchSig << nNow << stop;
     uint256 hashCheck = SerializeHash(std::vector<unsigned char>(ssCheck.begin(), ssCheck.end()));
 
