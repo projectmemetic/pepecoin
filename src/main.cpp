@@ -1821,7 +1821,7 @@ void DropNonRespondingSyncPeer()
     BOOST_FOREACH(CNode* pnode, vNodes) {
         if(pnode->fStartSync && !pnode->fDisconnect && IsSyncing())
         {            
-            int nSyncTimeout = GetArg("-synctimeout", 30);
+            int nSyncTimeout = GetArg("-synctimeout", 60);
             int64_t tNow = GetTimeMillis();
             if (pnode->tGetblocks) {
                 if (pnode->tGetblocks > pnode->tBlockInvs && tNow-pnode->tGetblocks > nSyncTimeout * 1000) {
@@ -5020,7 +5020,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             pto->PushMessage("inv", vInv);
 
         // Detect stalled peers.
-        int nSyncTimeout = GetArg("-synctimeout", 30);
+        int nSyncTimeout = GetArg("-synctimeout", 60);
         int64_t tNow = GetTimeMillis();
         if (pto->tGetblocks) {
             if (pto->tBlockRecving > pto->tBlockRecved) {
