@@ -1805,6 +1805,7 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits)
     return true;
 }
 
+static int nAskedForBlocks = 0;
 
 bool IsSyncing()
 {
@@ -1822,11 +1823,11 @@ void DropNonRespondingSyncPeer()
         {            
             int nSyncTimeout = GetArg("-synctimeout", 30);
             int64_t tNow = GetTimeMillis();
-            if (pto->tGetblocks) {
-                if (pto->tGetblocks > pto->tBlockInvs && tNow-pto->tGetblocks > nSyncTimeout * 1000) {
-                    LogPrintf("sync peer=%d: Block sync did not start within %d seconds. Disconnecting peer.\n", pto->id, nSyncTimeout);
-                    pto->fDisconnect = true;
-                    pto->fStartSync = false;
+            if (pnode->tGetblocks) {
+                if (pnode->tGetblocks > pnode->tBlockInvs && tNow-pnode->tGetblocks > nSyncTimeout * 1000) {
+                    LogPrintf("sync peer=%d: Block sync did not start within %d seconds. Disconnecting peer.\n", pnode->id, nSyncTimeout);
+                    pnode->fDisconnect = true;
+                    pnode->fStartSync = false;
                     nAskedForBlocks = 0;
 
                     break;
@@ -4078,7 +4079,6 @@ void static ProcessGetData(CNode* pfrom)
     }
 }
 
-static int nAskedForBlocks = 0;
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived)
 {
     RandAddSeedPerfmon();
