@@ -67,7 +67,7 @@
            </column>
            <column>
             <property name="text">
-             <string>Active</string>
+             <string>Status</string>
             </property>
            </column>
            <column>

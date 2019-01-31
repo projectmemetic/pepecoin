@@ -160,7 +160,7 @@ void MasternodeManager::updateNodeList()
 
  	// populate list
 	// Address, Rank, Active, Active Seconds, Last Seen, Pub Key
-	QTableWidgetItem *activeItem = new QTableWidgetItem(QString::number(mn.GetStatus()));
+	QTableWidgetItem *activeItem = new QTableWidgetItem(QString::fromStdString(mn.GetStatus()));
 	QTableWidgetItem *addressItem = new QTableWidgetItem(QString::fromStdString(mn.addr.ToString()));
 	QTableWidgetItem *rankItem = new QTableWidgetItem(QString::number(GetMasternodeRank(mn.vin, pindexBest->nHeight)));
 	QTableWidgetItem *activeSecondsItem = new QTableWidgetItem(seconds_to_DHMS((qint64)(mn.lastTimeSeen - mn.now)));
