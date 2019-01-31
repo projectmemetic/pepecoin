@@ -31,7 +31,7 @@ public:
 
 
 public slots:
-    void updateMyNodeLisst();
+    void updateMyNodeList();
     void updateNodeList();
     void updatemastertoad(QString alias, QString addr, QString privkey, QString collateral);
 
