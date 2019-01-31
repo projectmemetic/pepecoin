@@ -59,6 +59,8 @@ private slots:
     void on_removeButton_clicked();
     void on_tableWidget_2_itemSelectionChanged();
     void on_localButton_clicked();
+    void on_refreshToadsButton_clicked();
+    void on_refreshMyToadsButton_clicked();
 };
 
 #endif // MASTERNODEMANAGER_H

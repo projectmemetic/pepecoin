@@ -93,6 +93,13 @@
             <number>0</number>
            </property>
            <item>
+              <widget class="QPushButton" name="refreshToadsButton">
+               <property name="text">
+                <string>Refresh Toad List</string>
+               </property>
+              </widget>
+             </item>
+           <item>
             <widget class="QLabel" name="label_2">
              <property name="text">
               <string>Mastertoad Count:</string>
@@ -153,6 +160,13 @@
               <widget class="QPushButton" name="copyAddressButton">
                <property name="text">
                 <string>Copy &amp;Address</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="refreshMyToadsButton">
+               <property name="text">
+                <string>Refresh My Toads List</string>
                </property>
               </widget>
              </item>

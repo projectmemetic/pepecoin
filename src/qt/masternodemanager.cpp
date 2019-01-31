@@ -45,12 +45,13 @@ MasternodeManager::MasternodeManager(QWidget *parent) :
     subscribeToCoreSignals();
 
     timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(updateNodeList()));
-    connect(timer, SIGNAL(timeout()), this, SLOT(updateMyNodeList()));
-    timer->start(10000);
+    //connect(timer, SIGNAL(timeout()), this, SLOT(updateNodeList()));
+    //connect(timer, SIGNAL(timeout()), this, SLOT(updateMyNodeList()));
+    //timer->start(10000);
 
     
-    //updateNodeList();
+    updateNodeList();
+    updateMyNodeList();
 }
 
 MasternodeManager::~MasternodeManager()
@@ -191,14 +192,7 @@ void MasternodeManager::updateMyNodeList()
         return;
     }
     static int64_t nTimeMyListUpdated = 0;
-
-    // automatically update my masternode list only once in 60 seconds,
-    // this update still can be triggered manually at any time via button click
-    int64_t nSecondsTillUpdate = nTimeMyListUpdated + 60 - GetTime();
-    
-    if(nSecondsTillUpdate > 0) return;
-    nTimeMyListUpdated = GetTime();
-    
+       
     if(pwalletMain)
     {
         BOOST_FOREACH(PAIRTYPE(std::string, CmastertoadConfig) mastertoad, pwalletMain->mapMymastertoads)
@@ -238,6 +232,16 @@ void MasternodeManager::setWalletModel(WalletModel *model)
     {
     }
 
+}
+
+void MasternodeManager::on_refreshToadsButton_clicked()
+{
+    updateNodeList();
+}
+
+void MasternodeManager::on_refreshMyToadsButton_clicked()
+{
+    updateMyNodeList();
 }
 
 void MasternodeManager::on_createButton_clicked()
