@@ -2,7 +2,7 @@
 // Copyright (c) 2014 DashCoin Developers
 // Copyright (c) 2015 Transfercoin Developer
 // Copyright (c) 2015-2016 PepeCoin Developers
-// Copyright (c) 2016-2018 The PepeCoin Developers
+// Copyright (c) 2016-2019 The PepeCoin Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
  
@@ -112,7 +112,7 @@ public:
         base58Prefixes[EXT_SECRET_KEY] = list_of(0x04)(0x88)(0xAD)(0xE4).convert_to_container<std::vector<unsigned char> >();;
  
         vSeeds.push_back(CDNSSeedData("seed.kekdaq.com",  "seed.kekdaq.com"));
-	vSeeds.push_back(CDNSSeedData("seed.pepecoin.co",  "seed.pepecoin.co"));
+	    vSeeds.push_back(CDNSSeedData("seed.pepecoin.co",  "seed.pepecoin.co"));
  
         convertSeed6(vFixedSeeds, pnSeed6_main, ARRAYLEN(pnSeed6_main));
  
