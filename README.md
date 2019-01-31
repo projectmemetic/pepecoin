@@ -170,7 +170,7 @@ addnode=seed.kekdaq.com
 ------------------
 License
 ------------------
->#### PepeCoin / Memetic // Kekdaq are open source softwares. 
+>#### Memetic / PepeCoin / Kekdaq are open source softwares. 
 >>Copyright (c) 2009-2010 Satoshi Nakamoto
 >>Copyright (c) 2009-2012 The Bitcoin Developers
 >>Copyright (c) 2012 Litecoin Developers

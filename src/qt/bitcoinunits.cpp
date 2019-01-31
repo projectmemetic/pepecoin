@@ -52,7 +52,7 @@ QString BitcoinUnits::description(int unit)
 {
     switch(unit)
     {
-    case BTC: return QString("PepeCoin / Memetic");
+    case BTC: return QString("Memetic / PepeCoin");
     case mBTC: return QString("Milli-PepeCoin (1 / 1,000)");
     case uBTC: return QString("Micro-PepeCoin (1 / 1,000,000)");
     default: return QString("???");
