@@ -207,7 +207,7 @@ void MasternodeManager::updateMyNodeList()
             std::string sStatus = "";
             BOOST_FOREACH(CMasterNode mn, vecMasternodes) 
             {
-                if(mn.sAddress == mastertoad.second.sAddress && mn.sCollateralAddress == mastertoad.second.sCollateralAddress)
+                if(mn.addr.ToString() == mastertoad.second.sAddress)
                 {
                     sStatus = mn.GetStatus();                
                     break;
