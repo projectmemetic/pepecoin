@@ -124,6 +124,7 @@ public:
     }
 
     void Check();
+    std::string GetStatus();
 
     bool UpdatedWithin(int seconds)
     {

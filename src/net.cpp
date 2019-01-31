@@ -12,6 +12,7 @@
 #include "ui_interface.h"
 #include "darksend.h"
 #include "wallet.h"
+#include "serialize.h"
 
 #ifdef WIN32
 #include <string.h>
@@ -521,7 +522,7 @@ void CNode::copyStats(CNodeStats &stats)
     X(nMisbehavior);
     X(nSendBytes);
     X(nRecvBytes);
-    stats.fSyncNode = (this == pnodeSync);
+    stats.fSyncNode = (this == pnodeSync);   
 
     // It is common for nodes with good ping times to suddenly become lagged,
     // due to a new block arriving or other large transfer.
@@ -838,6 +839,11 @@ void ThreadSocketHandler()
                 int nErr = WSAGetLastError();
                 if (nErr != WSAEWOULDBLOCK)
                     LogPrintf("socket error accept failed: %d\n", nErr);
+            }
+            else if(IsSyncing())
+            {
+                closesocket(hSocket);
+                LogPrintf("Inbound connection from %s dropped because we are syncing.\n");
             }
             else if (nInbound >= GetArg("-maxconnections", 125) - MAX_OUTBOUND_CONNECTIONS)
             {
@@ -1365,6 +1371,22 @@ bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOu
     if (strDest && FindNode(strDest))
         return false;
 
+    // if we are trying to sync but the sync peer hasn't responded and started the sync
+    // drop it so we can open a connection to a new sync peer
+    DropNonRespondingSyncPeer();
+
+    // if we are syncing and if we already have an active sync node, don't open more connections
+    bool bAlreadySyncing = false;
+    BOOST_FOREACH(CNode* pnode, vNodes) {
+        if(pnode->fStartSync && !pnode->fDisconnect && IsSyncing())
+        {
+            bAlreadySyncing = true;
+            break;
+        }
+    }
+    if(bAlreadySyncing)
+        return false;
+
     CNode* pnode = ConnectNode(addrConnect, strDest);
     boost::this_thread::interruption_point();
 
@@ -1400,7 +1422,7 @@ void static StartSync(const vector<CNode*> &vNodes) {
         // check preconditions for allowing a sync
         if (!pnode->fClient && !pnode->fOneShot &&
             !pnode->fDisconnect && pnode->fSuccessfullyConnected &&
-            (pnode->nStartingHeight > (nBestHeight - 144)) &&
+            (pnode->nStartingHeight > nBestHeight) &&
             (pnode->nVersion < NOBLKS_VERSION_START || pnode->nVersion >= NOBLKS_VERSION_END)) {
             // if ok, compare node's score with the best so far
             int64_t nScore = NodeSyncScore(pnode);
@@ -1430,7 +1452,7 @@ void ThreadMessageHandler()
             TRY_LOCK(cs_vNodes, lockNodes);
 	    if(!lockNodes)
 	    {
-		MilliSleep(100);
+		MilliSleep(10);
 		continue;
 	    }
             vNodesCopy = vNodes;
@@ -1469,7 +1491,7 @@ void ThreadMessageHandler()
             {
                 TRY_LOCK(pnode->cs_vSend, lockSend);
                 if (lockSend)
-                    SendMessages(pnode, pnode == pnodeTrickle);
+                    SendMessages(pnode, false); //pnode == pnodeTrickle);
             }
             boost::this_thread::interruption_point();
         }
@@ -1798,40 +1820,68 @@ void RelayDarkSendStatus(const int sessionID, const int newState, const int newE
 
 void RelayDarkSendElectionEntry(const CTxIn vin, const CService addr, const std::vector<unsigned char> vchSig, const int64_t nNow, const CPubKey pubkey, const CPubKey pubkey2, const int count, const int current, const int64_t lastUpdated, const int protocolVersion)
 {
+    CDataStream ssCheck(SER_GETHASH, PROTOCOL_VERSION);
+    ssCheck << CMessageHeader("dsee",0) << vin << addr << vchSig << nNow << pubkey << pubkey2 << count << current << lastUpdated << protocolVersion;
+    uint256 hashCheck = SerializeHash(std::vector<unsigned char>(ssCheck.begin(), ssCheck.end()));
+
     LOCK(cs_vNodes);
     BOOST_FOREACH(CNode* pnode, vNodes)
     {
         if(!pnode->fRelayTxes) continue;
+        if(pnode->setToadKnown.count(hashCheck) != 0) continue;
 
+        pnode->setToadKnown.insert(hashCheck);
         pnode->PushMessage("dsee", vin, addr, vchSig, nNow, pubkey, pubkey2, count, current, lastUpdated, protocolVersion);
     }
 }
 
 void SendDarkSendElectionEntry(const CTxIn vin, const CService addr, const std::vector<unsigned char> vchSig, const int64_t nNow, const CPubKey pubkey, const CPubKey pubkey2, const int count, const int current, const int64_t lastUpdated, const int protocolVersion)
 {
+    CDataStream ssCheck(SER_GETHASH, PROTOCOL_VERSION);
+    ssCheck << CMessageHeader("dsee",0) << vin << addr << vchSig << nNow << pubkey << pubkey2 << count << current << lastUpdated << protocolVersion;
+    uint256 hashCheck = SerializeHash(std::vector<unsigned char>(ssCheck.begin(), ssCheck.end()));
+
     LOCK(cs_vNodes);
     BOOST_FOREACH(CNode* pnode, vNodes)
     {
+        if(!pnode->fRelayTxes) continue;
+        if(pnode->setToadKnown.count(hashCheck) != 0) continue;
+
+        pnode->setToadKnown.insert(hashCheck);
         pnode->PushMessage("dsee", vin, addr, vchSig, nNow, pubkey, pubkey2, count, current, lastUpdated, protocolVersion);
     }
 }
 
 void RelayDarkSendElectionEntryPing(const CTxIn vin, const std::vector<unsigned char> vchSig, const int64_t nNow, const bool stop)
 {
+    CDataStream ssCheck(SER_GETHASH, PROTOCOL_VERSION);
+    ssCheck << CMessageHeader("dseep",0) << vin << vchSig << nNow << stop;
+    uint256 hashCheck = SerializeHash(std::vector<unsigned char>(ssCheck.begin(), ssCheck.end()));
+
     LOCK(cs_vNodes);
     BOOST_FOREACH(CNode* pnode, vNodes)
     {
         if(!pnode->fRelayTxes) continue;
+        if(pnode->setToadKnown.count(hashCheck) != 0) continue;
 
+        pnode->setToadKnown.insert(hashCheck);
         pnode->PushMessage("dseep", vin, vchSig, nNow, stop);
     }
 }
 
 void SendDarkSendElectionEntryPing(const CTxIn vin, const std::vector<unsigned char> vchSig, const int64_t nNow, const bool stop)
 {
+    CDataStream ssCheck(SER_GETHASH, PROTOCOL_VERSION);
+    ssCheck << CMessageHeader("dseep",0) << vin << vchSig << nNow << stop;
+    uint256 hashCheck = SerializeHash(std::vector<unsigned char>(ssCheck.begin(), ssCheck.end()));
+
     LOCK(cs_vNodes);
     BOOST_FOREACH(CNode* pnode, vNodes)
     {
+        if(!pnode->fRelayTxes) continue;
+        if(pnode->setToadKnown.count(hashCheck) != 0) continue;
+
+        pnode->setToadKnown.insert(hashCheck);
         pnode->PushMessage("dseep", vin, vchSig, nNow, stop);
     }
 }

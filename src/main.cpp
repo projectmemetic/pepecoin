@@ -1805,9 +1805,41 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits)
     return true;
 }
 
+static int nAskedForBlocks = 0;
+
+bool IsSyncing()
+{
+    int nSyncSpan = GetArg("-syncspan", 30);
+    return vNodes.size() < 3 || pindexBest->GetBlockTime() < GetTime() - nSyncSpan * 60;
+}
+
+void DropNonRespondingSyncPeer()
+{
+    // detect if the currently connected sync node has not started sending blocks
+    // within timeout period, and if so disconnect it so we can try to sync
+    // from a new peer       
+    BOOST_FOREACH(CNode* pnode, vNodes) {
+        if(pnode->fStartSync && !pnode->fDisconnect && IsSyncing())
+        {            
+            int nSyncTimeout = GetArg("-synctimeout", 60);
+            int64_t tNow = GetTimeMillis();
+            if (pnode->tGetblocks) {
+                if (pnode->tGetblocks > pnode->tBlockInvs && tNow-pnode->tGetblocks > nSyncTimeout * 1000) {
+                    LogPrintf("sync peer=%d: Block sync did not start within %d seconds. Disconnecting peer.\n", pnode->id, nSyncTimeout);
+                    pnode->fDisconnect = true;
+                    pnode->fStartSync = false;
+                    nAskedForBlocks = 0;
+
+                    break;
+                }
+            }
+        }
+    }
+}
+
 bool IsInitialBlockDownload()
 {
-    LOCK(cs_main);
+    //LOCK(cs_main);
     if (pindexBest == NULL || nBestHeight < Checkpoints::GetTotalBlocksEstimate())
         return true;
     static int64_t nLastUpdate;
@@ -3332,6 +3364,14 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     // If we don't already have its previous block, shunt it off to holding area until we get it
     if (!mapBlockIndex.count(pblock->hashPrevBlock))
     {
+        if(IsSyncing())
+        {
+            pfrom->fDisconnect = true;
+            pfrom->fStartSync = false;
+            nAskedForBlocks = 0;
+            return error("ProcessBlock(): ORPHAN detected, but we syncing.  Disconnecting from peer.\n");
+        }
+
         LogPrintf("ProcessBlock: ORPHAN BLOCK %lu, prev=%s\n", (unsigned long)mapOrphanBlocks.size(), pblock->hashPrevBlock.ToString());
 
         // Accept orphans as long as there is a node to request its parents from
@@ -3901,13 +3941,15 @@ void static ProcessGetData(CNode* pfrom)
 {
     // only proceed if we can get a lock
     // if we can't, don't block and leave it in the queue for next time
-    TRY_LOCK(cs_main, lockMain);
+    /*TRY_LOCK(cs_main, lockMain);
     if (!lockMain)
-        return;
+        return;*/
 
     std::deque<CInv>::iterator it = pfrom->vRecvGetData.begin();
 
     vector<CInv> vNotFound;
+
+    LOCK(cs_main);
 
     while (it != pfrom->vRecvGetData.end()) {
         // Don't bother if send buffer is too full to respond anyway
@@ -3947,7 +3989,7 @@ void static ProcessGetData(CNode* pfrom)
                 if(fDebug) LogPrintf("ProcessGetData -- Starting \n");
                 // Send stream from relay memory
                 bool pushed = false;
-                /*{
+                {
                     LOCK(cs_mapRelay);
                     map<CInv, CDataStream>::iterator mi = mapRelay.find(inv);
                     if (mi != mapRelay.end()) {
@@ -3955,7 +3997,8 @@ void static ProcessGetData(CNode* pfrom)
                         if(fDebug) LogPrintf("ProcessGetData -- pushed = true Rest will fail\n");
                         pushed = true;
                     }
-                }*/
+                }
+
                 if (!pushed && inv.type == MSG_TX) {
 
                     CTransaction tx;
@@ -4047,7 +4090,7 @@ void static ProcessGetData(CNode* pfrom)
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived)
 {
     RandAddSeedPerfmon();
-    LogPrint("net", "received: %s (%u bytes)\n", strCommand, vRecv.size());
+    LogPrint("net", "received: %s (%u bytes) peer=%s\n", strCommand, vRecv.size(), pfrom->addr.ToString());
     if (mapArgs.count("-dropmessagestest") && GetRand(atoi(mapArgs["-dropmessagestest"])) == 0)
     {
         LogPrintf("dropmessagestest DROPPING RECV MESSAGE\n");
@@ -4143,6 +4186,22 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
                 addrman.Good(addrFrom);
             }
         }
+
+        //---
+        // Ask the first connected node for block updates
+        
+        if (!pfrom->fClient && !pfrom->fOneShot && !pfrom->fDisconnect &&
+            (pfrom->nStartingHeight > nBestHeight) &&
+            (pfrom->nVersion < NOBLKS_VERSION_START ||
+             pfrom->nVersion > NOBLKS_VERSION_END) &&
+             (nAskedForBlocks < 1 || vNodes.size() <= 1))
+        {
+            pfrom->fStartSync = true;
+            nAskedForBlocks++;            
+            PushGetBlocks(pfrom, pindexBest, uint256(0));
+            pfrom->tGetblocks = GetTimeMillis();
+        }
+        //---
 
         // Relay alerts
         {
@@ -4260,6 +4319,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         }
         
         LOCK(cs_main);
+        int nBlocksGet = 0;
+
         CTxDB txdb("r");
 
         for (unsigned int nInv = 0; nInv < vInv.size(); nInv++)
@@ -4274,7 +4335,13 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
             if (!fAlreadyHave) {
                 if (!fImporting)
-                    pfrom->AskFor(inv);
+                    if (inv.type == MSG_BLOCK) {
+                        if (pfrom->tGetblocks > pfrom->tBlockInvs || !IsSyncing()) {
+                            pfrom->AskFor(inv);
+                            nBlocksGet++;
+                        }
+                    } else
+                        pfrom->AskFor(inv);                                 
             } else if (inv.type == MSG_BLOCK && mapOrphanBlocks.count(inv.hash)) {
                 PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(inv.hash));
             } else if (nInv == nLastBlock) {
@@ -4290,6 +4357,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             // Track requests for our stuff
             g_signals.Inventory(inv.hash);
         }
+
+        if (nBlocksGet)
+            pfrom->tBlockInvs = GetTimeMillis();
     }
 
 
@@ -4351,7 +4421,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
     else if (strCommand == "getheaders")
     {
-        CBlockLocator locator;
+        /*CBlockLocator locator;
         uint256 hashStop;
         vRecv >> locator >> hashStop;
 
@@ -4383,7 +4453,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             if (--nLimit <= 0 || pindex->GetBlockHash() == hashStop)
                 break;
         }
-        pfrom->PushMessage("headers", vHeaders);
+        pfrom->PushMessage("headers", vHeaders);*/
     }
 
 
@@ -4461,20 +4531,31 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
     else if (strCommand == "block" && !fImporting && !fReindex) // Ignore blocks received while importing
     {
+        int size = vRecv.size();
         CBlock block;
         vRecv >> block;
         uint256 hashBlock = block.GetHash();
 
-        LogPrint("net", "received block %s\n", hashBlock.ToString());
+        //LogPrint("net", "received block %s\n", hashBlock.ToString());
 
         CInv inv(MSG_BLOCK, hashBlock);
 
         pfrom->AddInventoryKnown(inv);
 
+        int timetodownload = GetTimeMillis() - pfrom->tBlockRecved/1000;
+        if (timetodownload > 1000)
+            LogPrint("net", "received block %s (%u bytes, %us, %uB/s) peer=%d\n",
+              inv.hash.ToString(), size, timetodownload / 1000, size * 1000 / timetodownload, pfrom->id);
+        else
+            LogPrint("net", "received block %s (%u bytes) peer=%d\n", inv.hash.ToString(), size, pfrom->id);
+
         LOCK(cs_main);
 
         if (ProcessBlock(pfrom, &block))
+        {
             mapAlreadyAskedFor.erase(inv);
+            pfrom->tBlockRecved = GetTimeMillis();
+        }
         if (block.nDoS) pfrom->Misbehaving(block.nDoS);
         if (fSecMsgEnabled)
             SecureMsgScanBlock(block);
@@ -4626,17 +4707,21 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
 
     else
-    {
-        if (fSecMsgEnabled)
-            SecureMsgReceiveData(pfrom, strCommand, vRecv);
+    {               
+        if(IsSyncing() && !pfrom->fStartSync)
+        {
+            pfrom->fDisconnect = true;        
+        }
+	    else if(!fLiteMode && !IsSyncing())
+	    {           
+            if (fSecMsgEnabled)
+                SecureMsgReceiveData(pfrom, strCommand, vRecv);
 
-	if(!fLiteMode)
-	{
             ProcessMessageDarksend(pfrom, strCommand, vRecv);
             ProcessMessageMasternode(pfrom, strCommand, vRecv);
             ProcessMessageInstantX(pfrom, strCommand, vRecv);
             ProcessSpork(pfrom, strCommand, vRecv);
-	}
+	    }
 
         // Ignore unknown commands for extensibility
     }
@@ -4665,7 +4750,7 @@ bool ProcessMessages(CNode* pfrom)
     //  (4) checksum
     //  (x) data
     //
-    bool fOk = true;
+    bool fOk = true;    
 
     if (!pfrom->vRecvGetData.empty())
         ProcessGetData(pfrom);
@@ -4681,11 +4766,27 @@ bool ProcessMessages(CNode* pfrom)
 
         // get next message
         CNetMessage& msg = *it;
+        CMessageHeader& hdr = msg.hdr;
+        unsigned int nMessageSize = hdr.nMessageSize;
+        string strCommand = hdr.GetCommand();
 
         //if (fDebug)
         //    LogPrintf("ProcessMessages(message %u msgsz, %zu bytes, complete:%s)\n",
         //            msg.hdr.nMessageSize, msg.vRecv.size(),
         //            msg.complete() ? "Y" : "N");
+
+        if (msg.nDataPos != msg.nLastDataPos) {
+            if (strCommand == "block") {
+                if (msg.nLastDataPos == 0) {
+                    pfrom->tBlockRecvStart = GetTimeMillis();                
+                    if (pfrom->tBlockRecved)
+                        LogPrint("net", "%ums later, ", pfrom->tBlockRecvStart - pfrom->tBlockRecved);
+                    LogPrint("net", "incoming block (%u bytes) peer=%d\n", nMessageSize, pfrom->id);
+                }
+                pfrom->tBlockRecving = GetTimeMillis();
+            }
+            msg.nLastDataPos = msg.nDataPos;
+        }
 
         // end, if an incomplete message is found
         if (!msg.complete())
@@ -4702,16 +4803,16 @@ bool ProcessMessages(CNode* pfrom)
         }
 
         // Read header
-        CMessageHeader& hdr = msg.hdr;
+        //CMessageHeader& hdr = msg.hdr;
         if (!hdr.IsValid())
         {
-            LogPrintf("\n\nPROCESSMESSAGE: ERRORS IN HEADER %s\n\n\n", hdr.GetCommand());
+            LogPrintf("\n\nPROCESSMESSAGE: ERRORS IN HEADER %s\n\n\n", strCommand);
             continue;
         }
-        string strCommand = hdr.GetCommand();
+        //string strCommand = hdr.GetCommand();
 
         // Message size
-        unsigned int nMessageSize = hdr.nMessageSize;
+        //unsigned int nMessageSize = hdr.nMessageSize;
 
         // Checksum
         CDataStream& vRecv = msg.vRecv;
@@ -4809,15 +4910,15 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             }
         }
 
-        TRY_LOCK(cs_main, lockMain); // Acquire cs_main for IsInitialBlockDownload() and CNodeState()
-        if (!lockMain)
-            return true;
+        //TRY_LOCK(cs_main, lockMain); // Acquire cs_main for IsInitialBlockDownload() and CNodeState()
+        //if (!lockMain)
+        //    return true;
 
         // Start block sync
-        if (pto->fStartSync && !fImporting && !fReindex) {
+     /*   if (pto->fStartSync && !fImporting && !fReindex) {
             pto->fStartSync = false;
             PushGetBlocks(pto, pindexBest, uint256(0));
-        }
+        }*/
 
         // Resend wallet transactions that haven't gotten in a block yet
         // Except during reindex, importing and IBD, when old wallet
@@ -4926,6 +5027,34 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         if (!vInv.empty())
             pto->PushMessage("inv", vInv);
 
+        // Detect stalled peers.
+        int nSyncTimeout = GetArg("-synctimeout", 60);
+        int64_t tNow = GetTimeMillis();
+        if (pto->tGetblocks) {
+            if (pto->tBlockRecving > pto->tBlockRecved) {
+                if (tNow-pto->tBlockRecving > nSyncTimeout * 1000) {
+                    LogPrintf("sync peer=%d: Block download stalled for over %d seconds.\n", pto->id, nSyncTimeout);
+                    pto->fDisconnect = true;
+                    pto->fStartSync = false;
+                    nAskedForBlocks = 0;
+                }
+            } else if (pto->tGetblocks > pto->tBlockInvs && tNow-pto->tGetblocks > nSyncTimeout * 1000) {
+                LogPrintf("sync peer=%d: No invs of new blocks received within %d seconds.\n", pto->id, nSyncTimeout);
+                pto->fDisconnect = true;
+                pto->fStartSync = false;
+                nAskedForBlocks = 0;
+            } else if (IsSyncing() && pto->tBlockRecved && tNow-pto->tBlockRecved > nSyncTimeout * 1000) {
+                LogPrintf("sync peer=%d: No block reception for over %d seconds.\n", pto->id, nSyncTimeout);
+                pto->fDisconnect = true;                
+                pto->fStartSync = false;
+                nAskedForBlocks = 0;
+            } else if (pto->tGetdataBlock > pto->tBlockRecving && tNow-pto->tGetdataBlock > nSyncTimeout * 1000) {
+                LogPrintf("sync peer=%d: No block download started for over %d seconds.\n", pto->id, nSyncTimeout);
+                pto->fDisconnect = true;
+                pto->fStartSync = false;
+                nAskedForBlocks = 0;
+            }
+        }
 
         //
         // Message: getdata
@@ -4941,6 +5070,8 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                 if (fDebug)
                     LogPrint("net", "sending getdata: %s\n", inv.ToString());
                 vGetData.push_back(inv);
+                if (!pto->tGetdataBlock)
+                    pto->tGetdataBlock = GetTimeMillis();
                 if (vGetData.size() >= 1000)
                 {
                     pto->PushMessage("getdata", vGetData);

@@ -37,6 +37,7 @@ MasternodeManager::MasternodeManager(QWidget *parent) :
     ui->startButton->setEnabled(false);
     ui->stopButton->setEnabled(false);
     ui->copyAddressButton->setEnabled(false);
+    ui->removeButton->setEnabled(false);
 
     ui->tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->tableWidget_2->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
@@ -44,11 +45,13 @@ MasternodeManager::MasternodeManager(QWidget *parent) :
     subscribeToCoreSignals();
 
     timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(updateNodeList()));
-    timer->start(30000);
+    //connect(timer, SIGNAL(timeout()), this, SLOT(updateNodeList()));
+    //connect(timer, SIGNAL(timeout()), this, SLOT(updateMyNodeList()));
+    //timer->start(10000);
 
     
     updateNodeList();
+    updateMyNodeList();
 }
 
 MasternodeManager::~MasternodeManager()
@@ -92,11 +95,12 @@ void MasternodeManager::on_tableWidget_2_itemSelectionChanged()
         ui->getConfigButton->setEnabled(true);
         ui->startButton->setEnabled(true);
         ui->stopButton->setEnabled(true);
-	ui->copyAddressButton->setEnabled(true);
+	    ui->copyAddressButton->setEnabled(true);
+        ui->removeButton->setEnabled(true);
     }
 }
 
-void MasternodeManager::updatemastertoad(QString alias, QString addr, QString privkey, QString collateral)
+void MasternodeManager::updatemastertoad(QString alias, QString addr, QString privkey, QString collateral, QString status)
 {
     LOCK(cs_mastertoad);
     bool bFound = false;
@@ -116,7 +120,7 @@ void MasternodeManager::updatemastertoad(QString alias, QString addr, QString pr
 
     QTableWidgetItem *aliasItem = new QTableWidgetItem(alias);
     QTableWidgetItem *addrItem = new QTableWidgetItem(addr);
-    QTableWidgetItem *statusItem = new QTableWidgetItem("");
+    QTableWidgetItem *statusItem = new QTableWidgetItem(status);
     QTableWidgetItem *collateralItem = new QTableWidgetItem(collateral);
 
     ui->tableWidget_2->setItem(nodeRow, 0, aliasItem);
@@ -157,7 +161,7 @@ void MasternodeManager::updateNodeList()
 
  	// populate list
 	// Address, Rank, Active, Active Seconds, Last Seen, Pub Key
-	QTableWidgetItem *activeItem = new QTableWidgetItem(QString::number(mn.IsEnabled()));
+	QTableWidgetItem *activeItem = new QTableWidgetItem(QString::fromStdString(mn.GetStatus()));
 	QTableWidgetItem *addressItem = new QTableWidgetItem(QString::fromStdString(mn.addr.ToString()));
 	QTableWidgetItem *rankItem = new QTableWidgetItem(QString::number(GetMasternodeRank(mn.vin, pindexBest->nHeight)));
 	QTableWidgetItem *activeSecondsItem = new QTableWidgetItem(seconds_to_DHMS((qint64)(mn.lastTimeSeen - mn.now)));
@@ -181,6 +185,37 @@ void MasternodeManager::updateNodeList()
     ui->countLabel->setText(QString::number(ui->tableWidget->rowCount()));
 }
 
+void MasternodeManager::updateMyNodeList()
+{
+    TRY_LOCK(cs_mymnlist, fLockAcquired);
+    if(!fLockAcquired) {
+        return;
+    }
+    static int64_t nTimeMyListUpdated = 0;
+       
+    if(pwalletMain)
+    {
+        BOOST_FOREACH(PAIRTYPE(std::string, CmastertoadConfig) mastertoad, pwalletMain->mapMymastertoads)
+        {            
+            // try to find status
+            std::string sStatus = "";
+            TRY_LOCK(cs_masternodes, lockMasternodes);
+            if(lockMasternodes)
+            {
+                BOOST_FOREACH(CMasterNode mn, vecMasternodes) 
+                {
+                    if(mn.addr.ToString() == mastertoad.second.sAddress)
+                    {
+                        sStatus = mn.GetStatus();                
+                        break;
+                    }
+                }
+            }
+            updatemastertoad(QString::fromStdString(mastertoad.second.sAlias), QString::fromStdString(mastertoad.second.sAddress), QString::fromStdString(mastertoad.second.sMasternodePrivKey), QString::fromStdString(mastertoad.second.sCollateralAddress), QString::fromStdString(sStatus));
+        }
+    }
+}
+
 
 void MasternodeManager::setClientModel(ClientModel *model)
 {
@@ -197,6 +232,16 @@ void MasternodeManager::setWalletModel(WalletModel *model)
     {
     }
 
+}
+
+void MasternodeManager::on_refreshToadsButton_clicked()
+{
+    updateNodeList();
+}
+
+void MasternodeManager::on_refreshMyToadsButton_clicked()
+{
+    updateMyNodeList();
 }
 
 void MasternodeManager::on_createButton_clicked()
@@ -273,7 +318,7 @@ void MasternodeManager::on_removeButton_clicked()
         ui->tableWidget_2->setRowCount(0);
         BOOST_FOREACH(PAIRTYPE(std::string, CmastertoadConfig) mastertoad, pwalletMain->mapMymastertoads)
         {
-            updatemastertoad(QString::fromStdString(mastertoad.second.sAlias), QString::fromStdString(mastertoad.second.sAddress), QString::fromStdString(mastertoad.second.sMasternodePrivKey), QString::fromStdString(mastertoad.second.sCollateralAddress));
+            updatemastertoad(QString::fromStdString(mastertoad.second.sAlias), QString::fromStdString(mastertoad.second.sAddress), QString::fromStdString(mastertoad.second.sMasternodePrivKey), QString::fromStdString(mastertoad.second.sCollateralAddress), QString::fromStdString(""));
         }
     }
 }

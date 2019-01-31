@@ -5,6 +5,7 @@
 #include "wallet.h"
 #include "darksend.h"
 #include "instantx.h"
+#include "util.h"
 
 #include <stdint.h>
 
@@ -19,6 +20,11 @@ bool TransactionRecord::showTransaction(const CWalletTx &wtx)
         {
             return false;
         }
+    }
+
+    if(wtx.IsCoinStake() && (!wtx.IsInMainChain() || wtx.GetDepthInMainChain() < 0) && GetBoolArg("-hidenotacceptedstake", true))
+    {
+        return false;
     }
     return true;
 }
