@@ -213,7 +213,7 @@ void MasternodeManager::updateMyNodeList()
                     break;
                 }
             }
-            updateMyMasternodeInfo(QString::fromStdString(mastertoad.second.sAlias), QString::fromStdString(mastertoad.second.sAddress), QString::fromStdString(mastertoad.second.sMasternodePrivKey), QString::fromStdString(mastertoad.second.sCollateralAddress), QString::fromStdString(sStatus));
+            updatemastertoad(QString::fromStdString(mastertoad.second.sAlias), QString::fromStdString(mastertoad.second.sAddress), QString::fromStdString(mastertoad.second.sMasternodePrivKey), QString::fromStdString(mastertoad.second.sCollateralAddress), QString::fromStdString(sStatus));
         }
     }
 }
