@@ -27,6 +27,8 @@ std::map<COutPoint, int64_t> askedForMasternodeListEntry;
 // cache block hashes as we calculate them
 std::map<int64_t, uint256> mapCacheBlockHashes;
 
+std::set<uint256> setKnownMnMsgs;
+
 // manage the masternode connections
 void ProcessMasternodeConnections(){
     LOCK(cs_vNodes);
@@ -66,6 +68,18 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
 
         // 70047 and greater
         vRecv >> vin >> addr >> vchSig >> sigTime >> pubkey >> pubkey2 >> count >> current >> lastUpdated >> protocolVersion;
+
+        CDataStream ssCheck(SER_GETHASH, PROTOCOL_VERSION);
+        ssCheck << CMessageHeader("dsee",0) << vin << addr << vchSig << sigTime << pubkey << pubkey2 << count << current << lastUpdated << protocolVersion;
+        uint256 hashCheck = SerializeHash(std::vector<unsigned char>(ssCheck.begin(), ssCheck.end()));
+
+        if(setKnownMnMsgs.count(hashCheck))
+        {
+            // already have this dsee
+            return;
+        }
+
+        setKnownMnMsgs.insert(hashCheck);
 
         // make sure signature isn't in the future (past is OK)
         if (sigTime > GetAdjustedTime() + 60 * 60) {
@@ -209,6 +223,17 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
         int64_t sigTime;
         bool stop;
         vRecv >> vin >> vchSig >> sigTime >> stop;
+
+        CDataStream ssCheck(SER_GETHASH, PROTOCOL_VERSION);
+        ssCheck << CMessageHeader("dseep",0) << vin << vchSig << sigTime << stop;
+        uint256 hashCheck = SerializeHash(std::vector<unsigned char>(ssCheck.begin(), ssCheck.end()));
+        if(setKnownMnMsgs.count(hashCheck))
+        {
+            // already have this dseep
+            return;
+        }
+
+        setKnownMnMsgs.insert(hashCheck);
 
         //LogPrintf("dseep - Received: vin: %s sigTime: %lld stop: %s\n", vin.ToString().c_str(), sigTime, stop ? "true" : "false");
 

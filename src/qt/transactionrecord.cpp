@@ -22,7 +22,7 @@ bool TransactionRecord::showTransaction(const CWalletTx &wtx)
         }
     }
 
-    if(type == TransactionRecord::Generated && wtx.IsCoinStake() && !wtx.IsInMainChain() && GetBoolArg("-hidenotacceptedstake", true))
+    if(wtx.IsCoinStake() && !wtx.IsInMainChain() && GetBoolArg("-hidenotacceptedstake", true))
     {
         return false;
     }
