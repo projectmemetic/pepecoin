@@ -146,7 +146,7 @@ static QString seconds_to_DHMS(quint32 duration)
 
 void MasternodeManager::updateNodeList()
 {
-    TRY_LOCK(cs_mastertoad, lockMasternodes);
+    TRY_LOCK(cs_masternodes, lockMasternodes);
     if(!lockMasternodes)
         return;
 
@@ -198,19 +198,23 @@ void MasternodeManager::updateMyNodeList()
     
     if(nSecondsTillUpdate > 0) return;
     nTimeMyListUpdated = GetTime();
-
+    
     if(pwalletMain)
     {
         BOOST_FOREACH(PAIRTYPE(std::string, CmastertoadConfig) mastertoad, pwalletMain->mapMymastertoads)
-        {
+        {            
             // try to find status
             std::string sStatus = "";
-            BOOST_FOREACH(CMasterNode mn, vecMasternodes) 
+            TRY_LOCK(cs_masternodes, lockMasternodes);
+            if(lockMasternodes)
             {
-                if(mn.addr.ToString() == mastertoad.second.sAddress)
+                BOOST_FOREACH(CMasterNode mn, vecMasternodes) 
                 {
-                    sStatus = mn.GetStatus();                
-                    break;
+                    if(mn.addr.ToString() == mastertoad.second.sAddress)
+                    {
+                        sStatus = mn.GetStatus();                
+                        break;
+                    }
                 }
             }
             updatemastertoad(QString::fromStdString(mastertoad.second.sAlias), QString::fromStdString(mastertoad.second.sAddress), QString::fromStdString(mastertoad.second.sMasternodePrivKey), QString::fromStdString(mastertoad.second.sCollateralAddress), QString::fromStdString(sStatus));
