@@ -3364,6 +3364,14 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     // If we don't already have its previous block, shunt it off to holding area until we get it
     if (!mapBlockIndex.count(pblock->hashPrevBlock))
     {
+        if(IsSyncing())
+        {
+            pfrom->fDisconnect = true;
+            pfrom->fStartSync = false;
+            nAskedForBlocks = 0;
+            return error("ProcessBlock(): ORPHAN detected, but we syncing.  Disconnecting from peer.\n");
+        }
+
         LogPrintf("ProcessBlock: ORPHAN BLOCK %lu, prev=%s\n", (unsigned long)mapOrphanBlocks.size(), pblock->hashPrevBlock.ToString());
 
         // Accept orphans as long as there is a node to request its parents from

@@ -45,8 +45,9 @@ MasternodeManager::MasternodeManager(QWidget *parent) :
     subscribeToCoreSignals();
 
     timer = new QTimer(this);
-    //connect(timer, SIGNAL(timeout()), this, SLOT(updateNodeList()));
-    //timer->start(30000);
+    connect(timer, SIGNAL(timeout()), this, SLOT(updateNodeList()));
+    connect(timer, SIGNAL(timeout()), this, SLOT(updateMyNodeList()));
+    timer->start(10000);
 
     
     //updateNodeList();
@@ -98,7 +99,7 @@ void MasternodeManager::on_tableWidget_2_itemSelectionChanged()
     }
 }
 
-void MasternodeManager::updatemastertoad(QString alias, QString addr, QString privkey, QString collateral)
+void MasternodeManager::updatemastertoad(QString alias, QString addr, QString privkey, QString collateral, QString status)
 {
     LOCK(cs_mastertoad);
     bool bFound = false;
@@ -118,7 +119,7 @@ void MasternodeManager::updatemastertoad(QString alias, QString addr, QString pr
 
     QTableWidgetItem *aliasItem = new QTableWidgetItem(alias);
     QTableWidgetItem *addrItem = new QTableWidgetItem(addr);
-    QTableWidgetItem *statusItem = new QTableWidgetItem("");
+    QTableWidgetItem *statusItem = new QTableWidgetItem(status);
     QTableWidgetItem *collateralItem = new QTableWidgetItem(collateral);
 
     ui->tableWidget_2->setItem(nodeRow, 0, aliasItem);
@@ -145,7 +146,7 @@ static QString seconds_to_DHMS(quint32 duration)
 
 void MasternodeManager::updateNodeList()
 {
-    TRY_LOCK(cs_masternodes, lockMasternodes);
+    TRY_LOCK(cs_mastertoad, lockMasternodes);
     if(!lockMasternodes)
         return;
 
@@ -159,7 +160,7 @@ void MasternodeManager::updateNodeList()
 
  	// populate list
 	// Address, Rank, Active, Active Seconds, Last Seen, Pub Key
-	QTableWidgetItem *activeItem = new QTableWidgetItem(QString::number(mn.IsEnabled()));
+	QTableWidgetItem *activeItem = new QTableWidgetItem(QString::number(mn.GetStatus()));
 	QTableWidgetItem *addressItem = new QTableWidgetItem(QString::fromStdString(mn.addr.ToString()));
 	QTableWidgetItem *rankItem = new QTableWidgetItem(QString::number(GetMasternodeRank(mn.vin, pindexBest->nHeight)));
 	QTableWidgetItem *activeSecondsItem = new QTableWidgetItem(seconds_to_DHMS((qint64)(mn.lastTimeSeen - mn.now)));
@@ -181,6 +182,40 @@ void MasternodeManager::updateNodeList()
     }
 
     ui->countLabel->setText(QString::number(ui->tableWidget->rowCount()));
+}
+
+void MasternodeManager::updateMyNodeList()
+{
+    TRY_LOCK(cs_mymnlist, fLockAcquired);
+    if(!fLockAcquired) {
+        return;
+    }
+    static int64_t nTimeMyListUpdated = 0;
+
+    // automatically update my masternode list only once in 60 seconds,
+    // this update still can be triggered manually at any time via button click
+    int64_t nSecondsTillUpdate = nTimeMyListUpdated + 60 - GetTime();
+    
+    if(nSecondsTillUpdate > 0) return;
+    nTimeMyListUpdated = GetTime();
+
+    if(pwalletMain)
+    {
+        BOOST_FOREACH(PAIRTYPE(std::string, CmastertoadConfig) mastertoad, pwalletMain->mapMymastertoads)
+        {
+            // try to find status
+            std::string sStatus = "";
+            BOOST_FOREACH(CMasterNode mn, vecMasternodes) 
+            {
+                if(mn.sAddress == mastertoad.second.sAddress && mn.sCollateralAddress == mastertoad.second.sCollateralAddress)
+                {
+                    sStatus = mn.GetStatus();                
+                    break;
+                }
+            }
+            updateMyMasternodeInfo(QString::fromStdString(mastertoad.second.sAlias), QString::fromStdString(mastertoad.second.sAddress), QString::fromStdString(mastertoad.second.sMasternodePrivKey), QString::fromStdString(mastertoad.second.sCollateralAddress), QString::fromStdString(sStatus));
+        }
+    }
 }
 
 

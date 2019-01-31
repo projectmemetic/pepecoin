@@ -31,6 +31,7 @@ public:
 
 
 public slots:
+    void updateMyNodeLisst();
     void updateNodeList();
     void updatemastertoad(QString alias, QString addr, QString privkey, QString collateral);
 
@@ -42,6 +43,7 @@ private:
     ClientModel *clientModel;
     WalletModel *walletModel;
     CCriticalSection cs_mastertoad;
+    CCriticalSection cs_mymnlist;
     void subscribeToCoreSignals();
     void unsubscribeFromCoreSignals();
 

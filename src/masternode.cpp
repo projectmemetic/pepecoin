@@ -614,6 +614,31 @@ void CMasterNode::Check()
     enabled = 1; // OK
 }
 
+std::string CMasterNode::GetStatus()
+{
+    switch(enabled)
+    {
+        case 0:
+            return "Not Processed";
+        case 1:
+            return "Ok";
+        case 2:
+            return "Not Capable";
+        case 3:
+            return "Stopped";
+        case 4:
+            return "Input Too New";
+        case 6:
+            return "Port Not Open";
+        case 7:
+            return "Port Open";
+        case 8:
+            return "Syncing";
+        case 9:
+            return "Remotely Enabled";
+    }
+}
+
 bool CMasternodePayments::CheckSignature(CMasternodePaymentWinner& winner)
 {
     //note: need to investigate why this is failing
