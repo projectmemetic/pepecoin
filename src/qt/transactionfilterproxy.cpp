@@ -2,6 +2,7 @@
 
 #include "transactiontablemodel.h"
 #include "transactionrecord.h"
+#include "util.h"
 
 #include <QDateTime>
 
@@ -21,8 +22,10 @@ TransactionFilterProxy::TransactionFilterProxy(QObject *parent) :
     watchOnlyFilter(WatchOnlyFilter_All),
     minAmount(0),
     limitRows(-1),
-    showInactive(true)
+    showInactive(false)
 {
+    if(!GetBoolArg("-hidenotacceptedstake", true))
+        setShowInactive(true);
 }
 
 bool TransactionFilterProxy::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
