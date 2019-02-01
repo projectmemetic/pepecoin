@@ -104,6 +104,15 @@ public:
                 status = CT_NEW; /* Not in model, but want to show, treat as new */
             if(!showTransaction && inModel)
                 status = CT_DELETED; /* In model, but want to hide, treat as deleted */
+
+            LOCK2(cs_main, wallet->cs_wallet);
+            // Find transaction in wallet
+            std::map<uint256, CWalletTx>::iterator mi = wallet->mapWallet.find(hash);
+            if(mi != wallet->mapWallet.end())
+            {
+                if(!TransactionRecord::showTransaction(mi->second))
+                    status = CT_DELETED; /* want to hide, treat as deleted */   
+            }            
         }
 
         qDebug() << "   inModel=" + QString::number(inModel) +

@@ -22,10 +22,9 @@ TransactionFilterProxy::TransactionFilterProxy(QObject *parent) :
     watchOnlyFilter(WatchOnlyFilter_All),
     minAmount(0),
     limitRows(-1),
-    showInactive(false)
+    showInactive(true)
 {
-    if(!GetBoolArg("-hidenotacceptedstake", true))
-        setShowInactive(true);
+    
 }
 
 bool TransactionFilterProxy::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
