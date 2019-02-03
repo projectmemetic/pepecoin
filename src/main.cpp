@@ -1809,8 +1809,8 @@ static int nAskedForBlocks = 0;
 
 bool IsSyncing()
 {
-    int nSyncSpan = GetArg("-syncspan", 30);
-    return vNodes.size() < 3 || pindexBest->GetBlockTime() < GetTime() - nSyncSpan * 60;
+    int nSyncSpan = GetArg("-syncspan", 30);    
+    return pindexBest->GetBlockTime() < GetTime() - nSyncSpan * 60;
 }
 
 void DropNonRespondingSyncPeer()
