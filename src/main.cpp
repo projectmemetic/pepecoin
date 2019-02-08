@@ -1809,7 +1809,7 @@ static int nAskedForBlocks = 0;
 
 bool IsSyncing()
 {
-    int nSyncSpan = GetArg("-syncspan", 30);    
+    int nSyncSpan = GetArg("-syncspan", 90);    
     return pindexBest->GetBlockTime() < GetTime() - nSyncSpan * 60;
 }
 
