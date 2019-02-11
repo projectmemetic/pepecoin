@@ -92,7 +92,7 @@ static const int64_t PEPE_SO_SWAP_GRANT = 888888 * COIN;
 static const int64_t PEPE_STAKE_CONF_HEIGHT = 1021111;
 static const int64_t PEPE_STAKE_CONF_TWEAK = 1177777;
 static const int64_t PEPE_STAKEONLY_HEIGHT = 1700000;
-static const int64_t PEPE_DIFFIMPROVE_HEIGHT = 1823000;
+static const int64_t PEPE_DIFFIMPROVE_HEIGHT = 1830000;
 
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
 static const unsigned int MAX_BLOCK_SIZE = 20000000;
