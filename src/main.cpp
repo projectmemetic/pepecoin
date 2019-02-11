@@ -4128,8 +4128,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             vRecv >> pfrom->strSubVer;
         if (!vRecv.empty())
             vRecv >> pfrom->nStartingHeight;
-        if (!vRecv.empty())
-            pfrom->fRelayTxes = true;
+        
+        pfrom->fRelayTxes = true;
 
         pfrom->cleanSubVer = SanitizeString(pfrom->strSubVer);
 
