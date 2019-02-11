@@ -33,8 +33,8 @@ static const int PING_INTERVAL = 5 * 60;
 /** Time after which to disconnect, after waiting for a ping response (or inactivity). */
 static const int TIMEOUT_INTERVAL = 20 * 60;
 
-inline unsigned int ReceiveFloodSize() { return 1000*GetArg("-maxreceivebuffer", 5*1000); }
-inline unsigned int SendBufferSize() { return 1000*GetArg("-maxsendbuffer", 1*1000); }
+inline unsigned int ReceiveFloodSize() { return 1000*GetArg("-maxreceivebuffer", 10*1000); }
+inline unsigned int SendBufferSize() { return 1000*GetArg("-maxsendbuffer", 2*1000); }
 
 void AddOneShot(std::string strDest);
 bool RecvLine(SOCKET hSocket, std::string& strLine);
@@ -141,7 +141,7 @@ public:
     bool fSyncNode;
     double dPingTime;
     double dPingWait;
-    std::string addrLocal;
+    std::string addrLocal;    
 };
 
 
@@ -157,6 +157,7 @@ public:
 
     CDataStream vRecv;              // received message data
     unsigned int nDataPos;
+    unsigned int nLastDataPos;
 
     int64_t nTime;                  // time (in microseconds) of message receipt.
 
@@ -165,6 +166,7 @@ public:
         in_data = false;
         nHdrPos = 0;
         nDataPos = 0;
+        nLastDataPos = 0;
         nTime = 0;
     }
 
@@ -235,6 +237,14 @@ public:
     int64_t nLastSend;
     int64_t nLastRecv;
     int64_t nTimeConnected;
+
+    int64_t tGetblocks = 0;
+    int64_t tBlockInvs = 0;
+    int64_t tGetdataBlock = 0;
+    int64_t tBlockRecvStart = 0;
+    int64_t tBlockRecving = 0;
+    int64_t tBlockRecved = 0;
+
     CAddress addr;
     std::string addrName;
     CService addrLocal;
@@ -289,6 +299,9 @@ public:
     std::vector<CInv> vInventoryToSend;
     CCriticalSection cs_inventory;
     std::multimap<int64_t, CInv> mapAskFor;
+
+    // Masternode based relay
+    std::set<uint256> setToadKnown;
 
     SecMsgNode smsgData;
 

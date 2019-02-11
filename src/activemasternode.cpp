@@ -16,6 +16,8 @@ void CActiveMasternode::ManageStatus()
 
     if(!fMasterNode) return;
 
+    if(IsSyncing()) return;
+
     if (fDebug) LogPrintf("CActiveMasternode::ManageStatus() - Begin\n");
 
     //need correct adjusted time to send ping

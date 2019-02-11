@@ -5,20 +5,20 @@
     <name>AboutDialog</name>
     <message>
         <location filename="../forms/aboutdialog.ui" line="+14"/>
-        <source>About PepeCoin /Memetic</source>
-        <translation>About PepeCoin /Memetic</translation>
+        <source>About Memetic / PepeCoin</source>
+        <translation>About Memetic / PepeCoin</translation>
     </message>
     <message>
         <location line="+39"/>
-        <source>&lt;b&gt;PepeCoin - Memetic&lt;/b&gt; version</source>
-        <translation>&lt;b&gt;PepeCoin - Memetic &lt;/b&gt; version</translation>
+        <source>&lt;b&gt;Memetic - PepeCoin&lt;/b&gt; version</source>
+        <translation>&lt;b&gt;Memetic - PepeCoin&lt;/b&gt; version</translation>
     </message>
     <message>
         <location line="+41"/>
         <source>Copyright © 2009-2015 The Bitcoin developers
-Copyright © 2011-2012 PPCoin Developers
-Copyright © 2012-2014 The NovaCoin developers
-Copyright © 2015-2018 The PepeCoin / Memetic developers</source>
+                Copyright © 2011-2012 PPCoin Developers
+                Copyright © 2012-2014 The NovaCoin developers
+                Copyright © 2015-2019 The Memetic / PepeCoin developers</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -393,13 +393,13 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="-55"/>
-        <source>Send coins to a PepeCoin or Memetic address</source>
-        <translation>Send coins to a PepeCoin or Memetic address</translation>
+        <source>Send coins to a Memetic - PepeCoin address</source>
+        <translation>Send coins to a Memetic - PepeCoin address</translation>
     </message>
     <message>
         <location line="+39"/>
-        <source>Modify configuration options for PepeCoin or Memetic</source>
-        <translation>Modify configuration options for PepeCoin or Memetic</translation>
+        <source>Modify configuration options for Memetic - PepeCoin</source>
+        <translation>Modify configuration options for Memetic - PepeCoin</translation>
     </message>
     <message>
         <location line="+17"/>
@@ -439,8 +439,8 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="-214"/>
         <location line="+551"/>
-        <source>PepeCoin / Memetic</source>
-        <translation>PepeCoin / Memetic</translation>
+        <source>Memetic / PepeCoin</source>
+        <translation>Memetic / PepeCoin</translation>
     </message>
     <message>
         <location line="-551"/>
@@ -1824,8 +1824,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location filename="../sendcoinsdialog.cpp" line="-174"/>
-        <source>Enter a PepeCoin or Memetic address (e.g. B8gZqgY4r2RoEdqYk3QsAqFckyf9pRHN6i)</source>
-        <translation>Enter a PepeCoin or Memetic address (e.g. B8gZqgY4r2RoEdqYk3QsAqFckyf9pRHN6i)</translation>
+        <source>Enter a Memetic - PepeCoin address (e.g. B8gZqgY4r2RoEdqYk3QsAqFckyf9pRHN6i)</source>
+        <translation>Enter a Memetic - PepeCoin address (e.g. B8gZqgY4r2RoEdqYk3QsAqFckyf9pRHN6i)</translation>
     </message>
     <message>
         <location line="+15"/>
@@ -1998,8 +1998,8 @@ This label turns red, if the priority is smaller than &quot;medium&quot;.
     </message>
     <message>
         <location filename="../sendcoinsentry.cpp" line="+1"/>
-        <source>Enter a PepeCoin /Memetic address (e.g. B8gZqgY4r2RoEdqYk3QsAqFckyf9pRHN6i)</source>
-        <translation>Enter a PepeCoin /Memetic address (e.g. B8gZqgY4r2RoEdqYk3QsAqFckyf9pRHN6i)</translation>
+        <source>Enter a Memetic - PepeCoin address (e.g. B8gZqgY4r2RoEdqYk3QsAqFckyf9pRHN6i)</source>
+        <translation>Enter a Memetic - PepeCoin address (e.g. B8gZqgY4r2RoEdqYk3QsAqFckyf9pRHN6i)</translation>
     </message>
 </context>
 <context>

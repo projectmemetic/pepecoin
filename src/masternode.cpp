@@ -27,6 +27,8 @@ std::map<COutPoint, int64_t> askedForMasternodeListEntry;
 // cache block hashes as we calculate them
 std::map<int64_t, uint256> mapCacheBlockHashes;
 
+std::set<uint256> setKnownMnMsgs;
+
 // manage the masternode connections
 void ProcessMasternodeConnections(){
     LOCK(cs_vNodes);
@@ -50,7 +52,7 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
         if(fLiteMode) return; //disable all darksend/masternode related functionality
 
         bool fIsInitialDownload = IsInitialBlockDownload();
-        if(fIsInitialDownload) return;
+        if(fIsInitialDownload || IsSyncing()) return;
 
         CTxIn vin;
         CService addr;
@@ -66,6 +68,18 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
 
         // 70047 and greater
         vRecv >> vin >> addr >> vchSig >> sigTime >> pubkey >> pubkey2 >> count >> current >> lastUpdated >> protocolVersion;
+
+        CDataStream ssCheck(SER_GETHASH, PROTOCOL_VERSION);
+        ssCheck << CMessageHeader("dsee",0) << vin << addr << vchSig << sigTime << pubkey << pubkey2 << count << current << lastUpdated << protocolVersion;
+        uint256 hashCheck = SerializeHash(std::vector<unsigned char>(ssCheck.begin(), ssCheck.end()));
+
+        if(setKnownMnMsgs.count(hashCheck))
+        {
+            // already have this dsee
+            return;
+        }
+
+        setKnownMnMsgs.insert(hashCheck);
 
         // make sure signature isn't in the future (past is OK)
         if (sigTime > GetAdjustedTime() + 60 * 60) {
@@ -202,13 +216,24 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
     else if (strCommand == "dseep") { //DarkSend Election Entry Ping
         if(fLiteMode) return; //disable all darksend/masternode related functionality
         bool fIsInitialDownload = IsInitialBlockDownload();
-        if(fIsInitialDownload) return;
+        if(fIsInitialDownload || IsSyncing()) return;
 
         CTxIn vin;
         vector<unsigned char> vchSig;
         int64_t sigTime;
         bool stop;
         vRecv >> vin >> vchSig >> sigTime >> stop;
+
+        CDataStream ssCheck(SER_GETHASH, PROTOCOL_VERSION);
+        ssCheck << CMessageHeader("dseep",0) << vin << vchSig << sigTime << stop;
+        uint256 hashCheck = SerializeHash(std::vector<unsigned char>(ssCheck.begin(), ssCheck.end()));
+        if(setKnownMnMsgs.count(hashCheck))
+        {
+            // already have this dseep
+            return;
+        }
+
+        setKnownMnMsgs.insert(hashCheck);
 
         //LogPrintf("dseep - Received: vin: %s sigTime: %lld stop: %s\n", vin.ToString().c_str(), sigTime, stop ? "true" : "false");
 
@@ -614,6 +639,31 @@ void CMasterNode::Check()
     enabled = 1; // OK
 }
 
+std::string CMasterNode::GetStatus()
+{
+    switch(enabled)
+    {
+        case 0:
+            return "Not Processed";
+        case 1:
+            return "Ok";
+        case 2:
+            return "Not Capable";
+        case 3:
+            return "Stopped";
+        case 4:
+            return "Input Too New";
+        case 6:
+            return "Port Not Open";
+        case 7:
+            return "Port Open";
+        case 8:
+            return "Syncing";
+        case 9:
+            return "Remotely Enabled";
+    }
+}
+
 bool CMasternodePayments::CheckSignature(CMasternodePaymentWinner& winner)
 {
     //note: need to investigate why this is failing
@@ -801,13 +851,16 @@ bool CMasternodePayments::ProcessBlock(int nBlockHeight)
 
 void CMasternodePayments::Relay(CMasternodePaymentWinner& winner)
 {
-    CInv inv(MSG_MASTERNODE_WINNER, winner.GetHash());
+    if(!fLiteMode && !IsInitialBlockDownload() && !IsSyncing())
+    {
+        CInv inv(MSG_MASTERNODE_WINNER, winner.GetHash());
 
-    vector<CInv> vInv;
-    vInv.push_back(inv);
-    LOCK(cs_vNodes);
-    BOOST_FOREACH(CNode* pnode, vNodes){
-        pnode->PushMessage("inv", vInv);
+        vector<CInv> vInv;
+        vInv.push_back(inv);
+        LOCK(cs_vNodes);
+        BOOST_FOREACH(CNode* pnode, vNodes){
+            pnode->PushMessage("inv", vInv);
+        }
     }
 }
 

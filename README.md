@@ -1,140 +1,161 @@
+![Memetic Logo](http://i.imgur.com/zLMetXi.png  "Memetic Logo") ![PepeCoin Logo](https://imgur.com/9KNdKWJ.png "PepeCoin Logo")
+***
 # PepeCoin - PEPE  / Memetic - MEME
+#### v. 2.9.1.0
 
-v. 2.8.1.0
-####
-Pepecoin is digital decentralized crypto-currency, listed as as Memetic / MEME on Bittrex, Upbit, Coinmarkets and CoinMarketCap.
+Memetic, also known as PepeCoin, is a digital decentralized crypto-currency, listed as as Memetic / MEME on Bittrex, Upbit, Coinmarkets, and CoinMarketCap.
 
-Pepecoin incorporates both blockchain 2.0 and blockchain 3.0 technologies and is under continued development.
+Memetic, AKA PepeCoin, incorporates both blockchain 2.0 and blockchain 3.0 technologies and is under continued development.
 
-Pepecoin is a Proof of Work (POW) /  Proof of Stake (POS) cryptocurrency with privacy features and masternode technology.
+Memetic / Pepecoin is a Proof of Stake (POS) cryptocurrency with privacy features and masternode technology. Mastertoad (masternode) and stakers are rewarded for processing transactions and collectively ensuring the security of the network.
 
-PepeCoin is decentralized, encrypted image storage in IPFS, cryptographically verified against the PepeCoin blockchain. Protect your memes and political information from censorship.
+Previously, we were a Proof of Stake and Proof of Work hybrid but due to the rise of 51% attacks we have shifted to POS until more technology improvements are discovered.
 
-PepeCoin is the base infrastructure for the Kekdaq decentralized meme asset exchange.
+Memetic / PepeCoin is decentralized, encrypted image storage in IPFS, cryptographically verified against the PepeCoin blockchain. Protect your memes and political information from censorship.
 
-PepeCoin is a decentralized, encrypted project that supports the preservation of all freedom of speech that is within the bounds of US law.
+Memetic / PepeCoin is the base infrastructure for the Kekdaq decentralized meme asset exchange.
 
-See [ANN](https://bitcointalk.org/index.php?topic=1391598.0) for more details.
+PepeCoin is a fully open source, decentralized, encrypted project that supports the preservation of all freedom of speech that is within the bounds of US law.
+
+####Join the offical [Telegram](https://t.me/pepecoins) room for technical support and to participate our community.
+
+See [Bitcointalk ANN](https://bitcointalk.org/index.php?topic=1391598.0) for more details.
 
 ***
-
-![PepeCoin Logo](http://i.imgur.com/hDXKtDB.png  "PepeCoin Logo")
-
-***
-**Blockchain Specifications**
-
+####Technical Specifications
+#####
  - Default port 29377 
  - RPC port 29376
- - 60 seconds block time
- - X11 mining algorithm
- - Proof of Stake - POS - 7% at block 600,000, drops by 2% yearly and stays at 3%
- - Proof of Work - POW ended at block 1700000 to reduce chain reorgs to improve the stability of Kekdaq. 
- - PEPE/MEME is Full Proof-of-Stake beginning at block 1700000. The POW reward rate was moved to POS at 3.25% per year, reducing 50% each year.
+ - 60 second block time
+
+#####
+ - Proof of Stake - POS - 7% at block 600,000, reducing yearly.  Currently 3.25% per year, reducing 50% each year
+
+ - Proof of Work - POW ended at block 1,700,000 in late 2018 to reduce chain reorganization issues and improve the stability of Kekdaq
+ #####
+- X11 mining algorithm (Sequential mixing of Blake256, BMW, Grostl, JH, Keccak, Skein, Luffa, Cubehash, SHA-3, SIMD, and ECHO)
+ #####
+ - PEPE / MEME is Full Proof-of-Stake beginning at block 1700000. The POW reward rate was migrated to the POS reward, at 3.25% per year, reducing 50% each year.
  - 600 confirmations for newly Proof of Stake minted blocks
-  - 6 hour minimum stake age with 16 hour average
-  - Additional security improvements
+ - 6 hour minimum stake age with 12 hour average
+ - Additional security improvements
   
  **Features**
 
 - Decentralized encrypted private messaging
 - Stealth Addresses
 - Fully blockchain based, public decentralized encrypted messaging chat wall in wallet
+- In wallet public messaging wall  - set messagewall=1 in pepecoin.conf to enable
+- JSON-RPC functions to externally query all public wall messages
 - Integrated block explorer
+#####
 - Image timestamping on the blockchain for proof of ownership
 - In-wallet hash image verification checking functions
 - JSON-RPC functions to externally query blockchain for hashed image datas
-- In wallet public messaging wall  - set messagewall=1 in pepecoin.conf to enable
+- IPFS-based data hashing storage currently under development
+#####
 - Integrated Bittrex trading functions
-- JSON-RPC functions to externally query all public wall messages
-- IPFS-based  data hashing storage currently under development
+#####
 - Kekdaq decentralized meme asset platform in testing / development stage
-- Mastertoads pay 37.5% of all POW and POS blocks distributed among MN runners
+- Mastertoads pay 37.5% of all mined POS blocks, distributed among MT owners
 
-
-See BitcoinTalk post for more info: https://bitcointalk.org/index.php?topic=1391598.0
-
+See [bitcointalk.org](https://bitcointalk.org/index.php?topic=1391598.0) post for more info: https://bitcointalk.org/index.php?topic=1391598.0
 
 -------------------------------
-Additional Information
-------------------------------
+##Downloading & Compiling
+-------------------------------
  
-**Windows Wallet**
+###Windows Wallet
 
 https://github.com/pepeteam/pepecoin/releases
 
 
-**Linux Builds:**
+####Linux Builds:
 
 PepeCoin uses libsecp256k1, libgmp, Boost1.55+, Openssl1.01p, Berkeley DB 4.8+, QT5 to compile.
 
-Ubuntu 18.04 you will also need to install the libssl1.0-dev package.
+Ubuntu 18.04+ or Debian 9+ is recommended.
 
 
-	sudo apt-get install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev libboost-thread-dev libminiupnpc-dev libgmp3-dev libdb-dev libdb++-dev libgmp3-dev
-	
-	(for Ubuntu 18.04 / Debian 9):  sudo apt install libssl1.0-dev
+####Instructions for Building Command Line Daemon
+	sudo apt-get install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils \
+    libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev \
+    libboost-thread-dev libminiupnpc-dev libgmp3-dev libdb-dev libdb++-dev libgmp3-dev lzma-dev libssl1.0-dev
 	
 	git clone https://github.com/pepeteam/pepecoin.git
 	cd pepecoin/src
 	make -f makefile.unix USE_UPNP=-1
 
-To build the GUI with Qt 5 you need the following:
+Remove libssl1.0-dev from the apt-get list to compile on older versions.
 
-    sudo apt-get install libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler qt5 qt5-default
+####Instructions for Building GUI Wallet
+
+    sudo apt-get install libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev \
+    protobuf-compiler qt5-default
+
+	sudo apt-get install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils \
+    libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev \
+    libboost-thread-dev libminiupnpc-dev libgmp3-dev libdb-dev libdb++-dev libgmp3-dev lzma-dev libssl1.0-dev
+
     
     git clone https://github.com/pepeteam/pepecoin.git
     cd pepecoin 
     qmake
     make -f Makefile -j2
 
-
-***
-![](http://i.imgur.com/EfYNxub.png) 
-***
-
 --------------------
-Links
---------------------
+#Links
 
-**Information**
+
+[Windows Wallet](https://github.com/pepeteam/pepecoin/releases) 
+
 [Bitcointalk ANN](https://bitcointalk.org/index.php?topic=1391598.0) 
 
-Windows Wallet:  [Download](https://github.com/pepeteam/pepecoin/releases) 
 
-
-**Website**
+###Websites
 https://memetic.ai
+
 https://pepecoin.co
 
+https://kekdaq.com
 
-**Exchanges**
+###Exchanges
 
-[https://bittrex.com/Market/Index?MarketName=BTC-MEME  ](https://bittrex.com/Market/Index?MarketName=BTC-MEME  ) 
-[https://www.cryptopia.co.nz/Exchange?market=PEPE_BTC](https://www.cryptopia.co.nz/Exchange?market=PEPE_BTC)
-[https://www.coinexchange.io/market/MEME/BTC](https://www.coinexchange.io/market/MEME/BTC) 
-[https://upbit.com/exchange?code=CRIX.UPBIT.BTC-MEME ](https://upbit.com/exchange?code=CRIX.UPBIT.BTC-MEME)
+[Bittrex (USA)](https://bittrex.com/Market/Index?MarketName=BTC-MEME) -- Largest regulated and secure US exchange
 
+[Upbit (ASIA)](https://upbit.com/exchange?code=CRIX.UPBIT.BTC-MEME) -- Popular South Korean exchange
 
-**Block Explorers**
+[Coinswitch (Worldwide)](https://coinswitch.co/) -- Shapeshift type service
+
+[Coinexchange (EU)](https://www.coinexchange.io/market/MEME/BTC)
+
+<s>[Cryptopia](https://www.cryptopia.co.nz/Exchange?market=PEPE_BTC)</s> -- Remove requested after exchange hacked
+
+###Block Explorer
+
 [http://explorer.memetic.ai/](http://explorer.memetic.ai/)
 
-[https://prohashing.com/explorer/Memeticcoin/](https://prohashing.com/explorer/Memeticcoin/) 
+###Charts
 
+[CoinMarketCap](https://coinmarketcap.com/currencies/pepecoin/)
 
-**Charts**
+[WorldCoinIndex](https://www.worldcoinindex.com/coin/memetic)
 
-[https://coinmarketcap.com/currencies/pepecoin/](https://coinmarketcap.com/currencies/pepecoin/) 
-https://www.worldcoinindex.com/coin/memetic
-https://www.cryptocompare.com/coins/meme/charts/BTC
-https://bitinfocharts.com/markets/bittrex/meme-btc-1m.html
-https://cryptocoinview.com/MEME
+[CryptoCompare](https://www.cryptocompare.com/coins/meme/charts/BTC)
 
-https://www.coingecko.com/en/coins/memetic
-https://coinlib.io/coin/MEME/Pepe+Memetic
+[BitInfoCharts](https://bitinfocharts.com/markets/bittrex/meme-btc-1m.html)
 
-**Social**
-[https://twitter.com/pepecoins](https://twitter.com/pepecoins) https://twitter.com/pepecoins
-Telegram group:  [Get invite](https://t.me/pepecoins) 
+[CryptoCoinView](https://cryptocoinview.com/MEME)
+
+[CoinGekko](https://www.coingecko.com/en/coins/memetic)
+
+[CoinLib](https://coinlib.io/coin/MEME/Pepe+Memetic)
+
+###Social
+
+[Twitter](https://twitter.com/pepecoins) 
+
+[Telegram](https://t.me/pepecoins)  - Official MEME / PEPE Support and Community Room
 
 
 ***
@@ -149,20 +170,19 @@ addnode=seed.kekdaq.com
 ------------------
 License
 ------------------
-
->Copyright (c) 2009-2010 Satoshi Nakamoto
->Copyright (c) 2009-2012 The Bitcoin developers
->Copyright (c) 2012 Litecoin Developers
->Copyright (c) 2013 Peercoin Developers
->Copyright (c) 2014 DarkCoin Developers
->Copyright (c) 2014 BlackCoin Developers
->Copyright (c) 2014 Digibyte Developers
->Copyright (c) 2014 DashCoin Developers
->Copyright (c) 2015 Transfercoin Developers
->Copyright (c) 2015-2016 PepeCoin Developers
->Copyright (c) 2015-2016 Memetic Developers
->Copyright (c) 2017-2018 PepeCoin / Memetic Developers
-
+>#### Memetic / PepeCoin / Kekdaq are open source softwares. 
+>>Copyright (c) 2009-2010 Satoshi Nakamoto
+>>Copyright (c) 2009-2012 The Bitcoin Developers
+>>Copyright (c) 2012 Litecoin Developers
+>>Copyright (c) 2013 Peercoin Developers
+>>Copyright (c) 2014 DarkCoin Developers
+>>Copyright (c) 2014 BlackCoin Developers
+>>Copyright (c) 2014 Digibyte Developers
+>>Copyright (c) 2014 DashCoin Developers
+>>Copyright (c) 2015 Transfercoin Developers
+>>Copyright (c) 2015-2016 PepeCoin Developers
+>>Copyright (c) 2015-2016 Memetic Developers
+>>Copyright (c) 2017-2019 Memetic / PepeCoin Developers
 >
 >Permission is hereby granted, free of charge, to any person obtaining a copy
 >of this software and associated documentation files (the "Software"), to deal
@@ -170,9 +190,6 @@ License
 >to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 >copies of the Software, and to permit persons to whom the Software is
 >furnished to do so, subject to the following conditions:
->
->The above copyright notice and this permission notice shall be included in
->all copies or substantial portions of the Software.
 >
 >THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 >IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -182,3 +199,6 @@ License
 >OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 >THE SOFTWARE.
 >
+>The above copyright notices and this permission notice shall be included in
+>all copies or substantial portions of the Software.
+>#

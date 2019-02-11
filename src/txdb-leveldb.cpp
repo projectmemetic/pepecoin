@@ -424,56 +424,63 @@ bool CTxDB::LoadBlockIndex()
     while (iterator->Valid())
     {
         boost::this_thread::interruption_point();
-        // Unpack keys and values.
-        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
-        ssKey.write(iterator->key().data(), iterator->key().size());
-        CDataStream ssValue(SER_DISK, CLIENT_VERSION);
-        ssValue.write(iterator->value().data(), iterator->value().size());
-        string strType;
-        ssKey >> strType;
-        // Did we reach the end of the data to read?
-        if (strType != "blockindex")
+
+        try
+        {
+            // Unpack keys and values.
+            CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+            ssKey.write(iterator->key().data(), iterator->key().size());
+            CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+            ssValue.write(iterator->value().data(), iterator->value().size());
+            string strType;
+            ssKey >> strType;
+            // Did we reach the end of the data to read?
+            if (strType != "blockindex")
+                break;
+            CDiskBlockIndex diskindex;
+            ssValue >> diskindex;
+
+            uint256 blockHash = diskindex.GetBlockHash();
+
+            // Construct block index object
+            CBlockIndex* pindexNew    = InsertBlockIndex(blockHash);
+            pindexNew->pprev          = InsertBlockIndex(diskindex.hashPrev);
+            pindexNew->pnext          = InsertBlockIndex(diskindex.hashNext);
+            pindexNew->nFile          = diskindex.nFile;
+            pindexNew->nBlockPos      = diskindex.nBlockPos;
+            pindexNew->nHeight        = diskindex.nHeight;
+            pindexNew->nMint          = diskindex.nMint;
+            pindexNew->nMoneySupply   = diskindex.nMoneySupply;
+            pindexNew->nFlags         = diskindex.nFlags;
+            pindexNew->nStakeModifier = diskindex.nStakeModifier;
+            pindexNew->bnStakeModifierV2 = diskindex.bnStakeModifierV2;
+            pindexNew->prevoutStake   = diskindex.prevoutStake;
+            pindexNew->nStakeTime     = diskindex.nStakeTime;
+            pindexNew->hashProof      = diskindex.hashProof;
+            pindexNew->nVersion       = diskindex.nVersion;
+            pindexNew->hashMerkleRoot = diskindex.hashMerkleRoot;
+            pindexNew->nTime          = diskindex.nTime;
+            pindexNew->nBits          = diskindex.nBits;
+            pindexNew->nNonce         = diskindex.nNonce;
+
+            // Watch for genesis block
+            if (pindexGenesisBlock == NULL && blockHash == Params().HashGenesisBlock())
+                pindexGenesisBlock = pindexNew;
+
+            if (!pindexNew->CheckIndex()) {
+                delete iterator;
+                return error("LoadBlockIndex() : CheckIndex failed at %d", pindexNew->nHeight);
+            }
+
+            // NovaCoin: build setStakeSeen
+            if (pindexNew->IsProofOfStake())
+                setStakeSeen.insert(make_pair(pindexNew->prevoutStake, pindexNew->nStakeTime));
+
+            iterator->Next();
+        } catch (std::exception& e) {
+            LogPrintf("%s : Deserialize or I/O error - %s\n", __func__, e.what());
             break;
-        CDiskBlockIndex diskindex;
-        ssValue >> diskindex;
-
-        uint256 blockHash = diskindex.GetBlockHash();
-
-        // Construct block index object
-        CBlockIndex* pindexNew    = InsertBlockIndex(blockHash);
-        pindexNew->pprev          = InsertBlockIndex(diskindex.hashPrev);
-        pindexNew->pnext          = InsertBlockIndex(diskindex.hashNext);
-        pindexNew->nFile          = diskindex.nFile;
-        pindexNew->nBlockPos      = diskindex.nBlockPos;
-        pindexNew->nHeight        = diskindex.nHeight;
-        pindexNew->nMint          = diskindex.nMint;
-        pindexNew->nMoneySupply   = diskindex.nMoneySupply;
-        pindexNew->nFlags         = diskindex.nFlags;
-        pindexNew->nStakeModifier = diskindex.nStakeModifier;
-        pindexNew->bnStakeModifierV2 = diskindex.bnStakeModifierV2;
-        pindexNew->prevoutStake   = diskindex.prevoutStake;
-        pindexNew->nStakeTime     = diskindex.nStakeTime;
-        pindexNew->hashProof      = diskindex.hashProof;
-        pindexNew->nVersion       = diskindex.nVersion;
-        pindexNew->hashMerkleRoot = diskindex.hashMerkleRoot;
-        pindexNew->nTime          = diskindex.nTime;
-        pindexNew->nBits          = diskindex.nBits;
-        pindexNew->nNonce         = diskindex.nNonce;
-
-        // Watch for genesis block
-        if (pindexGenesisBlock == NULL && blockHash == Params().HashGenesisBlock())
-            pindexGenesisBlock = pindexNew;
-
-        if (!pindexNew->CheckIndex()) {
-            delete iterator;
-            return error("LoadBlockIndex() : CheckIndex failed at %d", pindexNew->nHeight);
         }
-
-        // NovaCoin: build setStakeSeen
-        if (pindexNew->IsProofOfStake())
-            setStakeSeen.insert(make_pair(pindexNew->prevoutStake, pindexNew->nStakeTime));
-
-        iterator->Next();
     }
     delete iterator;
 

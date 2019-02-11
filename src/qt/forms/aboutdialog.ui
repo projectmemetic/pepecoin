@@ -50,7 +50,7 @@
           <cursorShape>IBeamCursor</cursorShape>
          </property>
          <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;PepeCoin / Memetic &lt;/span&gt;version&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Memetic / PepeCoin &lt;/span&gt;version&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="textInteractionFlags">
           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -100,7 +100,7 @@
         Copyright (c) 2014 BlackCoin Developers
         Copyright (c) 2014 DashCoin Developers
         Copyright (c) 2015 Transfercoin Developers
-        Copyright (c) 2015-2017 PepeCoin / Memetic Developers
+        Copyright (c) 2015-2019 Memetic / PepeCoin Developers
 </string>
        </property>
        <property name="textInteractionFlags">
