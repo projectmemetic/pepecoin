@@ -67,39 +67,34 @@ https://github.com/pepeteam/pepecoin/releases
 
 PepeCoin uses libsecp256k1, libgmp, Boost1.55+, Openssl1.01, Berkeley DB 4.8+, and QT5 to compile.
 
-Ubuntu 18.04+ or Debian 9+ is recommended.
+Ubuntu 18.04+ or Debian 9+ is recommended. See the RELEASES tab for Windows wallets. OSX coming soon.
 
+The strip command removes debugging data and lessens exectuable size.
 
 #### Instructions for Building Command Line Daemon
 
-```
-	sudo apt-get install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils \
-    libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev \
-    libboost-thread-dev libminiupnpc-dev libgmp3-dev libdb-dev libdb++-dev libgmp3-dev lzma-dev libssl1.0-dev \
-    zlib1g-dev zlib1g libgmp-dev 
-	
-	git clone https://github.com/pepeteam/pepecoin.git
-	cd pepecoin/src
-	make -f makefile.unix USE_UPNP=-
-
-```
+>sudo apt-get install build-essential libtool autotools-dev automake pkg-config libevent-dev bsdmainutils libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev libboost-thread-dev libminiupnpc-dev libgmp3-dev libdb-dev libdb++-dev libgmp3-dev lzma-dev libssl1.0-dev zlib1g-dev zlib1g libgmp-dev 
+>	
+>git clone https://github.com/pepeteam/pepecoin.git
+>cd pepecoin/src
+>make -f makefile.unix USE_UPNP=-
+>
+>strip pepecoind
+>
 
 #### Instructions for Building GUI Wallet
 
-```
-    sudo apt-get install libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev \
-    protobuf-compiler qt5-default
+>sudo apt-get install libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler qt5-default 
+>
+>sudo apt-get install build-essential libtool autotools-dev automake pkg-config libevent-dev bsdmainutils libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev libboost-thread-dev libminiupnpc-dev libgmp3-dev libdb-dev libdb++-dev libgmp3-dev lzma-dev libssl1.0-dev zlib1g-dev zlib1g libgmp-dev
+>
+>git clone https://github.com/pepeteam/pepecoin.git
+>cd pepecoin 
+>qmake
+>make -j2 -f Makefile
+>
+>strip pepecoin-qt
 
-	sudo apt-get install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils \
-    libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev \
-    libboost-thread-dev libminiupnpc-dev libgmp3-dev libdb-dev libdb++-dev libgmp3-dev lzma-dev libssl1.0-dev
-    
-    git clone https://github.com/pepeteam/pepecoin.git
-    cd pepecoin 
-    qmake
-    make -j2 -f Makefile 
-
-```
 --------------------
 # Links
 
@@ -165,9 +160,10 @@ addnode=seed.memetic.ai
 ![pepecoin-256](https://i.imgur.com/xnSJvT9.jpg  "pepecoin-256")
 
 ------------------
+------------------
 License
 ------------------
->#### Memetic / PepeCoin / Kekdaq are open source softwares released under the GNU GPL v3 license.  
+>##### Memetic / PepeCoin / Kekdaq are open source softwares released under the GNU GPL v3 license.  
 >
 >Basically, you must also release the source code of your project if you use code from ours.
 >
@@ -202,4 +198,5 @@ License
 >The above copyright notices and this permission notice shall be included in
 >all copies or substantial portions of the Software.
 >
-> See LICENSE file for info.
+> See LICENSE file for more info.
+------------------
