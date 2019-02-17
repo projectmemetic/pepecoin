@@ -1881,7 +1881,7 @@ Value keypoolrefill(const Array& params, bool fHelp)
             + HelpExampleRpc("keypoolrefill", "")
         );
 
-    fLiteMode = GetBoolArg("-litemode", false);
+    fLiteMode = GetBoolArg("-nomntesting", false);
     unsigned int nSize;
 
     if (fLiteMode)

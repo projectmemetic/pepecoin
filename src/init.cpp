@@ -259,7 +259,7 @@ std::string HelpMessage()
     strUsage += "  -alertnotify=<cmd>     " + _("Execute command when a relevant alert is received (%s in cmd is replaced by message)") + "\n";
     strUsage += "  -upgradewallet         " + _("Upgrade wallet to latest format") + "\n";
     strUsage += "  -createwalletbackups=<n> " + _("Number of automatic wallet backups (default: 10)") + "\n";
-    strUsage += "  -keypool=<n>           " + _("Set key pool size to <n> (default: 1000) (litemode: 100)") + "\n";
+    strUsage += "  -keypool=<n>           " + _("Set key pool size to <n> (default: 1000) (nomntesting (formally litemode): 100)") + "\n";
     strUsage += "  -rescan                " + _("Rescan the block chain for missing wallet transactions") + "\n";
     strUsage += "  -salvagewallet         " + _("Attempt to recover private keys from a corrupt wallet.dat") + "\n";
     strUsage += "  -checkblocks=<n>       " + _("How many blocks to check at startup (default: 500, 0 = all)") + "\n";
@@ -277,7 +277,7 @@ std::string HelpMessage()
     strUsage += "  -rpcsslcertificatechainfile=<file.cert>  " + _("Server certificate file (default: server.cert)") + "\n";
     strUsage += "  -rpcsslprivatekeyfile=<file.pem>         " + _("Server private key (default: server.pem)") + "\n";
     strUsage += "  -rpcsslciphers=<ciphers>                 " + _("Acceptable ciphers (default: TLSv1.2+HIGH:TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!3DES:@STRENGTH)") + "\n";
-    strUsage += "  -litemode=<n>          " + _("Disable all Darksend and Stealth Messaging related functionality (0-1, default: 0)") + "\n";
+    strUsage += "  -nomntesting=<n>          " + _("Disable all Masternode, Darksend, and Stealth Messaging related functionality for testing. Formally known as "litemode"(0-1, default: 0)") + "\n";
 strUsage += "\n" + _("Masternode options:") + "\n";
     strUsage += "  -masternode=<n>            " + _("Enable the client to act as a masternode (0-1, default: 0)") + "\n";
     strUsage += "  -mnconf=<file>             " + _("Specify masternode configuration file (default: masternode.conf)") + "\n";
@@ -1030,9 +1030,9 @@ bool AppInit2(boost::thread_group& threadGroup)
     }
 
     //lite mode disables all Masternode and Darksend related functionality
-    fLiteMode = GetBoolArg("-litemode", false);
+    fLiteMode = GetBoolArg("-nomntesting", false);
     if(fMasterNode && fLiteMode){
-        return InitError("You can not start a masternode in litemode");
+        return InitError("You can not start a masternode in nomntesting mode, formally known as litemode");
     }
 
     LogPrintf("fLiteMode %d\n", fLiteMode);

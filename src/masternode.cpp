@@ -361,7 +361,7 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
         LogPrintf("mnget - Sent masternode winners to %s\n", pfrom->addr.ToString().c_str());
     }
     else if (strCommand == "mnw") { //Masternode Payments Declare Winner
-        //this is required in litemode
+        //this is required in litemode / nomntesting mode
         CMasternodePaymentWinner winner;
         int a = 0;
         vRecv >> winner >> a;
