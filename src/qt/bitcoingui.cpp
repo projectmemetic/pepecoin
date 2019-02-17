@@ -453,7 +453,7 @@ static QWidget* makeToolBarSpacer()
 
 void BitcoinGUI::createToolBars()
 {
-    fLiteMode = GetBoolArg("-litemode", false);
+    fLiteMode = GetBoolArg("-nomntesting", false);
 
     toolbar = new QToolBar(tr("Tabs toolbar"));
     toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
