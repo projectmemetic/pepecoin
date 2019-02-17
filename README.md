@@ -80,11 +80,13 @@ Ubuntu 18.04+ or Debian 9+ is recommended.
 ####Instructions for Building Command Line Daemon
 	sudo apt-get install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils \
     libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev \
-    libboost-thread-dev libminiupnpc-dev libgmp3-dev libdb-dev libdb++-dev libgmp3-dev lzma-dev libssl1.0-dev
-	
+    libboost-thread-dev libminiupnpc-dev libgmp3-dev libdb-dev libdb++-dev libgmp3-dev lzma-dev libssl1.0-dev libdb++-dev
+    	
 	git clone https://github.com/pepeteam/pepecoin.git
 	cd pepecoin/src
 	make -f makefile.unix USE_UPNP=-1
+
+    strip pepecoind
 
 Remove libssl1.0-dev from the apt-get list to compile on older versions.
 
@@ -95,13 +97,15 @@ Remove libssl1.0-dev from the apt-get list to compile on older versions.
 
 	sudo apt-get install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils \
     libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev \
-    libboost-thread-dev libminiupnpc-dev libgmp3-dev libdb-dev libdb++-dev libgmp3-dev lzma-dev libssl1.0-dev
+    libboost-thread-dev libminiupnpc-dev libgmp3-dev libdb-dev libdb++-dev libgmp3-dev lzma-dev libssl1.0-dev libdb++-dev
 
     
     git clone https://github.com/pepeteam/pepecoin.git
     cd pepecoin 
     qmake
     make -f Makefile -j2
+
+    strip pepecoin-qt
 
 --------------------
 #Links
