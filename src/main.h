@@ -148,7 +148,7 @@ inline bool MoneyRange(int64_t nValue) { return (nValue >= 0 && nValue <= MAX_MO
 static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
 
 static const int64_t DRIFT = 600;
-inline int64_t FutureDrift(int64_t nTime) { return nTime + DRIFT; }
+inline int64_t FutureDrift(int64_t nTime, int nHeight) { return nHeight >= PEPE_DIFFIMPROVE_HEIGHT ? nTime + 60 : nTime + DRIFT; }
 
 /** "reject" message codes **/
 static const unsigned char REJECT_INVALID = 0x10;
@@ -1159,7 +1159,10 @@ public:
 
     int64_t GetPastTimeLimit() const
     {
-        return GetBlockTime() - DRIFT;
+        if(nHeight >= PEPE_DIFFIMPROVE_HEIGHT)
+            return GetBlockTime();
+        else
+            return GetBlockTime() - DRIFT;
     }
 
     enum { nMedianTimeSpan=11 };
