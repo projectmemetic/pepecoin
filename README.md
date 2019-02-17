@@ -72,11 +72,18 @@ Ubuntu 18.04+ or Debian 9+ is recommended. See the RELEASES tab for Windows wall
 The strip command removes debugging data and lessens exectuable size.
 
 #### Instructions for Building Command Line Daemon
+>
 
->sudo apt-get install build-essential libtool autotools-dev automake pkg-config libevent-dev bsdmainutils libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev libboost-thread-dev libminiupnpc-dev libgmp3-dev libdb-dev libdb++-dev libgmp3-dev lzma-dev libssl1.0-dev zlib1g-dev zlib1g libgmp-dev 
+>sudo apt-get install build-essential libtool autotools-dev automake pkg-config libevent-dev bsdmainutils
+>
+>sudo apt-get install libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev 
+>
+>sudo apt-get install libboost-thread-dev libminiupnpc-dev libgmp3-dev libdb-dev libdb++-dev libgmp3-dev lzma-dev libssl1.0-dev zlib1g-dev zlib1g libgmp-dev 
 >	
 >git clone https://github.com/pepeteam/pepecoin.git
+>
 >cd pepecoin/src
+>
 >make -f makefile.unix USE_UPNP=-
 >
 >strip pepecoind
