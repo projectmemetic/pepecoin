@@ -1801,71 +1801,85 @@ void CWallet::AvailableCoinsForStaking(vector<COutput>& vCoins, unsigned int nSp
     vCoins.clear();
 
     {
-        LOCK2(cs_main, cs_wallet);
-        CBlockIndex* pindexPrev = pindexBest;
-        
-        int nStakeMinConfirmations = 360;
-
-        if(pindexBest->nHeight >= PEPE_STAKE_WINTER_SWITCH_HEIGHT || Params().NetworkID() == CChainParams::TESTNET)
-            nStakeMinConfirmations = 60;
-       //  if(pindexPrev->nHeight+1 > PEPE_KEKDAQ_MID_FIX_HEIGHT)  removed to resolve block loading issue
-       //     nStakeMinConfirmations = 600;
-        if(pindexPrev->nHeight+1 > PEPE_STAKE_CONF_HEIGHT)
-            nStakeMinConfirmations = 360;
-        if(pindexPrev->nHeight+1 > PEPE_STAKE_CONF_TWEAK)
-            nStakeMinConfirmations = 600;    
-
-        for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
+        //LOCK2(cs_main, cs_wallet);
+        while(true){
+        TRY_LOCK(cs_main, lockMain);
+        if(!lockMain) { MilliSleep(1); continue; }
         {
-            const CWalletTx* pcoin = &(*it).second;
-
-            int nDepth = pcoin->GetDepthInMainChain();
-            if (nDepth < 1)
-                continue;
-
-            if (nDepth < nStakeMinConfirmations)
+            while(true){
+                TRY_LOCK(cs_wallet, lockWallet);
+                if(!lockWallet) { MilliSleep(1); continue; }
             {
-                continue;
-            }
-            else
-            {
-            // Filtering by tx timestamp instead of block timestamp may give false positives but never false negatives
-            if (pcoin->nTime + nStakeMinAge > nSpendTime)
-               continue;
-            }
+                CBlockIndex* pindexPrev = pindexBest;
+                
+                int nStakeMinConfirmations = 360;
 
-            if (pcoin->GetBlocksToMaturity() > 0)
-                continue;
+                if(pindexBest->nHeight >= PEPE_STAKE_WINTER_SWITCH_HEIGHT || Params().NetworkID() == CChainParams::TESTNET)
+                    nStakeMinConfirmations = 60;
+               //  if(pindexPrev->nHeight+1 > PEPE_KEKDAQ_MID_FIX_HEIGHT)  removed to resolve block loading issue
+               //     nStakeMinConfirmations = 600;
+                if(pindexPrev->nHeight+1 > PEPE_STAKE_CONF_HEIGHT)
+                    nStakeMinConfirmations = 360;
+                if(pindexPrev->nHeight+1 > PEPE_STAKE_CONF_TWEAK)
+                    nStakeMinConfirmations = 600;    
 
-            bool found = false;
-            for (unsigned int i = 0; i < pcoin->vout.size(); i++){
-                if (IsDenominatedAmount(pcoin->vout[i].nValue)){
+                for (map<uint256, CWalletTx>::const_iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
+                {
+                    const CWalletTx* pcoin = &(*it).second;
 
-                    //LogPrintf("CWallet::AvailableCoinsForStaking - Found denominated amounts.\n");
-                    found = true;
-                    break;
+                    int nDepth = pcoin->GetDepthInMainChain();
+                    if (nDepth < 1)
+                        continue;
+
+                    if (nDepth < nStakeMinConfirmations)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                    // Filtering by tx timestamp instead of block timestamp may give false positives but never false negatives
+                    if (pcoin->nTime + nStakeMinAge > nSpendTime)
+                       continue;
+                    }
+
+                    if (pcoin->GetBlocksToMaturity() > 0)
+                        continue;
+
+                    bool found = false;
+                    for (unsigned int i = 0; i < pcoin->vout.size(); i++){
+                        if (IsDenominatedAmount(pcoin->vout[i].nValue)){
+
+                            //LogPrintf("CWallet::AvailableCoinsForStaking - Found denominated amounts.\n");
+                            found = true;
+                            break;
+                        }
+                        if (pcoin->vout[i].nValue == GetMNCollateral(pindexBest->nHeight)*COIN){
+
+                            //LogPrintf("CWallet::AvailableCoinsForStaking - Found Masternode collateral.\n");
+                            found = true;
+                            break;
+                        }
+                        if (IsCollateralAmount(pcoin->vout[i].nValue)){
+
+                            //LogPrintf("CWallet::AvailableCoinsForStaking - Found Collateral amount.\n");
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if(found) continue;
+
+                    for (unsigned int i = 0; i < pcoin->vout.size(); i++) {
+                        isminetype mine = IsMine(pcoin->vout[i]);
+                        if (!(pcoin->IsSpent(i)) && mine != ISMINE_NO && pcoin->vout[i].nValue >= nMinimumInputValue)
+                            vCoins.push_back(COutput(pcoin, i, nDepth, mine & ISMINE_SPENDABLE));
+                    }
                 }
-                if (pcoin->vout[i].nValue == GetMNCollateral(pindexBest->nHeight)*COIN){
-
-                    //LogPrintf("CWallet::AvailableCoinsForStaking - Found Masternode collateral.\n");
-                    found = true;
-                    break;
-                }
-                if (IsCollateralAmount(pcoin->vout[i].nValue)){
-
-                    //LogPrintf("CWallet::AvailableCoinsForStaking - Found Collateral amount.\n");
-                    found = true;
-                    break;
-                }
             }
-
-            if(found) continue;
-
-            for (unsigned int i = 0; i < pcoin->vout.size(); i++) {
-                isminetype mine = IsMine(pcoin->vout[i]);
-                if (!(pcoin->IsSpent(i)) && mine != ISMINE_NO && pcoin->vout[i].nValue >= nMinimumInputValue)
-                    vCoins.push_back(COutput(pcoin, i, nDepth, mine & ISMINE_SPENDABLE));
+            break;
             }
+        }
+        break;
         }
     }
 }
