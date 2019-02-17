@@ -327,7 +327,7 @@ bool IsStandardTx(const CTransaction& tx, string& reason)
         return false;
     }
     // nTime has different purpose from nLockTime but can be used in similar attacks
-    if (tx.nTime > FutureDrift(GetAdjustedTime())) {
+    if (tx.nTime > FutureDrift(GetAdjustedTime(), nBestHeight + 1)) {
         reason = "time-too-new";
         return false;
     }
@@ -3013,8 +3013,18 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
         return DoS(50, error("CheckBlock() : proof of work failed"));
 
     // Check timestamp
-    if (GetBlockTime() > FutureDrift(GetAdjustedTime()))
+    int nHeight = 0;
+    map<uint256, CBlockIndex*>::iterator miPrev = mapBlockIndex.find(hashPrevBlock);
+    if (miPrev != mapBlockIndex.end())
+    {
+        nHeight = (*miPrev).second->nHeight + 1;
+    }
+
+    if (GetBlockTime() > FutureDrift(GetAdjustedTime(), nHeight))
+    {
+        LogPrintf("CheckBlock(): block timestamp too far in the future for block height: %d\n", nHeight);
         return error("CheckBlock() : block timestamp too far in the future");
+    }
 
     // First transaction must be coinbase, the rest must not be
     if (vtx.empty() || !vtx[0].IsCoinBase())
@@ -3105,7 +3115,7 @@ bool CBlock::AcceptBlock()
         return DoS(100, error("AcceptBlock() : reject proof-of-stake at height <= %d", nHeight));
 
     // Check coinbase timestamp
-    if (GetBlockTime() > FutureDrift((int64_t)vtx[0].nTime) && IsProofOfStake())
+    if (GetBlockTime() > FutureDrift((int64_t)vtx[0].nTime, nHeight) && IsProofOfStake())
         return DoS(50, error("AcceptBlock() : coinbase timestamp is too early"));
 
     // Check coinstake timestamp
@@ -3120,7 +3130,7 @@ bool CBlock::AcceptBlock()
         return DoS(1, error("AcceptBlock() : incorrect %s", IsProofOfWork() ? "proof-of-work" : "proof-of-stake"));
 
     // Check timestamp against prev
-    if (GetBlockTime() <= pindexPrev->GetPastTimeLimit() || FutureDrift(GetBlockTime()) < pindexPrev->GetBlockTime())
+    if (GetBlockTime() <= pindexPrev->GetPastTimeLimit() || FutureDrift(GetBlockTime(), nHeight) < pindexPrev->GetBlockTime())
         return error("AcceptBlock() : block's timestamp is too early");
 
     // Check that all transactions are finalized
@@ -3465,7 +3475,20 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
         }
     }   
 
-    LogPrintf("ProcessBlock: ACCEPTED\n");
+    int nShift = (pblock->nBits >> 24) & 0xff;
+    double dDiff = (double)0x0000ffff / (double)(pblock->nBits & 0x00ffffff);
+
+    while (nShift < 29)
+    {
+        dDiff *= 256.0;
+        nShift++;
+    }
+    while (nShift > 29)
+    {
+        dDiff /= 256.0;
+        nShift--;
+    }
+    LogPrintf("ProcessBlock: ACCEPTED Height: %d Difficulty: %d\n", mapBlockIndex[hash]->nHeight, dDiff);
 
     return true;
 }
@@ -4997,8 +5020,9 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                 if (pto->setInventoryKnown.count(inv))
                     continue;
 
+            // --- Don't trickle tx's, network is too small and results in transaction delays ---
                 // trickle out tx inv to protect privacy
-                if (inv.type == MSG_TX && !fSendTrickle)
+               /* if (inv.type == MSG_TX && !fSendTrickle)
                 {
                     // 1/4 of tx invs blast to all immediately
                     static uint256 hashSalt;
@@ -5013,7 +5037,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                         vInvWait.push_back(inv);
                         continue;
                     }
-                }
+                }*/
 
                 // returns true if wasn't already contained in the set
                 if (pto->setInventoryKnown.insert(inv).second)
