@@ -4561,7 +4561,7 @@ bool CWallet::NewKeyPool()
         if (IsLocked())
             return false;
 
-        fLiteMode = GetBoolArg("-litemode", false);
+        fLiteMode = GetBoolArg("-nomntesting", false);
         int64_t nKeys;
 
         if (fLiteMode)
@@ -4592,7 +4592,7 @@ bool CWallet::TopUpKeyPool(unsigned int nSize)
 
         // Top up key pool
         unsigned int nTargetSize;
-        fLiteMode = GetBoolArg("-litemode", false);
+        fLiteMode = GetBoolArg("-nomntesting", false);
 
         if (nSize > 0)
             nTargetSize = nSize;
