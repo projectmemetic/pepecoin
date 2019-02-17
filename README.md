@@ -1,7 +1,7 @@
 ![Memetic Logo](http://i.imgur.com/zLMetXi.png  "Memetic Logo") ![PepeCoin Logo](https://imgur.com/9KNdKWJ.png "PepeCoin Logo")
 ***
 # PepeCoin - PEPE  / Memetic - MEME
-#### v. 2.9.2.0
+#### v. 3.0.0.0
 
 Memetic, also known as PepeCoin, is a digital decentralized crypto-currency, listed as as Memetic / MEME on Bittrex, Upbit, Coinmarkets, and CoinMarketCap.
 
@@ -81,6 +81,8 @@ The strip command removes debugging data and lessens exectuable size.
 >
 >strip pepecoind
 >
+
+Remove libssl1.0-dev and replace with libssl-dev in the apt-get list to compile on older versions like 16.04.
 
 #### Instructions for Building GUI Wallet
 
