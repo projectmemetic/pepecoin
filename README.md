@@ -84,7 +84,7 @@ The strip command removes debugging data and lessens exectuable size.
 >
 >cd pepecoin/src
 >
->make -f makefile.unix USE_UPNP=-
+>make -f makefile.unix USE_UPNP=-1
 >
 >strip pepecoind
 >
