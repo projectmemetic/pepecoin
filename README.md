@@ -152,6 +152,8 @@ https://kekdaq.com
 
 [CoinLib](https://coinlib.io/coin/MEME/Pepe+Memetic)
 
+[TradingView](https://www.tradingview.com/symbols/MEMEBTC/)
+
 ### Social
 
 [Twitter](https://twitter.com/pepecoins) 
