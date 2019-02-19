@@ -27,6 +27,7 @@ class CNode;
 class CBlockIndex;
 extern int nBestHeight;
 
+extern unsigned int nMessageCores;
 
 /** Time between pings automatically sent out for latency probing and keepalive (in seconds). */
 static const int PING_INTERVAL = 5 * 60;

@@ -31,7 +31,9 @@
 using namespace std;
 using namespace boost;
 
-static const int MAX_OUTBOUND_CONNECTIONS = 10;
+unsigned int nMessageCores = 0;
+
+static const int MAX_OUTBOUND_CONNECTIONS = 15;
 
 bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOutbound = NULL, const char *strDest = NULL, bool fOneShot = false);
 
@@ -1439,23 +1441,74 @@ void static StartSync(const vector<CNode*> &vNodes) {
     }
 }
 
-void ThreadMessageHandler()
+void ThreadMessageHandler(int ncore)
 {
-    SetThreadPriority(THREAD_PRIORITY_BELOW_NORMAL);
+    // Make this thread recognisable as a message handling thread
+    std::string s = strprintf("pepe-msghnd-%d", ncore);
+    RenameThread(s.c_str());  
+
+    //SetThreadPriority(THREAD_PRIORITY_BELOW_NORMAL);
     while (true)
     {
         bool fHaveSyncNode = false;
 
-        vector<CNode*> vNodesCopy;
+        vector<CNode*> vNodesFullSet; // the full set of nodes
+        vector<CNode*> vNodesCopy; // nodes to work on in this core
         {
-	    // niceness, try to get a lock if not wait and try again instead of blocking
-            TRY_LOCK(cs_vNodes, lockNodes);
-	    if(!lockNodes)
-	    {
-		MilliSleep(10);
-		continue;
-	    }
-            vNodesCopy = vNodes;
+	        // niceness, try to get a lock if not wait and try again instead of blocking
+          /*  TRY_LOCK(cs_vNodes, lockNodes);
+    	    if(!lockNodes)
+    	    {
+        		MilliSleep(2);
+        		continue;
+    	    }*/
+
+            vNodesFullSet = vNodes;
+            // figure out the start and end indexes for this core to work on
+            if(vNodesFullSet.size() < ncore+1)
+            {
+                // the size is less than our core number, e.g. the size is 3 but we are core 4
+                // therefore we have nothing to work on, so sleep and then continue and look for work again
+                //LogPrintf("ThreadMessageHandler: core %d no nodes for us to service nodes size %d\n", ncore, vNodesFullSet.size());
+                MilliSleep(500);
+                continue;
+            }
+
+            int nSliceSize = 0;
+            int nCoreStart = 0;
+            int nCoreEnd = 0;
+
+            if(vNodesFullSet.size() <= nMessageCores)
+            {
+                // the number of nodes is equal to or less than the total number of cores
+                // but not less than our core number
+                // which means we only have 1 node to work on
+                nSliceSize = 1;
+                nCoreStart = ncore;
+                nCoreEnd = ncore;
+            }
+            else
+            {
+                // there are more nodes than total number of cores
+                // therefore split up the work across cores an equal amount
+                // with whatever is leftover tacked onto the last core
+                nSliceSize = vNodesFullSet.size() / nMessageCores;
+                nCoreStart = nSliceSize * ncore;
+                nCoreEnd = nCoreStart + nSliceSize;
+                if(nCoreEnd > (vNodesFullSet.size() - 1))
+                    nCoreEnd = vNodesFullSet.size() - 1;
+                if(ncore == nMessageCores - 1 && nCoreEnd < vNodesFullSet.size() - 1)
+                    nCoreEnd = vNodesFullSet.size() - 1;
+            }
+
+            // assemble the nodes assigned to our core into vNodesCopy
+            for(int n=nCoreStart;n<nCoreEnd;n++)
+            {
+                vNodesCopy.push_back(vNodesFullSet[n]);
+            }
+
+            //LogPrintf("ThreadMessageHandler: core %d nCoreStart %d nCoreEnd %d VNodesCopy size: %d\n", ncore, nCoreStart, nCoreEnd, vNodesCopy.size());
+
             BOOST_FOREACH(CNode* pnode, vNodesCopy) {
                 pnode->AddRef();
                 if (pnode == pnodeSync)
@@ -1497,12 +1550,18 @@ void ThreadMessageHandler()
         }
 
         {
-            LOCK(cs_vNodes);
-            BOOST_FOREACH(CNode* pnode, vNodesCopy)
-                pnode->Release();
+            while(true)
+            {
+                TRY_LOCK(cs_vNodes, lockNodes);
+                if(!lockNodes) { MilliSleep(1); continue; }
+                BOOST_FOREACH(CNode* pnode, vNodesCopy)
+                    pnode->Release();
+
+                break;
+            }
         }
 
-	// niceness
+	    // niceness
         MilliSleep(200);
     }
 }
@@ -1700,7 +1759,23 @@ void StartNode(boost::thread_group& threadGroup)
     threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "opencon", &ThreadOpenConnections));
 
     // Process messages
-    threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "msghand", &ThreadMessageHandler));
+    unsigned int nmsgthreads = boost::thread::hardware_concurrency();
+    unsigned int nMessagecorelimit = GetArg("-messagecorelimit", 64);
+    if(nMessagecorelimit < nmsgthreads)
+    {
+        nMessageCores = nMessagecorelimit;
+    }
+    else
+        nMessageCores = nmsgthreads;
+
+    for(int c=0;c<nMessageCores;c++)
+    {
+        LogPrintf("Init: Starting message handler thread for core %d/%d\n", c+1, nMessageCores);
+        threadGroup.create_thread(boost::bind(&ThreadMessageHandler, c));
+        MilliSleep(50);
+
+        //threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "msghand", &ThreadMessageHandler));
+    }
 
     // Dump network addresses
     threadGroup.create_thread(boost::bind(&LoopForever<void (*)()>, "dumpaddr", &DumpAddresses, DUMP_ADDRESSES_INTERVAL * 1000));
