@@ -28,9 +28,14 @@ leveldb::DB *txdb; // global pointer for LevelDB object instance
 
 static leveldb::Options GetOptions() {
     leveldb::Options options;
-    int nCacheSizeMB = GetArg("-dbcache", 100);
+    int nCacheSizeMB = GetArg("-leveldbcache", 100);
     options.block_cache = leveldb::NewLRUCache(nCacheSizeMB * 1048576);
-    options.filter_policy = leveldb::NewBloomFilterPolicy(10);
+    int nBloomFilterSize = GetArg("-leveldbbloomfilter", 32);
+    options.filter_policy = leveldb::NewBloomFilterPolicy(nBloomFilterSize);
+    int nWriteBufferSizeMB = GetArg("-writecache", 16);
+    options.write_buffer_size = nWriteBufferSizeMB * 1024 * 1024;
+    int nMaxOpenFiles = GetArg("-leveldbmaxopenfiles", 1000);
+    options.max_open_files = nMaxOpenFiles;
     return options;
 }
 
@@ -81,8 +86,7 @@ CTxDB::CTxDB(const char* pszMode)
 
     options = GetOptions();
     options.create_if_missing = fCreate;
-    options.filter_policy = leveldb::NewBloomFilterPolicy(10);
-
+    
     init_blockindex(options); // Init directory
     pdb = txdb;
 
