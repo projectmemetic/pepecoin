@@ -84,7 +84,11 @@ The strip command removes debugging data and lessens exectuable size.
 >
 >cd pepecoin/src
 >
->make -f makefile.unix USE_UPNP=-
+>make -f makefile.unix
+>
+> OR (if you intend to open ports yourself)
+>
+>make -f makefile.unix USE_UPNP=0
 >
 >strip pepecoind
 >
@@ -151,6 +155,8 @@ https://kekdaq.com
 [CoinGekko](https://www.coingecko.com/en/coins/memetic)
 
 [CoinLib](https://coinlib.io/coin/MEME/Pepe+Memetic)
+
+[TradingView](https://www.tradingview.com/symbols/MEMEBTC/)
 
 ### Social
 
