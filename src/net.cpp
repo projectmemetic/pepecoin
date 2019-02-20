@@ -1502,7 +1502,7 @@ void ThreadMessageHandler(int ncore)
             }
 
             // assemble the nodes assigned to our core into vNodesCopy
-            for(int n=nCoreStart;n<nCoreEnd;n++)
+            for(int n=nCoreStart;n<nCoreEnd+1;n++)
             {
                 vNodesCopy.push_back(vNodesFullSet[n]);
             }

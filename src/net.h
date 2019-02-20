@@ -391,7 +391,7 @@ public:
 
     int GetRefCount()
     {
-        assert(nRefCount >= 0);
+        //assert(nRefCount >= 0);
         return nRefCount;
     }
 
