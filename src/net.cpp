@@ -1450,6 +1450,7 @@ void ThreadMessageHandler(int ncore)
     //SetThreadPriority(THREAD_PRIORITY_BELOW_NORMAL);
     while (true)
     {
+        boost::this_thread::interruption_point();
         bool fHaveSyncNode = false;
 
         vector<CNode*> vNodesFullSet; // the full set of nodes
@@ -1469,7 +1470,7 @@ void ThreadMessageHandler(int ncore)
             {
                 // the size is less than our core number, e.g. the size is 3 but we are core 4
                 // therefore we have nothing to work on, so sleep and then continue and look for work again
-                //LogPrintf("ThreadMessageHandler: core %d no nodes for us to service nodes size %d\n", ncore, vNodesFullSet.size());
+                LogPrint("net", "ThreadMessageHandler: core %d no nodes for us to service nodes size %d\n", ncore, vNodesFullSet.size());
                 MilliSleep(500);
                 continue;
             }
@@ -1507,7 +1508,7 @@ void ThreadMessageHandler(int ncore)
                 vNodesCopy.push_back(vNodesFullSet[n]);
             }
 
-            //LogPrintf("ThreadMessageHandler: core %d nCoreStart %d nCoreEnd %d VNodesCopy size: %d\n", ncore, nCoreStart, nCoreEnd, vNodesCopy.size());
+            LogPrint("net","ThreadMessageHandler: core %d nCoreStart %d nCoreEnd %d vNodesCopy size: %d vNodesFullSet size: %d\n", ncore, nCoreStart, nCoreEnd, vNodesCopy.size(), vNodesFullSet.size());
 
             BOOST_FOREACH(CNode* pnode, vNodesCopy) {
                 pnode->AddRef();
