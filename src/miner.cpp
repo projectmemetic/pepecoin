@@ -582,6 +582,13 @@ void ThreadStakeMiner(CWallet *pwallet)
         if (pblock->SignBlock(*pwallet, nFees))
         {
             SetThreadPriority(THREAD_PRIORITY_NORMAL);
+            // Pause after finding a block, before broadcasting it wait a little bit
+            // in case there is a block coming in and the block is stale
+            // Also helps throttle lots of inputs so they aren't all hitting at once
+            // in rapid fire succession and generating lots of ? conflicted stakes.
+            // 5 second default.
+            int64_t nBlockThrottle = GetArg("-blockthrottle", 5000);
+            MilliSleep(nBlockThrottle);
             CheckStake(pblock.get(), *pwallet);
             SetThreadPriority(THREAD_PRIORITY_LOWEST);
             MilliSleep(500);
