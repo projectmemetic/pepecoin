@@ -299,7 +299,14 @@ std::string HelpMessage()
         "  -nosmsg                                  " + _("Disable secure messaging.") + "\n" +
         "  -debugsmsg                               " + _("Log extra debug messages.") + "\n" +
         "  -smsgscanchain                           " + _("Scan the block chain for public key addresses on startup.") + "\n";
-
+    strUsage += "\n" + _("Additional PepeCoin options:") + "\n";
+    strUsage += _(" Staking Options:") + "\n";
+    strUsage += "  -blockthrottle=<n>          " + _("Milliseconds to wait after finding a stake block before broadcasting (default: 5000)") + "\n";
+    strUsage += _(" LevelDb Options:") + "\n";
+    strUsage += "  -leveldbbloomfilter=<n>     " + _("Bits to use in bloom filter (default: 32)") + "\n";
+    strUsage += "  -writecache=<n>             " + _("Write cache in MB, improve performance/disk io but higher values can result in longer recovery time after a crash. (Default: 16)") + "\n";
+    strUsage += "  -leveldbmaxopenfiles=<n>    " + _("Max open files at a time for leveldb.  Can improve performance as block index/tx index grows, but your OS may have a limit. (Default:1000)") + "\n";
+    strUsage += "  -leveldbcache-<n>           " + _("Size in MB of the database that leveldb will cache in memory.  Can result in dramatic performance improvement at the expense of RAM usage.  (Default: 100)") + "\n";
 
     return strUsage;
 }
