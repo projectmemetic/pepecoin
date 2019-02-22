@@ -112,7 +112,8 @@ public:
         base58Prefixes[EXT_SECRET_KEY] = list_of(0x04)(0x88)(0xAD)(0xE4).convert_to_container<std::vector<unsigned char> >();;
  
         vSeeds.push_back(CDNSSeedData("seed.kekdaq.com",  "seed.kekdaq.com"));
-	    vSeeds.push_back(CDNSSeedData("seed.pepecoin.co",  "seed.pepecoin.co"));
+	vSeeds.push_back(CDNSSeedData("seed.pepecoin.net",  "seed.pepecoin.net"));
+	vSeeds.push_back(CDNSSeedData("seed.memetic.ai",  "seed.memetic.ai"));
  
         convertSeed6(vFixedSeeds, pnSeed6_main, ARRAYLEN(pnSeed6_main));
  
