@@ -302,6 +302,8 @@ std::string HelpMessage()
     strUsage += "\n" + _("Additional PepeCoin options:") + "\n";
     strUsage += _(" Staking Options:") + "\n";
     strUsage += "  -blockthrottle=<n>          " + _("Milliseconds to wait after finding a stake block before broadcasting (default: 5000)") + "\n";
+    strUsage += _(" Multicore Message Handling:") + "\n";
+    strUsage += "  -messagecorelimit=<n>       " + _("Limit number of cores to use for message handling threads, the default is more than most systems to allow use of all cores by default (default: 64)") + "\n";
     strUsage += _(" LevelDb Options:") + "\n";
     strUsage += "  -leveldbbloomfilter=<n>     " + _("Bits to use in bloom filter (default: 32)") + "\n";
     strUsage += "  -writecache=<n>             " + _("Write cache in MB, improve performance/disk io but higher values can result in longer recovery time after a crash. (Default: 16)") + "\n";
