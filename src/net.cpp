@@ -406,8 +406,13 @@ CNode* ConnectNode(CAddress addrConnect, const char *pszDest, bool darkSendMaste
         pnode->AddRef();
 
         {
-            LOCK(cs_vNodes);
-            vNodes.push_back(pnode);
+            while(true)
+            {
+                TRY_LOCK(cs_vNodes, lockNodes);
+                if(!lockNodes) { MilliSleep(2); continue; }
+                vNodes.push_back(pnode);
+                break;
+            }
         }
 
         pnode->nTimeConnected = GetTime();
@@ -1337,16 +1342,23 @@ void ThreadOpenAddedConnections()
         // Attempt to connect to each IP for each addnode entry until at least one is successful per addnode entry
         // (keeping in mind that addnode entries can have many IPs if fNameLookup)
         {
-            LOCK(cs_vNodes);
-            BOOST_FOREACH(CNode* pnode, vNodes)
-                for (list<vector<CService> >::iterator it = lservAddressesToAdd.begin(); it != lservAddressesToAdd.end(); it++)
-                    BOOST_FOREACH(CService& addrNode, *(it))
-                        if (pnode->addr == addrNode)
-                        {
-                            it = lservAddressesToAdd.erase(it);
-                            it--;
-                            break;
-                        }
+            while(true)
+            {
+                TRY_LOCK(cs_vNodes, lockNodes);
+                if(!lockNodes) { MilliSleep(2); continue; }
+
+                BOOST_FOREACH(CNode* pnode, vNodes)
+                    for (list<vector<CService> >::iterator it = lservAddressesToAdd.begin(); it != lservAddressesToAdd.end(); it++)
+                        BOOST_FOREACH(CService& addrNode, *(it))
+                            if (pnode->addr == addrNode)
+                            {
+                                it = lservAddressesToAdd.erase(it);
+                                it--;
+                                break;
+                            }
+
+                break;
+            }
         }
         BOOST_FOREACH(vector<CService>& vserv, lservAddressesToAdd)
         {
