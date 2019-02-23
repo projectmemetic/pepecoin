@@ -1863,23 +1863,29 @@ void Misbehaving(NodeId pnode, int howmuch)
     if (howmuch == 0)
         return;
 
-    LOCK(cs_vNodes);
-    BOOST_FOREACH(CNode* pn, vNodes)
+    while(true)
     {
-        if(pn->GetId() == pnode)
-        {
-            pn->nMisbehavior += howmuch;
-            int banscore = GetArg("-banscore", 25);
-            if (pn->nMisbehavior >= banscore && pn->nMisbehavior - howmuch < banscore)
-            {
-                LogPrintf("Misbehaving: %s (%d -> %d) BAN THRESHOLD EXCEEDED\n", pn->addrName, pn->nMisbehavior-howmuch, pn->nMisbehavior);
-                //pn->fShouldBan = true;
-            }
-            else
-                LogPrintf("Misbehaving: %s (%d -> %d)\n", pn->addrName, pn->nMisbehavior-howmuch, pn->nMisbehavior);
+        TRY_LOCK(cs_vNodes, lockNodes);
+        if(!lockNodes) { MilliSleep(1); continue; }
 
-            break;
+        BOOST_FOREACH(CNode* pn, vNodes)
+        {
+            if(pn->GetId() == pnode)
+            {
+                pn->nMisbehavior += howmuch;
+                int banscore = GetArg("-banscore", 25);
+                if (pn->nMisbehavior >= banscore && pn->nMisbehavior - howmuch < banscore)
+                {
+                    LogPrintf("Misbehaving: %s (%d -> %d) BAN THRESHOLD EXCEEDED\n", pn->addrName, pn->nMisbehavior-howmuch, pn->nMisbehavior);
+                    //pn->fShouldBan = true;
+                }
+                else
+                    LogPrintf("Misbehaving: %s (%d -> %d)\n", pn->addrName, pn->nMisbehavior-howmuch, pn->nMisbehavior);
+
+                break;
+            }
         }
+        break;
     }
 }
 
@@ -3976,127 +3982,132 @@ void static ProcessGetData(CNode* pfrom)
 
     vector<CInv> vNotFound;
 
-    LOCK(cs_main);
+    while(true)
+    {
+        TRY_LOCK(cs_main, lockMain);
+        if(!lockMain) { MilliSleep(1); continue; }
 
-    while (it != pfrom->vRecvGetData.end()) {
-        // Don't bother if send buffer is too full to respond anyway
-        if (pfrom->nSendSize >= SendBufferSize())
-            break;
-
-        const CInv &inv = *it;
-        {
-            boost::this_thread::interruption_point();
-            it++;
-
-            if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK)
-            {
-                // Send block from disk
-                map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(inv.hash);
-                if (mi != mapBlockIndex.end())
-                {
-                    CBlock block;
-                    block.ReadFromDisk((*mi).second);
-                    pfrom->PushMessage("block", block);
-
-                    // Trigger them to send a getblocks request for the next batch of inventory
-                    if (inv.hash == pfrom->hashContinue)
-                    {
-                        // Bypass PushInventory, this must send even if redundant,
-                        // and we want it right after the last block so they don't
-                        // wait for other stuff first.
-                        vector<CInv> vInv;
-                        vInv.push_back(CInv(MSG_BLOCK, hashBestChain));
-                        pfrom->PushMessage("inv", vInv);
-                        pfrom->hashContinue = 0;
-                    }
-                }
-            }
-            else if (inv.IsKnownType())
-            {
-                if(fDebug) LogPrintf("ProcessGetData -- Starting \n");
-                // Send stream from relay memory
-                bool pushed = false;
-                {
-                    LOCK(cs_mapRelay);
-                    map<CInv, CDataStream>::iterator mi = mapRelay.find(inv);
-                    if (mi != mapRelay.end()) {
-                        pfrom->PushMessage(inv.GetCommand(), (*mi).second);
-                        if(fDebug) LogPrintf("ProcessGetData -- pushed = true Rest will fail\n");
-                        pushed = true;
-                    }
-                }
-
-                if (!pushed && inv.type == MSG_TX) {
-
-                    CTransaction tx;
-                    if (mempool.lookup(inv.hash, tx)) {
-                        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                        ss.reserve(1000);
-                        ss << tx;
-                        pfrom->PushMessage("tx", ss);
-                        pushed = true;
-                    }
-                }
-                if (!pushed && inv.type == MSG_TXLOCK_VOTE) {
-                    if(mapTxLockVote.count(inv.hash)){
-                        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                        ss.reserve(1000);
-                        ss << mapTxLockVote[inv.hash];
-                        pfrom->PushMessage("txlvote", ss);
-                        pushed = true;
-                    }
-                }
-                if (!pushed && inv.type == MSG_TXLOCK_REQUEST) {
-                    if(mapTxLockReq.count(inv.hash)){
-                        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                        ss.reserve(1000);
-                        ss << mapTxLockReq[inv.hash];
-                        pfrom->PushMessage("txlreq", ss);
-                        pushed = true;
-                    }
-                }
-                if (!pushed && inv.type == MSG_SPORK) {
-                    if(mapSporks.count(inv.hash)){
-                        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                        ss.reserve(1000);
-                        ss << mapSporks[inv.hash];
-                        pfrom->PushMessage("spork", ss);
-                        pushed = true;
-                    }
-                }
-                if (!pushed && inv.type == MSG_MASTERNODE_WINNER) {
-                    if(mapSeenMasternodeVotes.count(inv.hash)){
-                        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                        ss.reserve(1000);
-                        ss << mapSeenMasternodeVotes[inv.hash];
-                        pfrom->PushMessage("mnw", ss);
-                        pushed = true;
-                    }
-                }
-                if (!pushed && inv.type == MSG_DSTX) {
-                    if(mapDarksendBroadcastTxes.count(inv.hash)){
-                        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                        ss.reserve(1000);
-                        ss <<
-                            mapDarksendBroadcastTxes[inv.hash].tx <<
-                            mapDarksendBroadcastTxes[inv.hash].vin <<
-                            mapDarksendBroadcastTxes[inv.hash].vchSig <<
-                            mapDarksendBroadcastTxes[inv.hash].sigTime;
-
-                        pfrom->PushMessage("dstx", ss);
-                        pushed = true;
-                    }
-                }
-                if (!pushed) {
-                    vNotFound.push_back(inv);
-                }
-            }
-
-            // Track requests for our stuff.
-            g_signals.Inventory(inv.hash);
-
-            if (inv.type == MSG_BLOCK  || inv.type == MSG_FILTERED_BLOCK)
+        while (it != pfrom->vRecvGetData.end()) {
+            // Don't bother if send buffer is too full to respond anyway
+            if (pfrom->nSendSize >= SendBufferSize())
                 break;
+
+            const CInv &inv = *it;
+            {
+                boost::this_thread::interruption_point();
+                it++;
+
+                if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK)
+                {
+                    // Send block from disk
+                    map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(inv.hash);
+                    if (mi != mapBlockIndex.end())
+                    {
+                        CBlock block;
+                        block.ReadFromDisk((*mi).second);
+                        pfrom->PushMessage("block", block);
+
+                        // Trigger them to send a getblocks request for the next batch of inventory
+                        if (inv.hash == pfrom->hashContinue)
+                        {
+                            // Bypass PushInventory, this must send even if redundant,
+                            // and we want it right after the last block so they don't
+                            // wait for other stuff first.
+                            vector<CInv> vInv;
+                            vInv.push_back(CInv(MSG_BLOCK, hashBestChain));
+                            pfrom->PushMessage("inv", vInv);
+                            pfrom->hashContinue = 0;
+                        }
+                    }
+                }
+                else if (inv.IsKnownType())
+                {
+                    if(fDebug) LogPrintf("ProcessGetData -- Starting \n");
+                    // Send stream from relay memory
+                    bool pushed = false;
+                    {
+                        LOCK(cs_mapRelay);
+                        map<CInv, CDataStream>::iterator mi = mapRelay.find(inv);
+                        if (mi != mapRelay.end()) {
+                            pfrom->PushMessage(inv.GetCommand(), (*mi).second);
+                            if(fDebug) LogPrintf("ProcessGetData -- pushed = true Rest will fail\n");
+                            pushed = true;
+                        }
+                    }
+
+                    if (!pushed && inv.type == MSG_TX) {
+
+                        CTransaction tx;
+                        if (mempool.lookup(inv.hash, tx)) {
+                            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+                            ss.reserve(1000);
+                            ss << tx;
+                            pfrom->PushMessage("tx", ss);
+                            pushed = true;
+                        }
+                    }
+                    if (!pushed && inv.type == MSG_TXLOCK_VOTE) {
+                        if(mapTxLockVote.count(inv.hash)){
+                            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+                            ss.reserve(1000);
+                            ss << mapTxLockVote[inv.hash];
+                            pfrom->PushMessage("txlvote", ss);
+                            pushed = true;
+                        }
+                    }
+                    if (!pushed && inv.type == MSG_TXLOCK_REQUEST) {
+                        if(mapTxLockReq.count(inv.hash)){
+                            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+                            ss.reserve(1000);
+                            ss << mapTxLockReq[inv.hash];
+                            pfrom->PushMessage("txlreq", ss);
+                            pushed = true;
+                        }
+                    }
+                    if (!pushed && inv.type == MSG_SPORK) {
+                        if(mapSporks.count(inv.hash)){
+                            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+                            ss.reserve(1000);
+                            ss << mapSporks[inv.hash];
+                            pfrom->PushMessage("spork", ss);
+                            pushed = true;
+                        }
+                    }
+                    if (!pushed && inv.type == MSG_MASTERNODE_WINNER) {
+                        if(mapSeenMasternodeVotes.count(inv.hash)){
+                            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+                            ss.reserve(1000);
+                            ss << mapSeenMasternodeVotes[inv.hash];
+                            pfrom->PushMessage("mnw", ss);
+                            pushed = true;
+                        }
+                    }
+                    if (!pushed && inv.type == MSG_DSTX) {
+                        if(mapDarksendBroadcastTxes.count(inv.hash)){
+                            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+                            ss.reserve(1000);
+                            ss <<
+                                mapDarksendBroadcastTxes[inv.hash].tx <<
+                                mapDarksendBroadcastTxes[inv.hash].vin <<
+                                mapDarksendBroadcastTxes[inv.hash].vchSig <<
+                                mapDarksendBroadcastTxes[inv.hash].sigTime;
+
+                            pfrom->PushMessage("dstx", ss);
+                            pushed = true;
+                        }
+                    }
+                    if (!pushed) {
+                        vNotFound.push_back(inv);
+                    }
+                }
+
+                // Track requests for our stuff.
+                g_signals.Inventory(inv.hash);
+
+                if (inv.type == MSG_BLOCK  || inv.type == MSG_FILTERED_BLOCK)
+                    break;
+            }
+            break;
         }
     }
 
@@ -4997,20 +5008,26 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         if (!IsInitialBlockDownload() && (GetTime() - nLastRebroadcast > 24 * 60 * 60))
         {
             {
-                LOCK(cs_vNodes);
-                BOOST_FOREACH(CNode* pnode, vNodes)
+                while(true)
                 {
-                    // Periodically clear setAddrKnown to allow refresh broadcasts
-                    if (nLastRebroadcast)
-                        pnode->setAddrKnown.clear();
+                    TRY_LOCK(cs_vNodes, lockNodes);
+                    if(!lockNodes) { MilliSleep(1); continue; }
 
-                    // Rebroadcast our address
-                    if (!fNoListen)
+                    BOOST_FOREACH(CNode* pnode, vNodes)
                     {
-                        CAddress addr = GetLocalAddress(&pnode->addr);
-                        if (addr.IsRoutable())
-                            pnode->PushAddress(addr);
+                        // Periodically clear setAddrKnown to allow refresh broadcasts
+                        if (nLastRebroadcast)
+                            pnode->setAddrKnown.clear();
+
+                        // Rebroadcast our address
+                        if (!fNoListen)
+                        {
+                            CAddress addr = GetLocalAddress(&pnode->addr);
+                            if (addr.IsRoutable())
+                                pnode->PushAddress(addr);
+                        }
                     }
+                    break;
                 }
             }
             nLastRebroadcast = GetTime();

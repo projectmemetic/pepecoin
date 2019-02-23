@@ -33,7 +33,7 @@ using namespace boost;
 
 unsigned int nMessageCores = 0;
 
-static const int MAX_OUTBOUND_CONNECTIONS = 15;
+static const int MAX_OUTBOUND_CONNECTIONS = 20;
 
 bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOutbound = NULL, const char *strDest = NULL, bool fOneShot = false);
 
@@ -978,7 +978,7 @@ void ThreadSocketHandler()
             BOOST_FOREACH(CNode* pnode, vNodesCopy)
                 pnode->Release();
         }
-	MilliSleep(200); // niceness
+    MilliSleep(50); // niceness
     }
 }
 
@@ -1456,13 +1456,13 @@ void ThreadMessageHandler(int ncore)
         vector<CNode*> vNodesFullSet; // the full set of nodes
         vector<CNode*> vNodesCopy; // nodes to work on in this core
         {
-	        // niceness, try to get a lock if not wait and try again instead of blocking
+            // niceness, try to get a lock if not wait and try again instead of blocking
           /*  TRY_LOCK(cs_vNodes, lockNodes);
-    	    if(!lockNodes)
-    	    {
-        		MilliSleep(2);
-        		continue;
-    	    }*/
+            if(!lockNodes)
+            {
+                MilliSleep(2);
+                continue;
+            }*/
 
             vNodesFullSet = vNodes;
             // figure out the start and end indexes for this core to work on
@@ -1470,7 +1470,7 @@ void ThreadMessageHandler(int ncore)
             {
                 // the size is less than our core number, e.g. the size is 3 but we are core 4
                 // therefore we have nothing to work on, so sleep and then continue and look for work again
-                LogPrint("net", "ThreadMessageHandler: core %d no nodes for us to service nodes size %d\n", ncore, vNodesFullSet.size());
+                LogPrint("multicore", "ThreadMessageHandler: core %d no nodes for us to service nodes size %d\n", ncore, vNodesFullSet.size());
                 MilliSleep(500);
                 continue;
             }
@@ -1508,7 +1508,7 @@ void ThreadMessageHandler(int ncore)
                 vNodesCopy.push_back(vNodesFullSet[n]);
             }
 
-            LogPrint("net","ThreadMessageHandler: core %d nCoreStart %d nCoreEnd %d vNodesCopy size: %d vNodesFullSet size: %d\n", ncore, nCoreStart, nCoreEnd, vNodesCopy.size(), vNodesFullSet.size());
+            LogPrint("multicore","ThreadMessageHandler: core %d nCoreStart %d nCoreEnd %d VNodesCopy size: %d vNodesFullSet size: %d\n", ncore, nCoreStart, nCoreEnd, vNodesCopy.size(), vNodesFullSet.size());
 
             BOOST_FOREACH(CNode* pnode, vNodesCopy) {
                 pnode->AddRef();
@@ -1536,7 +1536,7 @@ void ThreadMessageHandler(int ncore)
                 TRY_LOCK(pnode->cs_vRecvMsg, lockRecv);
                 if (lockRecv)
                 {
-		            ProcessMessages(pnode);
+                    ProcessMessages(pnode);
                 }
             }
             boost::this_thread::interruption_point();
@@ -1562,7 +1562,7 @@ void ThreadMessageHandler(int ncore)
             }
         }
 
-	    // niceness
+        // niceness
         MilliSleep(200);
     }
 }
