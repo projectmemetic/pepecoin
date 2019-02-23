@@ -690,6 +690,7 @@ void ThreadSocketHandler()
 
     while (true)
     {
+        boost::this_thread::interruption_point();
         //
         // Disconnect nodes
         //
@@ -1300,6 +1301,7 @@ void ThreadOpenAddedConnections()
 
     if (HaveNameProxy()) {
         while(true) {
+            boost::this_thread::interruption_point();
             list<string> lAddresses(0);
             {
                 LOCK(cs_vAddedNodes);
@@ -1318,6 +1320,7 @@ void ThreadOpenAddedConnections()
 
     for (unsigned int i = 0; true; i++)
     {
+        boost::this_thread::interruption_point();
         list<string> lAddresses(0);
         {
             LOCK(cs_vAddedNodes);
