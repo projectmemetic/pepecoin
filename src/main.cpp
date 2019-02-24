@@ -1865,6 +1865,8 @@ void Misbehaving(NodeId pnode, int howmuch)
 
     while(true)
     {
+        boost::this_thread::interruption_point();
+
         TRY_LOCK(cs_vNodes, lockNodes);
         if(!lockNodes) { MilliSleep(1); continue; }
 
@@ -3984,6 +3986,8 @@ void static ProcessGetData(CNode* pfrom)
 
     while(true)
     {
+        boost::this_thread::interruption_point();
+
         TRY_LOCK(cs_main, lockMain);
         if(!lockMain) { MilliSleep(1); continue; }
 
@@ -4303,6 +4307,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
                 {
                     while(true)
                     {
+                        boost::this_thread::interruption_point();
+
                         TRY_LOCK(cs_vNodes, lockNodes);
                         if(!lockNodes) { MilliSleep(2); continue; }
 
@@ -4365,6 +4371,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         
         while(true)
         {
+            boost::this_thread::interruption_point();
+
             TRY_LOCK(cs_main, lockMain);
             if(!lockMain) { MilliSleep(2); continue; }
             int nBlocksGet = 0;
@@ -4443,6 +4451,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
         while(true)
         {
+            boost::this_thread::interruption_point();
+
             TRY_LOCK(cs_main, lockMain);
             if(!lockMain) { MilliSleep(2); continue; }
 
@@ -4531,6 +4541,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
         while(true)
         {
+            boost::this_thread::interruption_point();
+
             TRY_LOCK(cs_main, lockMain);
             if(!lockMain) { MilliSleep(2); continue; }
 
@@ -4614,6 +4626,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
         while(true)
         {
+            boost::this_thread::interruption_point();
+
             TRY_LOCK(cs_main, lockMain);
             if(!lockMain) { MilliSleep(2); continue; }
 
@@ -4651,6 +4665,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     {
         while(true)
         {
+            boost::this_thread::interruption_point();
+            
             TRY_LOCK(cs_main, lockMain);
             if(!lockMain) { MilliSleep(2); continue; }
 
@@ -4950,225 +4966,231 @@ bool ProcessMessages(CNode* pfrom)
 
 bool SendMessages(CNode* pto, bool fSendTrickle)
 {
-    TRY_LOCK(cs_main, lockMain);
-    if (lockMain) {
-        // Don't send anything until we get their version message
-        if (pto->nVersion == 0)
-            return true;
+    while(true)
+    {
+        boost::this_thread::interruption_point();
 
-        //
-        // Message: ping
-        //
-        bool pingSend = false;
-        if (pto->fPingQueued) {
-            // RPC ping request by user
-            pingSend = true;
-        }
-        if (pto->nPingNonceSent == 0 && pto->nPingUsecStart + PING_INTERVAL * 1000000 < GetTimeMicros()) {
-            // Ping automatically sent as a latency probe & keepalive.
-            pingSend = true;
-        }
-        if (pingSend) {
-            uint64_t nonce = 0;
-            while (nonce == 0) {
-                GetRandBytes((unsigned char*)&nonce, sizeof(nonce));
+        TRY_LOCK(cs_main, lockMain);
+        if (!lockMain) { MilliSleep(1); continue; }
+
+            // Don't send anything until we get their version message
+            if (pto->nVersion == 0)
+                return true;
+
+            //
+            // Message: ping
+            //
+            bool pingSend = false;
+            if (pto->fPingQueued) {
+                // RPC ping request by user
+                pingSend = true;
             }
-            pto->fPingQueued = false;
-            pto->nPingUsecStart = GetTimeMicros();
-            if (pto->nVersion > BIP0031_VERSION) {
-                pto->nPingNonceSent = nonce;
-                pto->PushMessage("ping", nonce);
-            } else {
-                // Peer is too old to support ping command with nonce, pong will never arrive.
-                pto->nPingNonceSent = 0;
-                pto->PushMessage("ping");
+            if (pto->nPingNonceSent == 0 && pto->nPingUsecStart + PING_INTERVAL * 1000000 < GetTimeMicros()) {
+                // Ping automatically sent as a latency probe & keepalive.
+                pingSend = true;
             }
-        }
+            if (pingSend) {
+                uint64_t nonce = 0;
+                while (nonce == 0) {
+                    GetRandBytes((unsigned char*)&nonce, sizeof(nonce));
+                }
+                pto->fPingQueued = false;
+                pto->nPingUsecStart = GetTimeMicros();
+                if (pto->nVersion > BIP0031_VERSION) {
+                    pto->nPingNonceSent = nonce;
+                    pto->PushMessage("ping", nonce);
+                } else {
+                    // Peer is too old to support ping command with nonce, pong will never arrive.
+                    pto->nPingNonceSent = 0;
+                    pto->PushMessage("ping");
+                }
+            }
 
-        //TRY_LOCK(cs_main, lockMain); // Acquire cs_main for IsInitialBlockDownload() and CNodeState()
-        //if (!lockMain)
-        //    return true;
+            //TRY_LOCK(cs_main, lockMain); // Acquire cs_main for IsInitialBlockDownload() and CNodeState()
+            //if (!lockMain)
+            //    return true;
 
-        // Start block sync
-     /*   if (pto->fStartSync && !fImporting && !fReindex) {
-            pto->fStartSync = false;
-            PushGetBlocks(pto, pindexBest, uint256(0));
-        }*/
+            // Start block sync
+         /*   if (pto->fStartSync && !fImporting && !fReindex) {
+                pto->fStartSync = false;
+                PushGetBlocks(pto, pindexBest, uint256(0));
+            }*/
 
-        // Resend wallet transactions that haven't gotten in a block yet
-        // Except during reindex, importing and IBD, when old wallet
-        // transactions become unconfirmed and spams other nodes.
-        if (!fReindex && !fImporting && !IsInitialBlockDownload())
-        {
-            ResendWalletTransactions();
-        }
-
-        // Address refresh broadcast
-        static int64_t nLastRebroadcast;
-        if (!IsInitialBlockDownload() && (GetTime() - nLastRebroadcast > 24 * 60 * 60))
-        {
+            // Resend wallet transactions that haven't gotten in a block yet
+            // Except during reindex, importing and IBD, when old wallet
+            // transactions become unconfirmed and spams other nodes.
+            if (!fReindex && !fImporting && !IsInitialBlockDownload())
             {
-                while(true)
+                ResendWalletTransactions();
+            }
+
+            // Address refresh broadcast
+            static int64_t nLastRebroadcast;
+            if (!IsInitialBlockDownload() && (GetTime() - nLastRebroadcast > 24 * 60 * 60))
+            {
                 {
-                    TRY_LOCK(cs_vNodes, lockNodes);
-                    if(!lockNodes) { MilliSleep(1); continue; }
-
-                    BOOST_FOREACH(CNode* pnode, vNodes)
+                    while(true)
                     {
-                        // Periodically clear setAddrKnown to allow refresh broadcasts
-                        if (nLastRebroadcast)
-                            pnode->setAddrKnown.clear();
+                        TRY_LOCK(cs_vNodes, lockNodes);
+                        if(!lockNodes) { MilliSleep(1); continue; }
 
-                        // Rebroadcast our address
-                        if (!fNoListen)
+                        BOOST_FOREACH(CNode* pnode, vNodes)
                         {
-                            CAddress addr = GetLocalAddress(&pnode->addr);
-                            if (addr.IsRoutable())
-                                pnode->PushAddress(addr);
+                            // Periodically clear setAddrKnown to allow refresh broadcasts
+                            if (nLastRebroadcast)
+                                pnode->setAddrKnown.clear();
+
+                            // Rebroadcast our address
+                            if (!fNoListen)
+                            {
+                                CAddress addr = GetLocalAddress(&pnode->addr);
+                                if (addr.IsRoutable())
+                                    pnode->PushAddress(addr);
+                            }
+                        }
+                        break;
+                    }
+                }
+                nLastRebroadcast = GetTime();
+            }
+
+            //
+            // Message: addr
+            //
+            if (fSendTrickle)
+            {
+                vector<CAddress> vAddr;
+                vAddr.reserve(pto->vAddrToSend.size());
+                BOOST_FOREACH(const CAddress& addr, pto->vAddrToSend)
+                {
+                    // returns true if wasn't already contained in the set
+                    if (pto->setAddrKnown.insert(addr).second)
+                    {
+                        vAddr.push_back(addr);
+                        // receiver rejects addr messages larger than 1000
+                        if (vAddr.size() >= 1000)
+                        {
+                            pto->PushMessage("addr", vAddr);
+                            vAddr.clear();
                         }
                     }
-                    break;
                 }
+                pto->vAddrToSend.clear();
+                if (!vAddr.empty())
+                    pto->PushMessage("addr", vAddr);
             }
-            nLastRebroadcast = GetTime();
-        }
 
-        //
-        // Message: addr
-        //
-        if (fSendTrickle)
-        {
-            vector<CAddress> vAddr;
-            vAddr.reserve(pto->vAddrToSend.size());
-            BOOST_FOREACH(const CAddress& addr, pto->vAddrToSend)
+
+            //
+            // Message: inventory
+            //
+            vector<CInv> vInv;
+            vector<CInv> vInvWait;
             {
-                // returns true if wasn't already contained in the set
-                if (pto->setAddrKnown.insert(addr).second)
+                LOCK(pto->cs_inventory);
+                vInv.reserve(pto->vInventoryToSend.size());
+                vInvWait.reserve(pto->vInventoryToSend.size());
+                BOOST_FOREACH(const CInv& inv, pto->vInventoryToSend)
                 {
-                    vAddr.push_back(addr);
-                    // receiver rejects addr messages larger than 1000
-                    if (vAddr.size() >= 1000)
-                    {
-                        pto->PushMessage("addr", vAddr);
-                        vAddr.clear();
-                    }
-                }
-            }
-            pto->vAddrToSend.clear();
-            if (!vAddr.empty())
-                pto->PushMessage("addr", vAddr);
-        }
-
-
-        //
-        // Message: inventory
-        //
-        vector<CInv> vInv;
-        vector<CInv> vInvWait;
-        {
-            LOCK(pto->cs_inventory);
-            vInv.reserve(pto->vInventoryToSend.size());
-            vInvWait.reserve(pto->vInventoryToSend.size());
-            BOOST_FOREACH(const CInv& inv, pto->vInventoryToSend)
-            {
-                if (pto->setInventoryKnown.count(inv))
-                    continue;
-
-            // --- Don't trickle tx's, network is too small and results in transaction delays ---
-                // trickle out tx inv to protect privacy
-               /* if (inv.type == MSG_TX && !fSendTrickle)
-                {
-                    // 1/4 of tx invs blast to all immediately
-                    static uint256 hashSalt;
-                    if (hashSalt == 0)
-                        hashSalt = GetRandHash();
-                    uint256 hashRand = inv.hash ^ hashSalt;
-                    hashRand = Hash(BEGIN(hashRand), END(hashRand));
-                    bool fTrickleWait = ((hashRand & 3) != 0);
-
-                    if (fTrickleWait)
-                    {
-                        vInvWait.push_back(inv);
+                    if (pto->setInventoryKnown.count(inv))
                         continue;
-                    }
-                }*/
 
-                // returns true if wasn't already contained in the set
-                if (pto->setInventoryKnown.insert(inv).second)
-                {
-                    vInv.push_back(inv);
-                    if (vInv.size() >= 1000)
+                // --- Don't trickle tx's, network is too small and results in transaction delays ---
+                    // trickle out tx inv to protect privacy
+                   /* if (inv.type == MSG_TX && !fSendTrickle)
                     {
-                        pto->PushMessage("inv", vInv);
-                        vInv.clear();
+                        // 1/4 of tx invs blast to all immediately
+                        static uint256 hashSalt;
+                        if (hashSalt == 0)
+                            hashSalt = GetRandHash();
+                        uint256 hashRand = inv.hash ^ hashSalt;
+                        hashRand = Hash(BEGIN(hashRand), END(hashRand));
+                        bool fTrickleWait = ((hashRand & 3) != 0);
+
+                        if (fTrickleWait)
+                        {
+                            vInvWait.push_back(inv);
+                            continue;
+                        }
+                    }*/
+
+                    // returns true if wasn't already contained in the set
+                    if (pto->setInventoryKnown.insert(inv).second)
+                    {
+                        vInv.push_back(inv);
+                        if (vInv.size() >= 1000)
+                        {
+                            pto->PushMessage("inv", vInv);
+                            vInv.clear();
+                        }
                     }
                 }
+                pto->vInventoryToSend = vInvWait;
             }
-            pto->vInventoryToSend = vInvWait;
-        }
-        if (!vInv.empty())
-            pto->PushMessage("inv", vInv);
+            if (!vInv.empty())
+                pto->PushMessage("inv", vInv);
 
-        // Detect stalled peers.
-        int nSyncTimeout = GetArg("-synctimeout", 60);
-        int64_t tNow = GetTimeMillis();
-        if (pto->tGetblocks) {
-            if (pto->tBlockRecving > pto->tBlockRecved) {
-                if (tNow-pto->tBlockRecving > nSyncTimeout * 1000) {
-                    LogPrintf("sync peer=%d: Block download stalled for over %d seconds.\n", pto->id, nSyncTimeout);
+            // Detect stalled peers.
+            int nSyncTimeout = GetArg("-synctimeout", 60);
+            int64_t tNow = GetTimeMillis();
+            if (pto->tGetblocks) {
+                if (pto->tBlockRecving > pto->tBlockRecved) {
+                    if (tNow-pto->tBlockRecving > nSyncTimeout * 1000) {
+                        LogPrintf("sync peer=%d: Block download stalled for over %d seconds.\n", pto->id, nSyncTimeout);
+                        pto->fDisconnect = true;
+                        pto->fStartSync = false;
+                        nAskedForBlocks = 0;
+                    }
+                } else if (pto->tGetblocks > pto->tBlockInvs && tNow-pto->tGetblocks > nSyncTimeout * 1000) {
+                    LogPrintf("sync peer=%d: No invs of new blocks received within %d seconds.\n", pto->id, nSyncTimeout);
+                    pto->fDisconnect = true;
+                    pto->fStartSync = false;
+                    nAskedForBlocks = 0;
+                } else if (IsSyncing() && pto->tBlockRecved && tNow-pto->tBlockRecved > nSyncTimeout * 1000) {
+                    LogPrintf("sync peer=%d: No block reception for over %d seconds.\n", pto->id, nSyncTimeout);
+                    pto->fDisconnect = true;                
+                    pto->fStartSync = false;
+                    nAskedForBlocks = 0;
+                } else if (pto->tGetdataBlock > pto->tBlockRecving && tNow-pto->tGetdataBlock > nSyncTimeout * 1000) {
+                    LogPrintf("sync peer=%d: No block download started for over %d seconds.\n", pto->id, nSyncTimeout);
                     pto->fDisconnect = true;
                     pto->fStartSync = false;
                     nAskedForBlocks = 0;
                 }
-            } else if (pto->tGetblocks > pto->tBlockInvs && tNow-pto->tGetblocks > nSyncTimeout * 1000) {
-                LogPrintf("sync peer=%d: No invs of new blocks received within %d seconds.\n", pto->id, nSyncTimeout);
-                pto->fDisconnect = true;
-                pto->fStartSync = false;
-                nAskedForBlocks = 0;
-            } else if (IsSyncing() && pto->tBlockRecved && tNow-pto->tBlockRecved > nSyncTimeout * 1000) {
-                LogPrintf("sync peer=%d: No block reception for over %d seconds.\n", pto->id, nSyncTimeout);
-                pto->fDisconnect = true;                
-                pto->fStartSync = false;
-                nAskedForBlocks = 0;
-            } else if (pto->tGetdataBlock > pto->tBlockRecving && tNow-pto->tGetdataBlock > nSyncTimeout * 1000) {
-                LogPrintf("sync peer=%d: No block download started for over %d seconds.\n", pto->id, nSyncTimeout);
-                pto->fDisconnect = true;
-                pto->fStartSync = false;
-                nAskedForBlocks = 0;
             }
-        }
 
-        //
-        // Message: getdata
-        //
-        vector<CInv> vGetData;
-        int64_t nNow = GetTime() * 1000000;
-        CTxDB txdb("r");
-        while (!pto->mapAskFor.empty() && (*pto->mapAskFor.begin()).first <= nNow)
-        {
-            const CInv& inv = (*pto->mapAskFor.begin()).second;
-            if (!AlreadyHave(txdb, inv))
+            //
+            // Message: getdata
+            //
+            vector<CInv> vGetData;
+            int64_t nNow = GetTime() * 1000000;
+            CTxDB txdb("r");
+            while (!pto->mapAskFor.empty() && (*pto->mapAskFor.begin()).first <= nNow)
             {
-                if (fDebug)
-                    LogPrint("net", "sending getdata: %s\n", inv.ToString());
-                vGetData.push_back(inv);
-                if (!pto->tGetdataBlock)
-                    pto->tGetdataBlock = GetTimeMillis();
-                if (vGetData.size() >= 1000)
+                const CInv& inv = (*pto->mapAskFor.begin()).second;
+                if (!AlreadyHave(txdb, inv))
                 {
-                    pto->PushMessage("getdata", vGetData);
-                    vGetData.clear();
+                    if (fDebug)
+                        LogPrint("net", "sending getdata: %s\n", inv.ToString());
+                    vGetData.push_back(inv);
+                    if (!pto->tGetdataBlock)
+                        pto->tGetdataBlock = GetTimeMillis();
+                    if (vGetData.size() >= 1000)
+                    {
+                        pto->PushMessage("getdata", vGetData);
+                        vGetData.clear();
+                    }
+                    mapAlreadyAskedFor[inv] = nNow;
                 }
-                mapAlreadyAskedFor[inv] = nNow;
+                pto->mapAskFor.erase(pto->mapAskFor.begin());
             }
-            pto->mapAskFor.erase(pto->mapAskFor.begin());
-        }
-        if (!vGetData.empty())
-            pto->PushMessage("getdata", vGetData);
+            if (!vGetData.empty())
+                pto->PushMessage("getdata", vGetData);
 
-        if (fSecMsgEnabled)
-            SecureMsgSendData(pto, fSendTrickle); // should be in cs_main?
+            if (fSecMsgEnabled)
+                SecureMsgSendData(pto, fSendTrickle); // should be in cs_main?
 
+        break;
     }
     return true;
 }
