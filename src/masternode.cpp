@@ -128,11 +128,7 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
         
 
         //search existing masternode list, this is where we update existing masternodes with new dsee broadcasts
-    while(true)
-    {
-        TRY_LOCK(cs_masternodes, lockMasternodes);
-        if(!lockMasternodes) { MilliSleep(2); continue; }
-
+	LOCK(cs_masternodes);
         BOOST_FOREACH(CMasterNode& mn, vecMasternodes) {
             if(mn.vin.prevout == vin.prevout) {
                 // count == -1 when it's a new entry
@@ -177,8 +173,8 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
         tx.vin.push_back(vin);
         tx.vout.push_back(vout);
         //if(AcceptableInputs(mempool, state, tx)){
-        bool* pfMissingInputs;    
-        if(AcceptableInputs(mempool, tx, false, pfMissingInputs)){
+	bool* pfMissingInputs;    
+	if(AcceptableInputs(mempool, tx, false, pfMissingInputs)){
             if(fDebug) LogPrintf("dsee - Accepted masternode entry %i %i\n", count, current);
 
             if(GetInputAge(vin) < MASTERNODE_MIN_CONFIRMATIONS){
@@ -215,8 +211,6 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
                     Misbehaving(pfrom->GetId(), nDoS);
             }
         }
-        break;
-    }
     }
 
     else if (strCommand == "dseep") { //DarkSend Election Entry Ping
@@ -254,15 +248,11 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
         }
 
         // see if we have this masternode
-    while(true)
-    {
-        TRY_LOCK(cs_masternodes, lockMasternodes);
-        if(!lockMasternodes) { MilliSleep(2); continue; }
-
+	LOCK(cs_masternodes);
         BOOST_FOREACH(CMasterNode& mn, vecMasternodes) {
             if(mn.vin.prevout == vin.prevout) {
-                // LogPrintf("dseep - Found corresponding mn for vin: %s\n", vin.ToString().c_str());
-                // take this only if it's newer
+            	// LogPrintf("dseep - Found corresponding mn for vin: %s\n", vin.ToString().c_str());
+            	// take this only if it's newer
                 if(mn.lastDseep < sigTime){
                     std::string strMessage = mn.addr.ToString() + boost::lexical_cast<std::string>(sigTime) + boost::lexical_cast<std::string>(stop);
 
@@ -305,8 +295,6 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
         pfrom->PushMessage("dseg", vin);
         int64_t askAgain = GetTime()+(60*60*24);
         askedForMasternodeListEntry[vin.prevout] = askAgain;
-        break;
-    }
 
     } else if (strCommand == "dseg") { //Get masternode list or specific entry
         if(fLiteMode) return; //disable all darksend/masternode related functionality
@@ -333,11 +321,7 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
             //}
         } //else, asking for a specific node which is ok
 
-    while(true)
-    {
-        TRY_LOCK(cs_masternodes, lockMasternodes);
-        if(!lockMasternodes) { MilliSleep(2); continue; }
-
+	LOCK(cs_masternodes);
         int count = vecMasternodes.size();
         int i = 0;
 
@@ -361,9 +345,6 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
         }
 
         LogPrintf("dseg - Sent %d masternode entries to %s\n", count, pfrom->addr.ToString().c_str());
-
-        break;
-    }
     }
 
     else if (strCommand == "mnget") { //Masternode Payments Request Sync
@@ -441,36 +422,27 @@ struct CompareValueOnly2
 int CountMasternodesAboveProtocol(int protocolVersion)
 {
     int i = 0;
-    while(true)
-    {
-        TRY_LOCK(cs_masternodes, lockMasternodes);
-        if(!lockMasternodes) { MilliSleep(1); continue; }
-
-        BOOST_FOREACH(CMasterNode& mn, vecMasternodes) {
-            if(mn.protocolVersion < protocolVersion) continue;
-            i++;
-        }
-
-        return i;
+    LOCK(cs_masternodes);
+    BOOST_FOREACH(CMasterNode& mn, vecMasternodes) {
+        if(mn.protocolVersion < protocolVersion) continue;
+        i++;
     }
+
+    return i;
+
 }
 
 
 int GetMasternodeByVin(CTxIn& vin)
 {
     int i = 0;
-    while(true)
-    {
-        TRY_LOCK(cs_masternodes, lockMasternodes);
-        if(!lockMasternodes) { MilliSleep(1); continue; }
-
-        BOOST_FOREACH(CMasterNode& mn, vecMasternodes) {
-            if (mn.vin == vin) return i;
-            i++;
-        }
-
-        return -1;
+    LOCK(cs_masternodes);
+    BOOST_FOREACH(CMasterNode& mn, vecMasternodes) {
+        if (mn.vin == vin) return i;
+        i++;
     }
+
+    return -1;
 }
 
 int GetCurrentMasterNode(int mod, int64_t nBlockHeight, int minProtocol)
@@ -478,113 +450,98 @@ int GetCurrentMasterNode(int mod, int64_t nBlockHeight, int minProtocol)
     int i = 0;
     unsigned int score = 0;
     int winner = -1;
-    while(true)
-    {
-        TRY_LOCK(cs_masternodes, lockMasternodes);
-        if(!lockMasternodes) { MilliSleep(1); continue; }
-
-        // scan for winner
-        BOOST_FOREACH(CMasterNode mn, vecMasternodes) {
-            mn.Check();
-            if(mn.protocolVersion < minProtocol) continue;
-            if(!mn.IsEnabled()) {
-                i++;
-                continue;
-            }
-
-            // calculate the score for each masternode
-            uint256 n = mn.CalculateScore(mod, nBlockHeight);
-            unsigned int n2 = 0;
-            memcpy(&n2, &n, sizeof(n2));
-
-            // determine the winner
-            if(n2 > score){
-                score = n2;
-                winner = i;
-            }
+    LOCK(cs_masternodes);
+    // scan for winner
+    BOOST_FOREACH(CMasterNode mn, vecMasternodes) {
+        mn.Check();
+        if(mn.protocolVersion < minProtocol) continue;
+        if(!mn.IsEnabled()) {
             i++;
+            continue;
         }
 
-        return winner;
+        // calculate the score for each masternode
+        uint256 n = mn.CalculateScore(mod, nBlockHeight);
+        unsigned int n2 = 0;
+        memcpy(&n2, &n, sizeof(n2));
+
+        // determine the winner
+        if(n2 > score){
+            score = n2;
+            winner = i;
+        }
+        i++;
     }
+
+    return winner;
 }
 
 int GetMasternodeByRank(int findRank, int64_t nBlockHeight, int minProtocol)
 {
-    while(true)
-    {
-        TRY_LOCK(cs_masternodes, lockMasternodes);
-        if(!lockMasternodes) { MilliSleep(1); continue; }
+    LOCK(cs_masternodes);
+    int i = 0;
 
-        int i = 0;
+    std::vector<pair<unsigned int, int> > vecMasternodeScores;
 
-        std::vector<pair<unsigned int, int> > vecMasternodeScores;
-
-        i = 0;
-        BOOST_FOREACH(CMasterNode mn, vecMasternodes) {
-            mn.Check();
-            if(mn.protocolVersion < minProtocol) continue;
-            if(!mn.IsEnabled()) {
-                i++;
-                continue;
-            }
-
-            uint256 n = mn.CalculateScore(1, nBlockHeight);
-            unsigned int n2 = 0;
-            memcpy(&n2, &n, sizeof(n2));
-
-            vecMasternodeScores.push_back(make_pair(n2, i));
+    i = 0;
+    BOOST_FOREACH(CMasterNode mn, vecMasternodes) {
+        mn.Check();
+        if(mn.protocolVersion < minProtocol) continue;
+        if(!mn.IsEnabled()) {
             i++;
+            continue;
         }
 
-        sort(vecMasternodeScores.rbegin(), vecMasternodeScores.rend(), CompareValueOnly2());
+        uint256 n = mn.CalculateScore(1, nBlockHeight);
+        unsigned int n2 = 0;
+        memcpy(&n2, &n, sizeof(n2));
 
-        int rank = 0;
-        BOOST_FOREACH (PAIRTYPE(unsigned int, int)& s, vecMasternodeScores){
-            rank++;
-            if(rank == findRank) return s.second;
-        }
-
-        return -1;
+        vecMasternodeScores.push_back(make_pair(n2, i));
+        i++;
     }
+
+    sort(vecMasternodeScores.rbegin(), vecMasternodeScores.rend(), CompareValueOnly2());
+
+    int rank = 0;
+    BOOST_FOREACH (PAIRTYPE(unsigned int, int)& s, vecMasternodeScores){
+        rank++;
+        if(rank == findRank) return s.second;
+    }
+
+    return -1;
 }
 
 int GetMasternodeRank(CTxIn& vin, int64_t nBlockHeight, int minProtocol)
 {
-    while(true)
-    {
-        TRY_LOCK(cs_masternodes, lockMasternodes);
-        if(!lockMasternodes) { MilliSleep(1); continue; }
+    LOCK(cs_masternodes);
+    std::vector<pair<unsigned int, CTxIn> > vecMasternodeScores;
 
-        std::vector<pair<unsigned int, CTxIn> > vecMasternodeScores;
+    BOOST_FOREACH(CMasterNode& mn, vecMasternodes) {
+        mn.Check();
 
-        BOOST_FOREACH(CMasterNode& mn, vecMasternodes) {
-            mn.Check();
-
-            if(mn.protocolVersion < minProtocol) continue;
-            if(!mn.IsEnabled()) {
-                continue;
-            }
-
-            uint256 n = mn.CalculateScore(1, nBlockHeight);
-            unsigned int n2 = 0;
-            memcpy(&n2, &n, sizeof(n2));
-
-            vecMasternodeScores.push_back(make_pair(n2, mn.vin));
+        if(mn.protocolVersion < minProtocol) continue;
+        if(!mn.IsEnabled()) {
+            continue;
         }
 
-        sort(vecMasternodeScores.rbegin(), vecMasternodeScores.rend(), CompareValueOnly());
+        uint256 n = mn.CalculateScore(1, nBlockHeight);
+        unsigned int n2 = 0;
+        memcpy(&n2, &n, sizeof(n2));
 
-        unsigned int rank = 0;
-        BOOST_FOREACH (PAIRTYPE(unsigned int, CTxIn)& s, vecMasternodeScores){
-            rank++;
-            if(s.second == vin) {
-                return rank;
-            }
-        }
-
-        return -1;
+        vecMasternodeScores.push_back(make_pair(n2, mn.vin));
     }
+
+    sort(vecMasternodeScores.rbegin(), vecMasternodeScores.rend(), CompareValueOnly());
+
+    unsigned int rank = 0;
+    BOOST_FOREACH (PAIRTYPE(unsigned int, CTxIn)& s, vecMasternodeScores){
+        rank++;
+        if(s.second == vin) {
+            return rank;
+        }
+    }
+
+    return -1;
 }
 
 //Get the last hash that matches the modulus given. Processed in reverse order
@@ -673,7 +630,7 @@ void CMasterNode::Check()
         //if(!AcceptableInputs(mempool, state, tx)){
         bool* pfMissingInputs;
         
-    if(!AcceptableInputs(mempool, tx, false, pfMissingInputs)){
+	if(!AcceptableInputs(mempool, tx, false, pfMissingInputs)){
             enabled = 3;
             return;
         }
@@ -841,60 +798,55 @@ void CMasternodePayments::CleanPaymentList()
 
 bool CMasternodePayments::ProcessBlock(int nBlockHeight)
 {
-    while(true)
-    {
-        TRY_LOCK(cs_masternodes, lockMasternodes);
-        if(!lockMasternodes) { MilliSleep(1); continue; }
+    LOCK(cs_masternodes);
+    if(!enabled) return false;
+    CMasternodePaymentWinner winner;
 
-        if(!enabled) return false;
-        CMasternodePaymentWinner winner;
-
-        std::vector<CTxIn> vecLastPayments;
-        int c = 0;
-        BOOST_REVERSE_FOREACH(CMasternodePaymentWinner& winner, vWinning){
-            vecLastPayments.push_back(winner.vin);
-            //if we have one full payment cycle, break
-            if(++c > (int)vecMasternodes.size()) break;
-        }
-
-        std::random_shuffle ( vecMasternodes.begin(), vecMasternodes.end() );
-        BOOST_FOREACH(CMasterNode& mn, vecMasternodes) {
-            bool found = false;
-            BOOST_FOREACH(CTxIn& vin, vecLastPayments)
-                if(mn.vin == vin) found = true;
-
-            if(found) continue;
-
-            mn.Check();
-            if(!mn.IsEnabled()) {
-                continue;
-            }
-
-            winner.score = 0;
-            winner.nBlockHeight = nBlockHeight;
-            winner.vin = mn.vin;
-            winner.payee =GetScriptForDestination(mn.pubkey.GetID());
-
-            break;
-        }
-
-        //if we can't find someone to get paid, pick randomly
-        if(winner.nBlockHeight == 0 && vecMasternodes.size() > 0) {
-            winner.score = 0;
-            winner.nBlockHeight = nBlockHeight;
-            winner.vin = vecMasternodes[0].vin;
-            winner.payee =GetScriptForDestination(vecMasternodes[0].pubkey.GetID());
-        }
-
-        if(Sign(winner)){
-            if(AddWinningMasternode(winner)){
-                Relay(winner);
-                return true;
-            }
-        }
-
-        return false;
+    std::vector<CTxIn> vecLastPayments;
+    int c = 0;
+    BOOST_REVERSE_FOREACH(CMasternodePaymentWinner& winner, vWinning){
+        vecLastPayments.push_back(winner.vin);
+        //if we have one full payment cycle, break
+        if(++c > (int)vecMasternodes.size()) break;
     }
+
+    std::random_shuffle ( vecMasternodes.begin(), vecMasternodes.end() );
+    BOOST_FOREACH(CMasterNode& mn, vecMasternodes) {
+        bool found = false;
+        BOOST_FOREACH(CTxIn& vin, vecLastPayments)
+            if(mn.vin == vin) found = true;
+
+        if(found) continue;
+
+        mn.Check();
+        if(!mn.IsEnabled()) {
+            continue;
+        }
+
+        winner.score = 0;
+        winner.nBlockHeight = nBlockHeight;
+        winner.vin = mn.vin;
+        winner.payee =GetScriptForDestination(mn.pubkey.GetID());
+
+        break;
+    }
+
+    //if we can't find someone to get paid, pick randomly
+    if(winner.nBlockHeight == 0 && vecMasternodes.size() > 0) {
+        winner.score = 0;
+        winner.nBlockHeight = nBlockHeight;
+        winner.vin = vecMasternodes[0].vin;
+        winner.payee =GetScriptForDestination(vecMasternodes[0].pubkey.GetID());
+    }
+
+    if(Sign(winner)){
+        if(AddWinningMasternode(winner)){
+            Relay(winner);
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void CMasternodePayments::Relay(CMasternodePaymentWinner& winner)
@@ -905,16 +857,9 @@ void CMasternodePayments::Relay(CMasternodePaymentWinner& winner)
 
         vector<CInv> vInv;
         vInv.push_back(inv);
-        while(true)
-        {
-            TRY_LOCK(cs_vNodes, lockNodes);
-            if(!lockNodes) { MilliSleep(1); continue; }
-            {
-                BOOST_FOREACH(CNode* pnode, vNodes){
-                    pnode->PushMessage("inv", vInv);
-                }
-            }
-            break;
+        LOCK(cs_vNodes);
+        BOOST_FOREACH(CNode* pnode, vNodes){
+            pnode->PushMessage("inv", vInv);
         }
     }
 }
