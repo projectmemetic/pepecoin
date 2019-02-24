@@ -3964,7 +3964,7 @@ bool static AlreadyHave(CTxDB& txdb, const CInv& inv)
 
 
 
-vvoid static ProcessGetData(CNode* pfrom)
+void static ProcessGetData(CNode* pfrom)
 {
     // only proceed if we can get a lock
     // if we can't, don't block and leave it in the queue for next time
