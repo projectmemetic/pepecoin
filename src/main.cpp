@@ -4763,6 +4763,142 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     return true;
 }
 
+// requires LOCK(cs_vRecvMsg)
+bool ProcessMessages(CNode* pfrom)
+{
+    //if (fDebug)
+    //    LogPrintf("ProcessMessages(%zu messages)\n", pfrom->vRecvMsg.size());
+
+    //
+    // Message format
+    //  (4) message start
+    //  (12) command
+    //  (4) size
+    //  (4) checksum
+    //  (x) data
+    //
+    bool fOk = true;    
+
+    if (!pfrom->vRecvGetData.empty())
+        ProcessGetData(pfrom);
+
+    // this maintains the order of responses
+    if (!pfrom->vRecvGetData.empty()) return fOk;
+
+    std::deque<CNetMessage>::iterator it = pfrom->vRecvMsg.begin();
+    while (!pfrom->fDisconnect && it != pfrom->vRecvMsg.end()) {
+        // Don't bother if send buffer is too full to respond anyway
+        if (pfrom->nSendSize >= SendBufferSize())
+            break;
+
+        // get next message
+        CNetMessage& msg = *it;
+        CMessageHeader& hdr = msg.hdr;
+        unsigned int nMessageSize = hdr.nMessageSize;
+        string strCommand = hdr.GetCommand();
+
+        //if (fDebug)
+        //    LogPrintf("ProcessMessages(message %u msgsz, %zu bytes, complete:%s)\n",
+        //            msg.hdr.nMessageSize, msg.vRecv.size(),
+        //            msg.complete() ? "Y" : "N");
+
+        if (msg.nDataPos != msg.nLastDataPos) {
+            if (strCommand == "block") {
+                if (msg.nLastDataPos == 0) {
+                    pfrom->tBlockRecvStart = GetTimeMillis();                
+                    if (pfrom->tBlockRecved)
+                        LogPrint("net", "%ums later, ", pfrom->tBlockRecvStart - pfrom->tBlockRecved);
+                    LogPrint("net", "incoming block (%u bytes) peer=%d\n", nMessageSize, pfrom->id);
+                }
+                pfrom->tBlockRecving = GetTimeMillis();
+            }
+            msg.nLastDataPos = msg.nDataPos;
+        }
+
+        // end, if an incomplete message is found
+        if (!msg.complete())
+            break;
+
+        // at this point, any failure means we can delete the current message
+        it++;
+
+        // Scan for message start
+        if (memcmp(msg.hdr.pchMessageStart, Params().MessageStart(), MESSAGE_START_SIZE) != 0) {
+            LogPrintf("\n\nPROCESSMESSAGE: INVALID MESSAGESTART\n\n");
+            fOk = false;
+            break;
+        }
+
+        // Read header
+        //CMessageHeader& hdr = msg.hdr;
+        if (!hdr.IsValid())
+        {
+            LogPrintf("\n\nPROCESSMESSAGE: ERRORS IN HEADER %s\n\n\n", strCommand);
+            continue;
+        }
+        //string strCommand = hdr.GetCommand();
+
+        // Message size
+        //unsigned int nMessageSize = hdr.nMessageSize;
+
+        // Checksum
+        CDataStream& vRecv = msg.vRecv;
+        uint256 hash = Hash(vRecv.begin(), vRecv.begin() + nMessageSize);
+        unsigned int nChecksum = 0;
+        memcpy(&nChecksum, &hash, sizeof(nChecksum));
+        if (nChecksum != hdr.nChecksum)
+        {
+            LogPrintf("ProcessMessages(%s, %u bytes) : CHECKSUM ERROR nChecksum=%08x hdr.nChecksum=%08x\n",
+               strCommand, nMessageSize, nChecksum, hdr.nChecksum);
+            continue;
+        }
+
+        // Process message
+        bool fRet = false;
+        try
+        {
+            fRet = ProcessMessage(pfrom, strCommand, vRecv, msg.nTime);
+            boost::this_thread::interruption_point();
+        }
+        catch (std::ios_base::failure& e)
+        {
+            if (strstr(e.what(), "end of data"))
+            {
+                // Allow exceptions from under-length message on vRecv
+                LogPrintf("ProcessMessages(%s, %u bytes) : Exception '%s' caught, normally caused by a message being shorter than its stated length\n", strCommand, nMessageSize, e.what());
+            }
+            else if (strstr(e.what(), "size too large"))
+            {
+                // Allow exceptions from over-long size
+                LogPrintf("ProcessMessages(%s, %u bytes) : Exception '%s' caught\n", strCommand, nMessageSize, e.what());
+            }
+            else
+            {
+                PrintExceptionContinue(&e, "ProcessMessages()");
+            }
+        }
+        catch (boost::thread_interrupted) {
+            throw;
+        }
+        catch (std::exception& e) {
+            PrintExceptionContinue(&e, "ProcessMessages()");
+        } catch (...) {
+            PrintExceptionContinue(NULL, "ProcessMessages()");
+        }
+
+        if (!fRet)
+            LogPrintf("ProcessMessage(%s, %u bytes) FAILED\n", strCommand, nMessageSize);
+
+        break;
+    }
+
+    // In case the connection got shut down, its receive buffer was wiped
+    if (!pfrom->fDisconnect)
+        pfrom->vRecvMsg.erase(pfrom->vRecvMsg.begin(), it);
+
+    return fOk;
+}
+
 
 bool SendMessages(CNode* pto, bool fSendTrickle)
 {
