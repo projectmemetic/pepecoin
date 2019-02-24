@@ -1863,31 +1863,23 @@ void Misbehaving(NodeId pnode, int howmuch)
     if (howmuch == 0)
         return;
 
-    while(true)
+    LOCK(cs_vNodes);
+    BOOST_FOREACH(CNode* pn, vNodes)
     {
-        boost::this_thread::interruption_point();
-
-        TRY_LOCK(cs_vNodes, lockNodes);
-        if(!lockNodes) { MilliSleep(1); continue; }
-
-        BOOST_FOREACH(CNode* pn, vNodes)
+        if(pn->GetId() == pnode)
         {
-            if(pn->GetId() == pnode)
+            pn->nMisbehavior += howmuch;
+            int banscore = GetArg("-banscore", 25);
+            if (pn->nMisbehavior >= banscore && pn->nMisbehavior - howmuch < banscore)
             {
-                pn->nMisbehavior += howmuch;
-                int banscore = GetArg("-banscore", 25);
-                if (pn->nMisbehavior >= banscore && pn->nMisbehavior - howmuch < banscore)
-                {
-                    LogPrintf("Misbehaving: %s (%d -> %d) BAN THRESHOLD EXCEEDED\n", pn->addrName, pn->nMisbehavior-howmuch, pn->nMisbehavior);
-                    //pn->fShouldBan = true;
-                }
-                else
-                    LogPrintf("Misbehaving: %s (%d -> %d)\n", pn->addrName, pn->nMisbehavior-howmuch, pn->nMisbehavior);
-
-                break;
+                LogPrintf("Misbehaving: %s (%d -> %d) BAN THRESHOLD EXCEEDED\n", pn->addrName, pn->nMisbehavior-howmuch, pn->nMisbehavior);
+                //pn->fShouldBan = true;
             }
+            else
+                LogPrintf("Misbehaving: %s (%d -> %d)\n", pn->addrName, pn->nMisbehavior-howmuch, pn->nMisbehavior);
+
+            break;
         }
-        break;
     }
 }
 
@@ -3972,7 +3964,7 @@ bool static AlreadyHave(CTxDB& txdb, const CInv& inv)
 
 
 
-void static ProcessGetData(CNode* pfrom)
+vvoid static ProcessGetData(CNode* pfrom)
 {
     // only proceed if we can get a lock
     // if we can't, don't block and leave it in the queue for next time
@@ -3984,134 +3976,127 @@ void static ProcessGetData(CNode* pfrom)
 
     vector<CInv> vNotFound;
 
-    while(true)
-    {
-        boost::this_thread::interruption_point();
+    LOCK(cs_main);
 
-        TRY_LOCK(cs_main, lockMain);
-        if(!lockMain) { MilliSleep(1); continue; }
-
-        while (it != pfrom->vRecvGetData.end()) {
-            // Don't bother if send buffer is too full to respond anyway
-            if (pfrom->nSendSize >= SendBufferSize())
-                break;
-
-            const CInv &inv = *it;
-            {
-                boost::this_thread::interruption_point();
-                it++;
-
-                if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK)
-                {
-                    // Send block from disk
-                    map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(inv.hash);
-                    if (mi != mapBlockIndex.end())
-                    {
-                        CBlock block;
-                        block.ReadFromDisk((*mi).second);
-                        pfrom->PushMessage("block", block);
-
-                        // Trigger them to send a getblocks request for the next batch of inventory
-                        if (inv.hash == pfrom->hashContinue)
-                        {
-                            // Bypass PushInventory, this must send even if redundant,
-                            // and we want it right after the last block so they don't
-                            // wait for other stuff first.
-                            vector<CInv> vInv;
-                            vInv.push_back(CInv(MSG_BLOCK, hashBestChain));
-                            pfrom->PushMessage("inv", vInv);
-                            pfrom->hashContinue = 0;
-                        }
-                    }
-                }
-                else if (inv.IsKnownType())
-                {
-                    if(fDebug) LogPrintf("ProcessGetData -- Starting \n");
-                    // Send stream from relay memory
-                    bool pushed = false;
-                    {
-                        LOCK(cs_mapRelay);
-                        map<CInv, CDataStream>::iterator mi = mapRelay.find(inv);
-                        if (mi != mapRelay.end()) {
-                            pfrom->PushMessage(inv.GetCommand(), (*mi).second);
-                            if(fDebug) LogPrintf("ProcessGetData -- pushed = true Rest will fail\n");
-                            pushed = true;
-                        }
-                    }
-
-                    if (!pushed && inv.type == MSG_TX) {
-
-                        CTransaction tx;
-                        if (mempool.lookup(inv.hash, tx)) {
-                            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                            ss.reserve(1000);
-                            ss << tx;
-                            pfrom->PushMessage("tx", ss);
-                            pushed = true;
-                        }
-                    }
-                    if (!pushed && inv.type == MSG_TXLOCK_VOTE) {
-                        if(mapTxLockVote.count(inv.hash)){
-                            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                            ss.reserve(1000);
-                            ss << mapTxLockVote[inv.hash];
-                            pfrom->PushMessage("txlvote", ss);
-                            pushed = true;
-                        }
-                    }
-                    if (!pushed && inv.type == MSG_TXLOCK_REQUEST) {
-                        if(mapTxLockReq.count(inv.hash)){
-                            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                            ss.reserve(1000);
-                            ss << mapTxLockReq[inv.hash];
-                            pfrom->PushMessage("txlreq", ss);
-                            pushed = true;
-                        }
-                    }
-                    if (!pushed && inv.type == MSG_SPORK) {
-                        if(mapSporks.count(inv.hash)){
-                            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                            ss.reserve(1000);
-                            ss << mapSporks[inv.hash];
-                            pfrom->PushMessage("spork", ss);
-                            pushed = true;
-                        }
-                    }
-                    if (!pushed && inv.type == MSG_MASTERNODE_WINNER) {
-                        if(mapSeenMasternodeVotes.count(inv.hash)){
-                            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                            ss.reserve(1000);
-                            ss << mapSeenMasternodeVotes[inv.hash];
-                            pfrom->PushMessage("mnw", ss);
-                            pushed = true;
-                        }
-                    }
-                    if (!pushed && inv.type == MSG_DSTX) {
-                        if(mapDarksendBroadcastTxes.count(inv.hash)){
-                            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                            ss.reserve(1000);
-                            ss <<
-                                mapDarksendBroadcastTxes[inv.hash].tx <<
-                                mapDarksendBroadcastTxes[inv.hash].vin <<
-                                mapDarksendBroadcastTxes[inv.hash].vchSig <<
-                                mapDarksendBroadcastTxes[inv.hash].sigTime;
-
-                            pfrom->PushMessage("dstx", ss);
-                            pushed = true;
-                        }
-                    }
-                    if (!pushed) {
-                        vNotFound.push_back(inv);
-                    }
-                }
-
-                // Track requests for our stuff.
-                g_signals.Inventory(inv.hash);
-
-                if (inv.type == MSG_BLOCK  || inv.type == MSG_FILTERED_BLOCK)
-                    break;
-            }
+    while (it != pfrom->vRecvGetData.end()) {
+        // Don't bother if send buffer is too full to respond anyway
+        if (pfrom->nSendSize >= SendBufferSize())
             break;
+
+        const CInv &inv = *it;
+        {
+            boost::this_thread::interruption_point();
+            it++;
+
+            if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK)
+            {
+                // Send block from disk
+                map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(inv.hash);
+                if (mi != mapBlockIndex.end())
+                {
+                    CBlock block;
+                    block.ReadFromDisk((*mi).second);
+                    pfrom->PushMessage("block", block);
+
+                    // Trigger them to send a getblocks request for the next batch of inventory
+                    if (inv.hash == pfrom->hashContinue)
+                    {
+                        // Bypass PushInventory, this must send even if redundant,
+                        // and we want it right after the last block so they don't
+                        // wait for other stuff first.
+                        vector<CInv> vInv;
+                        vInv.push_back(CInv(MSG_BLOCK, hashBestChain));
+                        pfrom->PushMessage("inv", vInv);
+                        pfrom->hashContinue = 0;
+                    }
+                }
+            }
+            else if (inv.IsKnownType())
+            {
+                if(fDebug) LogPrintf("ProcessGetData -- Starting \n");
+                // Send stream from relay memory
+                bool pushed = false;
+                {
+                    LOCK(cs_mapRelay);
+                    map<CInv, CDataStream>::iterator mi = mapRelay.find(inv);
+                    if (mi != mapRelay.end()) {
+                        pfrom->PushMessage(inv.GetCommand(), (*mi).second);
+                        if(fDebug) LogPrintf("ProcessGetData -- pushed = true Rest will fail\n");
+                        pushed = true;
+                    }
+                }
+
+                if (!pushed && inv.type == MSG_TX) {
+
+                    CTransaction tx;
+                    if (mempool.lookup(inv.hash, tx)) {
+                        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+                        ss.reserve(1000);
+                        ss << tx;
+                        pfrom->PushMessage("tx", ss);
+                        pushed = true;
+                    }
+                }
+                if (!pushed && inv.type == MSG_TXLOCK_VOTE) {
+                    if(mapTxLockVote.count(inv.hash)){
+                        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+                        ss.reserve(1000);
+                        ss << mapTxLockVote[inv.hash];
+                        pfrom->PushMessage("txlvote", ss);
+                        pushed = true;
+                    }
+                }
+                if (!pushed && inv.type == MSG_TXLOCK_REQUEST) {
+                    if(mapTxLockReq.count(inv.hash)){
+                        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+                        ss.reserve(1000);
+                        ss << mapTxLockReq[inv.hash];
+                        pfrom->PushMessage("txlreq", ss);
+                        pushed = true;
+                    }
+                }
+                if (!pushed && inv.type == MSG_SPORK) {
+                    if(mapSporks.count(inv.hash)){
+                        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+                        ss.reserve(1000);
+                        ss << mapSporks[inv.hash];
+                        pfrom->PushMessage("spork", ss);
+                        pushed = true;
+                    }
+                }
+                if (!pushed && inv.type == MSG_MASTERNODE_WINNER) {
+                    if(mapSeenMasternodeVotes.count(inv.hash)){
+                        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+                        ss.reserve(1000);
+                        ss << mapSeenMasternodeVotes[inv.hash];
+                        pfrom->PushMessage("mnw", ss);
+                        pushed = true;
+                    }
+                }
+                if (!pushed && inv.type == MSG_DSTX) {
+                    if(mapDarksendBroadcastTxes.count(inv.hash)){
+                        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+                        ss.reserve(1000);
+                        ss <<
+                            mapDarksendBroadcastTxes[inv.hash].tx <<
+                            mapDarksendBroadcastTxes[inv.hash].vin <<
+                            mapDarksendBroadcastTxes[inv.hash].vchSig <<
+                            mapDarksendBroadcastTxes[inv.hash].sigTime;
+
+                        pfrom->PushMessage("dstx", ss);
+                        pushed = true;
+                    }
+                }
+                if (!pushed) {
+                    vNotFound.push_back(inv);
+                }
+            }
+
+            // Track requests for our stuff.
+            g_signals.Inventory(inv.hash);
+
+            if (inv.type == MSG_BLOCK  || inv.type == MSG_FILTERED_BLOCK)
+                break;
         }
     }
 
@@ -4305,38 +4290,29 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             {
                 // Relay to a limited number of other nodes
                 {
-                    while(true)
+                    LOCK(cs_vNodes);
+                    // Use deterministic randomness to send to the same nodes for 24 hours
+                    // at a time so the setAddrKnowns of the chosen nodes prevent repeats
+                    static uint256 hashSalt;
+                    if (hashSalt == 0)
+                        hashSalt = GetRandHash();
+                    uint64_t hashAddr = addr.GetHash();
+                    uint256 hashRand = hashSalt ^ (hashAddr<<32) ^ ((GetTime()+hashAddr)/(24*60*60));
+                    hashRand = Hash(BEGIN(hashRand), END(hashRand));
+                    multimap<uint256, CNode*> mapMix;
+                    BOOST_FOREACH(CNode* pnode, vNodes)
                     {
-                        boost::this_thread::interruption_point();
-
-                        TRY_LOCK(cs_vNodes, lockNodes);
-                        if(!lockNodes) { MilliSleep(2); continue; }
-
-                        // Use deterministic randomness to send to the same nodes for 24 hours
-                        // at a time so the setAddrKnowns of the chosen nodes prevent repeats
-                        static uint256 hashSalt;
-                        if (hashSalt == 0)
-                            hashSalt = GetRandHash();
-                        uint64_t hashAddr = addr.GetHash();
-                        uint256 hashRand = hashSalt ^ (hashAddr<<32) ^ ((GetTime()+hashAddr)/(24*60*60));
-                        hashRand = Hash(BEGIN(hashRand), END(hashRand));
-                        multimap<uint256, CNode*> mapMix;
-                        BOOST_FOREACH(CNode* pnode, vNodes)
-                        {
-                            if (pnode->nVersion < CADDR_TIME_VERSION)
-                                continue;
-                            unsigned int nPointer;
-                            memcpy(&nPointer, &pnode, sizeof(nPointer));
-                            uint256 hashKey = hashRand ^ nPointer;
-                            hashKey = Hash(BEGIN(hashKey), END(hashKey));
-                            mapMix.insert(make_pair(hashKey, pnode));
-                        }
-                        int nRelayNodes = fReachable ? 2 : 1; // limited relaying of addresses outside our network(s)
-                        for (multimap<uint256, CNode*>::iterator mi = mapMix.begin(); mi != mapMix.end() && nRelayNodes-- > 0; ++mi)
-                            ((*mi).second)->PushAddress(addr);
-
-                        break;
+                        if (pnode->nVersion < CADDR_TIME_VERSION)
+                            continue;
+                        unsigned int nPointer;
+                        memcpy(&nPointer, &pnode, sizeof(nPointer));
+                        uint256 hashKey = hashRand ^ nPointer;
+                        hashKey = Hash(BEGIN(hashKey), END(hashKey));
+                        mapMix.insert(make_pair(hashKey, pnode));
                     }
+                    int nRelayNodes = fReachable ? 2 : 1; // limited relaying of addresses outside our network(s)
+                    for (multimap<uint256, CNode*>::iterator mi = mapMix.begin(); mi != mapMix.end() && nRelayNodes-- > 0; ++mi)
+                        ((*mi).second)->PushAddress(addr);
                 }
             }
             // Do not store addresses outside our network
@@ -4369,56 +4345,48 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             }
         }
         
-        while(true)
+        LOCK(cs_main);
+        int nBlocksGet = 0;
+
+        CTxDB txdb("r");
+
+        for (unsigned int nInv = 0; nInv < vInv.size(); nInv++)
         {
+            const CInv &inv = vInv[nInv];
+
             boost::this_thread::interruption_point();
+            pfrom->AddInventoryKnown(inv);
 
-            TRY_LOCK(cs_main, lockMain);
-            if(!lockMain) { MilliSleep(2); continue; }
-            int nBlocksGet = 0;
+            bool fAlreadyHave = AlreadyHave(txdb, inv);
+            LogPrint("net", "  got inventory: %s  %s\n", inv.ToString(), fAlreadyHave ? "have" : "new");
 
-            CTxDB txdb("r");
-
-            for (unsigned int nInv = 0; nInv < vInv.size(); nInv++)
-            {
-                const CInv &inv = vInv[nInv];
-
-                boost::this_thread::interruption_point();
-                pfrom->AddInventoryKnown(inv);
-
-                bool fAlreadyHave = AlreadyHave(txdb, inv);
-                LogPrint("net", "  got inventory: %s  %s\n", inv.ToString(), fAlreadyHave ? "have" : "new");
-
-                if (!fAlreadyHave) {
-                    if (!fImporting)
-                        if (inv.type == MSG_BLOCK) {
-                            if (pfrom->tGetblocks > pfrom->tBlockInvs || !IsSyncing()) {
-                                pfrom->AskFor(inv);
-                                nBlocksGet++;
-                            }
-                        } else
-                            pfrom->AskFor(inv);                                 
-                } else if (inv.type == MSG_BLOCK && mapOrphanBlocks.count(inv.hash)) {
-                    PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(inv.hash));
-                } else if (nInv == nLastBlock) {
-                    // In case we are on a very long side-chain, it is possible that we already have
-                    // the last block in an inv bundle sent in response to getblocks. Try to detect
-                    // this situation and push another getblocks to continue.
-                    PushGetBlocks(pfrom, mapBlockIndex[inv.hash], uint256(0));
-                    if (fDebug)
-                        LogPrintf("force request: %s\n", inv.ToString());
-                }
-
-
-                // Track requests for our stuff
-                g_signals.Inventory(inv.hash);
+            if (!fAlreadyHave) {
+                if (!fImporting)
+                    if (inv.type == MSG_BLOCK) {
+                        if (pfrom->tGetblocks > pfrom->tBlockInvs || !IsSyncing()) {
+                            pfrom->AskFor(inv);
+                            nBlocksGet++;
+                        }
+                    } else
+                        pfrom->AskFor(inv);                                 
+            } else if (inv.type == MSG_BLOCK && mapOrphanBlocks.count(inv.hash)) {
+                PushGetBlocks(pfrom, pindexBest, GetOrphanRoot(inv.hash));
+            } else if (nInv == nLastBlock) {
+                // In case we are on a very long side-chain, it is possible that we already have
+                // the last block in an inv bundle sent in response to getblocks. Try to detect
+                // this situation and push another getblocks to continue.
+                PushGetBlocks(pfrom, mapBlockIndex[inv.hash], uint256(0));
+                if (fDebug)
+                    LogPrintf("force request: %s\n", inv.ToString());
             }
 
-            if (nBlocksGet)
-                pfrom->tBlockInvs = GetTimeMillis();
 
-            break;
+            // Track requests for our stuff
+            g_signals.Inventory(inv.hash);
         }
+
+        if (nBlocksGet)
+            pfrom->tBlockInvs = GetTimeMillis();
     }
 
 
@@ -4449,40 +4417,32 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         uint256 hashStop;
         vRecv >> locator >> hashStop;
 
-        while(true)
+        LOCK(cs_main);
+
+        // Find the last block the caller has in the main chain
+        CBlockIndex* pindex = locator.GetBlockIndex();
+
+        // Send the rest of the chain
+        if (pindex)
+            pindex = pindex->pnext;
+        int nLimit = 500;
+        LogPrint("net", "getblocks %d to %s limit %d\n", (pindex ? pindex->nHeight : -1), hashStop.ToString(), nLimit);
+        for (; pindex; pindex = pindex->pnext)
         {
-            boost::this_thread::interruption_point();
-
-            TRY_LOCK(cs_main, lockMain);
-            if(!lockMain) { MilliSleep(2); continue; }
-
-            // Find the last block the caller has in the main chain
-            CBlockIndex* pindex = locator.GetBlockIndex();
-
-            // Send the rest of the chain
-            if (pindex)
-                pindex = pindex->pnext;
-            int nLimit = 500;
-            LogPrint("net", "getblocks %d to %s limit %d\n", (pindex ? pindex->nHeight : -1), hashStop.ToString(), nLimit);
-            for (; pindex; pindex = pindex->pnext)
+            if (pindex->GetBlockHash() == hashStop)
             {
-                if (pindex->GetBlockHash() == hashStop)
-                {
-                    LogPrint("net", "  getblocks stopping at %d %s\n", pindex->nHeight, pindex->GetBlockHash().ToString());
-                    break;
-                }
-                pfrom->PushInventory(CInv(MSG_BLOCK, pindex->GetBlockHash()));
-                if (--nLimit <= 0)
-                {
-                    // When this block is requested, we'll send an inv that'll make them
-                    // getblocks the next batch of inventory.
-                    LogPrint("net", "  getblocks stopping at limit %d %s\n", pindex->nHeight, pindex->GetBlockHash().ToString());
-                    pfrom->hashContinue = pindex->GetBlockHash();
-                    break;
-                }
+                LogPrint("net", "  getblocks stopping at %d %s\n", pindex->nHeight, pindex->GetBlockHash().ToString());
+                break;
             }
-
-            break;
+            pfrom->PushInventory(CInv(MSG_BLOCK, pindex->GetBlockHash()));
+            if (--nLimit <= 0)
+            {
+                // When this block is requested, we'll send an inv that'll make them
+                // getblocks the next batch of inventory.
+                LogPrint("net", "  getblocks stopping at limit %d %s\n", pindex->nHeight, pindex->GetBlockHash().ToString());
+                pfrom->hashContinue = pindex->GetBlockHash();
+                break;
+            }
         }
     }
 
@@ -4539,69 +4499,61 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
         pfrom->AddInventoryKnown(inv);
 
-        while(true)
+        LOCK(cs_main);
+
+        bool fMissingInputs = false;
+
+        mapAlreadyAskedFor.erase(inv);
+
+        if (AcceptToMemoryPool(mempool, tx, true, &fMissingInputs))
         {
-            boost::this_thread::interruption_point();
+            RelayTransaction(tx, inv.hash);
+            vWorkQueue.push_back(inv.hash);
+            vEraseQueue.push_back(inv.hash);
 
-            TRY_LOCK(cs_main, lockMain);
-            if(!lockMain) { MilliSleep(2); continue; }
-
-            bool fMissingInputs = false;
-
-            mapAlreadyAskedFor.erase(inv);
-
-            if (AcceptToMemoryPool(mempool, tx, true, &fMissingInputs))
+            // Recursively process any orphan transactions that depended on this one
+            for (unsigned int i = 0; i < vWorkQueue.size(); i++)
             {
-                RelayTransaction(tx, inv.hash);
-                vWorkQueue.push_back(inv.hash);
-                vEraseQueue.push_back(inv.hash);
-
-                // Recursively process any orphan transactions that depended on this one
-                for (unsigned int i = 0; i < vWorkQueue.size(); i++)
+                map<uint256, set<uint256> >::iterator itByPrev = mapOrphanTransactionsByPrev.find(vWorkQueue[i]);
+                if (itByPrev == mapOrphanTransactionsByPrev.end())
+                    continue;
+                for (set<uint256>::iterator mi = itByPrev->second.begin();
+                     mi != itByPrev->second.end();
+                     ++mi)
                 {
-                    map<uint256, set<uint256> >::iterator itByPrev = mapOrphanTransactionsByPrev.find(vWorkQueue[i]);
-                    if (itByPrev == mapOrphanTransactionsByPrev.end())
-                        continue;
-                    for (set<uint256>::iterator mi = itByPrev->second.begin();
-                         mi != itByPrev->second.end();
-                         ++mi)
-                    {
-                        const uint256& orphanTxHash = *mi;
-                        CTransaction& orphanTx = mapOrphanTransactions[orphanTxHash];
-                        bool fMissingInputs2 = false;
+                    const uint256& orphanTxHash = *mi;
+                    CTransaction& orphanTx = mapOrphanTransactions[orphanTxHash];
+                    bool fMissingInputs2 = false;
 
-                        if (AcceptToMemoryPool(mempool, orphanTx, true, &fMissingInputs2))
-                        {
-                            LogPrint("mempool", "   accepted orphan tx %s\n", orphanTxHash.ToString());
-                            RelayTransaction(orphanTx, orphanTxHash);
-                            vWorkQueue.push_back(orphanTxHash);
-                            vEraseQueue.push_back(orphanTxHash);
-                        }
-                        else if (!fMissingInputs2)
-                        {
-                            // invalid or too-little-fee orphan
-                            vEraseQueue.push_back(orphanTxHash);
-                            LogPrint("mempool", "   removed orphan tx %s\n", orphanTxHash.ToString());
-                        }
+                    if (AcceptToMemoryPool(mempool, orphanTx, true, &fMissingInputs2))
+                    {
+                        LogPrint("mempool", "   accepted orphan tx %s\n", orphanTxHash.ToString());
+                        RelayTransaction(orphanTx, orphanTxHash);
+                        vWorkQueue.push_back(orphanTxHash);
+                        vEraseQueue.push_back(orphanTxHash);
+                    }
+                    else if (!fMissingInputs2)
+                    {
+                        // invalid or too-little-fee orphan
+                        vEraseQueue.push_back(orphanTxHash);
+                        LogPrint("mempool", "   removed orphan tx %s\n", orphanTxHash.ToString());
                     }
                 }
-
-                BOOST_FOREACH(uint256 hash, vEraseQueue)
-                    EraseOrphanTx(hash);
             }
-            else if (fMissingInputs)
-            {
-                AddOrphanTx(tx);
 
-                // DoS prevention: do not allow mapOrphanTransactions to grow unbounded
-                unsigned int nEvicted = LimitOrphanTxSize(MAX_ORPHAN_TRANSACTIONS);
-                if (nEvicted > 0)
-                    LogPrint("mempool", "mapOrphan overflow, removed %u tx\n", nEvicted);
-            }
-            if (tx.nDoS) pfrom->Misbehaving(tx.nDoS);
-
-            break;
+            BOOST_FOREACH(uint256 hash, vEraseQueue)
+                EraseOrphanTx(hash);
         }
+        else if (fMissingInputs)
+        {
+            AddOrphanTx(tx);
+
+            // DoS prevention: do not allow mapOrphanTransactions to grow unbounded
+            unsigned int nEvicted = LimitOrphanTxSize(MAX_ORPHAN_TRANSACTIONS);
+            if (nEvicted > 0)
+                LogPrint("mempool", "mapOrphan overflow, removed %u tx\n", nEvicted);
+        }
+        if (tx.nDoS) pfrom->Misbehaving(tx.nDoS);
     }
 
     else if (strCommand == "block" && !fImporting && !fReindex) // Ignore blocks received while importing
@@ -4624,24 +4576,16 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         else
             LogPrint("net", "received block %s (%u bytes) peer=%d\n", inv.hash.ToString(), size, pfrom->id);
 
-        while(true)
+        LOCK(cs_main);
+
+        if (ProcessBlock(pfrom, &block))
         {
-            boost::this_thread::interruption_point();
-
-            TRY_LOCK(cs_main, lockMain);
-            if(!lockMain) { MilliSleep(2); continue; }
-
-            if (ProcessBlock(pfrom, &block))
-            {
-                mapAlreadyAskedFor.erase(inv);
-                pfrom->tBlockRecved = GetTimeMillis();
-            }
-            if (block.nDoS) pfrom->Misbehaving(block.nDoS);
-            if (fSecMsgEnabled)
-                SecureMsgScanBlock(block);
-
-            break;
+            mapAlreadyAskedFor.erase(inv);
+            pfrom->tBlockRecved = GetTimeMillis();
         }
+        if (block.nDoS) pfrom->Misbehaving(block.nDoS);
+        if (fSecMsgEnabled)
+            SecureMsgScanBlock(block);
     }
 
     // This asymmetric behavior for inbound and outbound connections was introduced
@@ -4663,27 +4607,19 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
     else if (strCommand == "mempool")
     {
-        while(true)
-        {
-            boost::this_thread::interruption_point();
-            
-            TRY_LOCK(cs_main, lockMain);
-            if(!lockMain) { MilliSleep(2); continue; }
+        LOCK(cs_main);
 
-            std::vector<uint256> vtxid;
-            mempool.queryHashes(vtxid);
-            vector<CInv> vInv;
-            for (unsigned int i = 0; i < vtxid.size(); i++) {
-                CInv inv(MSG_TX, vtxid[i]);
-                vInv.push_back(inv);
-                if (i == (MAX_INV_SZ - 1))
-                        break;
-            }
-            if (vInv.size() > 0)
-                pfrom->PushMessage("inv", vInv);
-
-            break;
+        std::vector<uint256> vtxid;
+        mempool.queryHashes(vtxid);
+        vector<CInv> vInv;
+        for (unsigned int i = 0; i < vtxid.size(); i++) {
+            CInv inv(MSG_TX, vtxid[i]);
+            vInv.push_back(inv);
+            if (i == (MAX_INV_SZ - 1))
+                    break;
         }
+        if (vInv.size() > 0)
+            pfrom->PushMessage("inv", vInv);
     }
 
 
@@ -4825,142 +4761,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
 
     return true;
-}
-
-// requires LOCK(cs_vRecvMsg)
-bool ProcessMessages(CNode* pfrom)
-{
-    //if (fDebug)
-    //    LogPrintf("ProcessMessages(%zu messages)\n", pfrom->vRecvMsg.size());
-
-    //
-    // Message format
-    //  (4) message start
-    //  (12) command
-    //  (4) size
-    //  (4) checksum
-    //  (x) data
-    //
-    bool fOk = true;    
-
-    if (!pfrom->vRecvGetData.empty())
-        ProcessGetData(pfrom);
-
-    // this maintains the order of responses
-    if (!pfrom->vRecvGetData.empty()) return fOk;
-
-    std::deque<CNetMessage>::iterator it = pfrom->vRecvMsg.begin();
-    while (!pfrom->fDisconnect && it != pfrom->vRecvMsg.end()) {
-        // Don't bother if send buffer is too full to respond anyway
-        if (pfrom->nSendSize >= SendBufferSize())
-            break;
-
-        // get next message
-        CNetMessage& msg = *it;
-        CMessageHeader& hdr = msg.hdr;
-        unsigned int nMessageSize = hdr.nMessageSize;
-        string strCommand = hdr.GetCommand();
-
-        //if (fDebug)
-        //    LogPrintf("ProcessMessages(message %u msgsz, %zu bytes, complete:%s)\n",
-        //            msg.hdr.nMessageSize, msg.vRecv.size(),
-        //            msg.complete() ? "Y" : "N");
-
-        if (msg.nDataPos != msg.nLastDataPos) {
-            if (strCommand == "block") {
-                if (msg.nLastDataPos == 0) {
-                    pfrom->tBlockRecvStart = GetTimeMillis();                
-                    if (pfrom->tBlockRecved)
-                        LogPrint("net", "%ums later, ", pfrom->tBlockRecvStart - pfrom->tBlockRecved);
-                    LogPrint("net", "incoming block (%u bytes) peer=%d\n", nMessageSize, pfrom->id);
-                }
-                pfrom->tBlockRecving = GetTimeMillis();
-            }
-            msg.nLastDataPos = msg.nDataPos;
-        }
-
-        // end, if an incomplete message is found
-        if (!msg.complete())
-            break;
-
-        // at this point, any failure means we can delete the current message
-        it++;
-
-        // Scan for message start
-        if (memcmp(msg.hdr.pchMessageStart, Params().MessageStart(), MESSAGE_START_SIZE) != 0) {
-            LogPrintf("\n\nPROCESSMESSAGE: INVALID MESSAGESTART\n\n");
-            fOk = false;
-            break;
-        }
-
-        // Read header
-        //CMessageHeader& hdr = msg.hdr;
-        if (!hdr.IsValid())
-        {
-            LogPrintf("\n\nPROCESSMESSAGE: ERRORS IN HEADER %s\n\n\n", strCommand);
-            continue;
-        }
-        //string strCommand = hdr.GetCommand();
-
-        // Message size
-        //unsigned int nMessageSize = hdr.nMessageSize;
-
-        // Checksum
-        CDataStream& vRecv = msg.vRecv;
-        uint256 hash = Hash(vRecv.begin(), vRecv.begin() + nMessageSize);
-        unsigned int nChecksum = 0;
-        memcpy(&nChecksum, &hash, sizeof(nChecksum));
-        if (nChecksum != hdr.nChecksum)
-        {
-            LogPrintf("ProcessMessages(%s, %u bytes) : CHECKSUM ERROR nChecksum=%08x hdr.nChecksum=%08x\n",
-               strCommand, nMessageSize, nChecksum, hdr.nChecksum);
-            continue;
-        }
-
-        // Process message
-        bool fRet = false;
-        try
-        {
-            fRet = ProcessMessage(pfrom, strCommand, vRecv, msg.nTime);
-            boost::this_thread::interruption_point();
-        }
-        catch (std::ios_base::failure& e)
-        {
-            if (strstr(e.what(), "end of data"))
-            {
-                // Allow exceptions from under-length message on vRecv
-                LogPrintf("ProcessMessages(%s, %u bytes) : Exception '%s' caught, normally caused by a message being shorter than its stated length\n", strCommand, nMessageSize, e.what());
-            }
-            else if (strstr(e.what(), "size too large"))
-            {
-                // Allow exceptions from over-long size
-                LogPrintf("ProcessMessages(%s, %u bytes) : Exception '%s' caught\n", strCommand, nMessageSize, e.what());
-            }
-            else
-            {
-                PrintExceptionContinue(&e, "ProcessMessages()");
-            }
-        }
-        catch (boost::thread_interrupted) {
-            throw;
-        }
-        catch (std::exception& e) {
-            PrintExceptionContinue(&e, "ProcessMessages()");
-        } catch (...) {
-            PrintExceptionContinue(NULL, "ProcessMessages()");
-        }
-
-        if (!fRet)
-            LogPrintf("ProcessMessage(%s, %u bytes) FAILED\n", strCommand, nMessageSize);
-
-        break;
-    }
-
-    // In case the connection got shut down, its receive buffer was wiped
-    if (!pfrom->fDisconnect)
-        pfrom->vRecvMsg.erase(pfrom->vRecvMsg.begin(), it);
-
-    return fOk;
 }
 
 

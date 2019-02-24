@@ -329,57 +329,30 @@ CCriticalSection CNode::cs_totalBytesSent;
 CNode* FindNode(const CNetAddr& ip)
 {
     {
-        while(true)
-        {
-            boost::this_thread::interruption_point();
-            
-            TRY_LOCK(cs_vNodes, lockNodes);
-            if(!lockNodes) { MilliSleep(2); continue; }
-
-                BOOST_FOREACH(CNode* pnode, vNodes)
-                    if ((CNetAddr)pnode->addr == ip)
-                        return (pnode);
-
-            break;
-        }
+        LOCK(cs_vNodes);
+        BOOST_FOREACH(CNode* pnode, vNodes)
+            if ((CNetAddr)pnode->addr == ip)
+                return (pnode);
     }
     return NULL;
 }
 
 CNode* FindNode(const std::string& addrName)
 {
-    while(true)
-    {
-        boost::this_thread::interruption_point();
-        
-        TRY_LOCK(cs_vNodes, lockNodes);
-        if(!lockNodes) { MilliSleep(2); continue; }
-
-        BOOST_FOREACH(CNode* pnode, vNodes)
-            if (pnode->addrName == addrName)
-                return (pnode);
-
-        break;
-    }
+    LOCK(cs_vNodes);
+    BOOST_FOREACH(CNode* pnode, vNodes)
+        if (pnode->addrName == addrName)
+            return (pnode);
     return NULL;
 }
 
 CNode* FindNode(const CService& addr)
 {
     {
-        while(true)
-        {
-            boost::this_thread::interruption_point();
-            
-            TRY_LOCK(cs_vNodes, lockNodes);
-            if(!lockNodes) { MilliSleep(2); continue; }
-
-            BOOST_FOREACH(CNode* pnode, vNodes)
-                if ((CService)pnode->addr == addr)
-                    return (pnode);
-
-            break;
-        }
+        LOCK(cs_vNodes);
+        BOOST_FOREACH(CNode* pnode, vNodes)
+            if ((CService)pnode->addr == addr)
+                return (pnode);
     }
     return NULL;
 }
@@ -433,15 +406,8 @@ CNode* ConnectNode(CAddress addrConnect, const char *pszDest, bool darkSendMaste
         pnode->AddRef();
 
         {
-            while(true)
-            {
-                boost::this_thread::interruption_point();
-                
-                TRY_LOCK(cs_vNodes, lockNodes);
-                if(!lockNodes) { MilliSleep(2); continue; }
-                vNodes.push_back(pnode);
-                break;
-            }
+            LOCK(cs_vNodes);
+            vNodes.push_back(pnode);
         }
 
         pnode->nTimeConnected = GetTime();
@@ -719,41 +685,32 @@ void ThreadSocketHandler()
 
     while (true)
     {
-        boost::this_thread::interruption_point();
         //
         // Disconnect nodes
         //
         {
-            while(true)
+            LOCK(cs_vNodes);
+            // Disconnect unused nodes
+            vector<CNode*> vNodesCopy = vNodes;
+            BOOST_FOREACH(CNode* pnode, vNodesCopy)
             {
-                boost::this_thread::interruption_point();
-                TRY_LOCK(cs_vNodes, lockNodes);
-                if(!lockNodes) { MilliSleep(2); continue; }
-
-                // Disconnect unused nodes
-                vector<CNode*> vNodesCopy = vNodes;
-                BOOST_FOREACH(CNode* pnode, vNodesCopy)
+                if (pnode->fDisconnect ||
+                    (pnode->GetRefCount() <= 0 && pnode->vRecvMsg.empty() && pnode->nSendSize == 0 && pnode->ssSend.empty()))
                 {
-                    if (pnode->fDisconnect ||
-                        (pnode->GetRefCount() <= 0 && pnode->vRecvMsg.empty() && pnode->nSendSize == 0 && pnode->ssSend.empty()))
-                    {
-                        // remove from vNodes
-                        vNodes.erase(remove(vNodes.begin(), vNodes.end(), pnode), vNodes.end());
+                    // remove from vNodes
+                    vNodes.erase(remove(vNodes.begin(), vNodes.end(), pnode), vNodes.end());
 
-                        // release outbound grant (if any)
-                        pnode->grantOutbound.Release();
+                    // release outbound grant (if any)
+                    pnode->grantOutbound.Release();
 
-                        // close socket and cleanup
-                        pnode->CloseSocketDisconnect();
+                    // close socket and cleanup
+                    pnode->CloseSocketDisconnect();
 
-                        // hold in disconnected pool until all refs are released
-                        if (pnode->fNetworkNode || pnode->fInbound)
-                            pnode->Release();
-                        vNodesDisconnected.push_back(pnode);
-                    }
-                    boost::this_thread::interruption_point();
+                    // hold in disconnected pool until all refs are released
+                    if (pnode->fNetworkNode || pnode->fInbound)
+                        pnode->Release();
+                    vNodesDisconnected.push_back(pnode);
                 }
-                break;
             }
         }
         {
@@ -761,7 +718,6 @@ void ThreadSocketHandler()
             list<CNode*> vNodesDisconnectedCopy = vNodesDisconnected;
             BOOST_FOREACH(CNode* pnode, vNodesDisconnectedCopy)
             {
-                boost::this_thread::interruption_point();
                 // wait until threads are done using it
                 if (pnode->GetRefCount() <= 0)
                 {
@@ -817,32 +773,24 @@ void ThreadSocketHandler()
             have_fds = true;
         }
         {
-            while(true)
+            LOCK(cs_vNodes);
+            BOOST_FOREACH(CNode* pnode, vNodes)
             {
-                boost::this_thread::interruption_point();
-                TRY_LOCK(cs_vNodes, lockNodes);
-                if(!lockNodes) { MilliSleep(2); continue; }
-
-                BOOST_FOREACH(CNode* pnode, vNodes)
+                if (pnode->hSocket == INVALID_SOCKET)
+                    continue;
                 {
-                    boost::this_thread::interruption_point();
-                    if (pnode->hSocket == INVALID_SOCKET)
-                        continue;
-                    {
-                        TRY_LOCK(pnode->cs_vSend, lockSend);
-                        if (lockSend) {
-                            // do not read, if draining write queue
-                            if (!pnode->vSendMsg.empty())
-                                FD_SET(pnode->hSocket, &fdsetSend);
-                            else
-                                FD_SET(pnode->hSocket, &fdsetRecv);
-                            FD_SET(pnode->hSocket, &fdsetError);
-                            hSocketMax = max(hSocketMax, pnode->hSocket);
-                            have_fds = true;
-                        }
+                    TRY_LOCK(pnode->cs_vSend, lockSend);
+                    if (lockSend) {
+                        // do not read, if draining write queue
+                        if (!pnode->vSendMsg.empty())
+                            FD_SET(pnode->hSocket, &fdsetSend);
+                        else
+                            FD_SET(pnode->hSocket, &fdsetRecv);
+                        FD_SET(pnode->hSocket, &fdsetError);
+                        hSocketMax = max(hSocketMax, pnode->hSocket);
+                        have_fds = true;
                     }
                 }
-                break;
             }
         }
 
@@ -882,17 +830,10 @@ void ThreadSocketHandler()
                     LogPrintf("Warning: Unknown socket family\n");
 
             {
-                while(true)
-                {
-                    boost::this_thread::interruption_point();
-                    TRY_LOCK(cs_vNodes, lockNodes);
-                    if(!lockNodes) { MilliSleep(2); continue; }
-                    BOOST_FOREACH(CNode* pnode, vNodes)
-                        if (pnode->fInbound)
-                            nInbound++;
-
-                    break;
-                }
+                LOCK(cs_vNodes);
+                BOOST_FOREACH(CNode* pnode, vNodes)
+                    if (pnode->fInbound)
+                        nInbound++;
             }
 
             if (hSocket == INVALID_SOCKET)
@@ -921,15 +862,8 @@ void ThreadSocketHandler()
                 CNode* pnode = new CNode(hSocket, addr, "", true);
                 pnode->AddRef();
                 {
-                    while(true)
-                    {
-                        boost::this_thread::interruption_point();
-                        TRY_LOCK(cs_vNodes, lockNodes);
-                        if(!lockNodes) { MilliSleep(2); continue; }
-    
-                        vNodes.push_back(pnode);
-                        break;
-                    }
+                    LOCK(cs_vNodes);
+                    vNodes.push_back(pnode);
                 }
             }
         }
@@ -941,18 +875,10 @@ void ThreadSocketHandler()
         //
         vector<CNode*> vNodesCopy;
         {
-            while(true)
-            {
-                boost::this_thread::interruption_point();
-                TRY_LOCK(cs_vNodes, lockNodes);
-                if(!lockNodes) { MilliSleep(2); continue; }
-
-                vNodesCopy = vNodes;
-                BOOST_FOREACH(CNode* pnode, vNodesCopy)
-                    pnode->AddRef();
-
-                break;
-            }
+            LOCK(cs_vNodes);
+            vNodesCopy = vNodes;
+            BOOST_FOREACH(CNode* pnode, vNodesCopy)
+                pnode->AddRef();
         }
         BOOST_FOREACH(CNode* pnode, vNodesCopy)
         {
@@ -1048,19 +974,11 @@ void ThreadSocketHandler()
             }
         }
         {
-            while(true)
-            {
-                boost::this_thread::interruption_point();
-                TRY_LOCK(cs_vNodes, lockNodes);
-                if(!lockNodes) { MilliSleep(2); continue; }
-
-                BOOST_FOREACH(CNode* pnode, vNodesCopy)
-                    pnode->Release();
-
-                break;
-            }
+            LOCK(cs_vNodes);
+            BOOST_FOREACH(CNode* pnode, vNodesCopy)
+                pnode->Release();
         }
-    MilliSleep(100); // niceness
+    MilliSleep(50); // niceness
     }
 }
 
@@ -1275,11 +1193,9 @@ void ThreadOpenConnections()
     {
         for (int64_t nLoop = 0;; nLoop++)
         {
-            boost::this_thread::interruption_point();
             ProcessOneShot();
             BOOST_FOREACH(string strAddr, mapMultiArgs["-connect"])
             {
-                boost::this_thread::interruption_point();
                 CAddress addr;
                 OpenNetworkConnection(addr, NULL, strAddr.c_str());
                 for (int i = 0; i < 10 && i < nLoop; i++)
@@ -1322,19 +1238,12 @@ void ThreadOpenConnections()
         int nOutbound = 0;
         set<vector<unsigned char> > setConnected;
         {
-            while(true)
-            {
-                boost::this_thread::interruption_point();
-                TRY_LOCK(cs_vNodes, lockNodes);
-                if(!lockNodes) { MilliSleep(2); continue; }
-
-                BOOST_FOREACH(CNode* pnode, vNodes) {
-                    if (!pnode->fInbound) {
-                        setConnected.insert(pnode->addr.GetGroup());
-                        nOutbound++;
-                    }
+            LOCK(cs_vNodes);
+            BOOST_FOREACH(CNode* pnode, vNodes) {
+                if (!pnode->fInbound) {
+                    setConnected.insert(pnode->addr.GetGroup());
+                    nOutbound++;
                 }
-                break;
             }
         }
 
@@ -1343,8 +1252,6 @@ void ThreadOpenConnections()
         int nTries = 0;
         while (true)
         {
-            boost::this_thread::interruption_point();
-
             // use an nUnkBias between 10 (no outgoing connections) and 90 (8 outgoing connections)
             CAddress addr = addrman.Select(10 + min(nOutbound,8)*10);
 
@@ -1388,7 +1295,6 @@ void ThreadOpenAddedConnections()
 
     if (HaveNameProxy()) {
         while(true) {
-            boost::this_thread::interruption_point();
             list<string> lAddresses(0);
             {
                 LOCK(cs_vAddedNodes);
@@ -1407,7 +1313,6 @@ void ThreadOpenAddedConnections()
 
     for (unsigned int i = 0; true; i++)
     {
-        boost::this_thread::interruption_point();
         list<string> lAddresses(0);
         {
             LOCK(cs_vAddedNodes);
@@ -1432,23 +1337,16 @@ void ThreadOpenAddedConnections()
         // Attempt to connect to each IP for each addnode entry until at least one is successful per addnode entry
         // (keeping in mind that addnode entries can have many IPs if fNameLookup)
         {
-            while(true)
-            {
-                TRY_LOCK(cs_vNodes, lockNodes);
-                if(!lockNodes) { MilliSleep(2); continue; }
-
-                BOOST_FOREACH(CNode* pnode, vNodes)
-                    for (list<vector<CService> >::iterator it = lservAddressesToAdd.begin(); it != lservAddressesToAdd.end(); it++)
-                        BOOST_FOREACH(CService& addrNode, *(it))
-                            if (pnode->addr == addrNode)
-                            {
-                                it = lservAddressesToAdd.erase(it);
-                                it--;
-                                break;
-                            }
-
-                break;
-            }
+            LOCK(cs_vNodes);
+            BOOST_FOREACH(CNode* pnode, vNodes)
+                for (list<vector<CService> >::iterator it = lservAddressesToAdd.begin(); it != lservAddressesToAdd.end(); it++)
+                    BOOST_FOREACH(CService& addrNode, *(it))
+                        if (pnode->addr == addrNode)
+                        {
+                            it = lservAddressesToAdd.erase(it);
+                            it--;
+                            break;
+                        }
         }
         BOOST_FOREACH(vector<CService>& vserv, lservAddressesToAdd)
         {
@@ -1559,12 +1457,12 @@ void ThreadMessageHandler(int ncore)
         vector<CNode*> vNodesCopy; // nodes to work on in this core
         {
             // niceness, try to get a lock if not wait and try again instead of blocking
-            TRY_LOCK(cs_vNodes, lockNodes);
+          /*  TRY_LOCK(cs_vNodes, lockNodes);
             if(!lockNodes)
             {
                 MilliSleep(2);
                 continue;
-            }
+            }*/
 
             vNodesFullSet = vNodes;
             // figure out the start and end indexes for this core to work on
@@ -1655,9 +1553,8 @@ void ThreadMessageHandler(int ncore)
         {
             while(true)
             {
-                boost::this_thread::interruption_point();
                 TRY_LOCK(cs_vNodes, lockNodes);
-                if(!lockNodes) { MilliSleep(2); continue; }
+                if(!lockNodes) { MilliSleep(1); continue; }
                 BOOST_FOREACH(CNode* pnode, vNodesCopy)
                     pnode->Release();
 
@@ -2007,9 +1904,8 @@ void RelayDarkSendElectionEntry(const CTxIn vin, const CService addr, const std:
     while(true)
     {
         boost::this_thread::interruption_point();
-
         TRY_LOCK(cs_vNodes, lockNodes);
-        if(!lockNodes) { MilliSleep(2); continue; }
+        if(!lockNodes) { MilliSleep(1); continue; }
 
         BOOST_FOREACH(CNode* pnode, vNodes)
         {
@@ -2032,9 +1928,8 @@ void SendDarkSendElectionEntry(const CTxIn vin, const CService addr, const std::
     while(true)
     {
         boost::this_thread::interruption_point();
-        
         TRY_LOCK(cs_vNodes, lockNodes);
-        if(!lockNodes) { MilliSleep(2); continue; }
+        if(!lockNodes) { MilliSleep(1); continue; }
 
         BOOST_FOREACH(CNode* pnode, vNodes)
         {
@@ -2057,9 +1952,8 @@ void RelayDarkSendElectionEntryPing(const CTxIn vin, const std::vector<unsigned 
     while(true)
     {
         boost::this_thread::interruption_point();
-        
         TRY_LOCK(cs_vNodes, lockNodes);
-        if(!lockNodes) { MilliSleep(2); continue; }
+        if(!lockNodes) { MilliSleep(1); continue; }
 
         BOOST_FOREACH(CNode* pnode, vNodes)
         {
@@ -2082,9 +1976,8 @@ void SendDarkSendElectionEntryPing(const CTxIn vin, const std::vector<unsigned c
     while(true)
     {
         boost::this_thread::interruption_point();
-        
         TRY_LOCK(cs_vNodes, lockNodes);
-        if(!lockNodes) { MilliSleep(2); continue; }
+        if(!lockNodes) { MilliSleep(1); continue; }
 
         BOOST_FOREACH(CNode* pnode, vNodes)
         {
