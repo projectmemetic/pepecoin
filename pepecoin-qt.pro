@@ -496,7 +496,7 @@ OTHER_FILES += \
 # platform specific defaults, if not overridden on command line
 isEmpty(BOOST_LIB_SUFFIX) {
     macx:BOOST_LIB_SUFFIX = -mt
-    windows:BOOST_LIB_SUFFIX=-mgw49-mt-s-1_65
+    windows:BOOST_LIB_SUFFIX=-mgw49-mt-s-1_57
 }
 
 isEmpty(BOOST_THREAD_LIB_SUFFIX) {
@@ -521,12 +521,12 @@ isEmpty(BDB_INCLUDE_PATH) {
 
 isEmpty(BOOST_LIB_PATH) {
     macx:BOOST_LIB_PATH = /usr/local/Cellar/boost/1.59.0/lib
-    windows:BOOST_LIB_PATH=C:/dev/coindeps32/boost_1_65_1/lib
+    windows:BOOST_LIB_PATH=C:/dev/coindeps32/boost_1_57_0/lib
 }
 
 isEmpty(BOOST_INCLUDE_PATH) {
     macx:BOOST_INCLUDE_PATH = /usr/local/Cellar/boost/1.59.0/include
-    windows:BOOST_INCLUDE_PATH=C:/dev/coindeps32/boost_1_65_1/include
+    windows:BOOST_INCLUDE_PATH=C:/dev/coindeps32/boost_1_57_0/include
 }
 
 isEmpty(QRENCODE_LIB_PATH) {
@@ -553,12 +553,12 @@ isEmpty(MINIUPNPC_LIB_PATH) {
 
 isEmpty(OPENSSL_INCLUDE_PATH) {
     macx:OPENSSL_INCLUDE_PATH = /usr/local/openssl-1.0.1p/include
-    windows:OPENSSL_INCLUDE_PATH=C:/dev/coindeps32/openssl-1.0.2q/include
+    windows:OPENSSL_INCLUDE_PATH=C:/dev/coindeps32/openssl-1.0.1p/include
 }
 
 isEmpty(OPENSSL_LIB_PATH) {
     macx:OPENSSL_LIB_PATH = /usr/local/openssl-1.0.1p/lib
-    windows:OPENSSL_LIB_PATH=C:/dev/coindeps32/openssl-1.0.2q/lib
+    windows:OPENSSL_LIB_PATH=C:/dev/coindeps32/openssl-1.0.1p/lib
 }
 
 # use: qmake "USE_UPNP=1" ( enabled by default; default)
