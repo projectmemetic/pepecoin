@@ -769,7 +769,7 @@ bool CWallet::AddToWallet(const CWalletTx& wtxIn, bool fFromLoadWallet)
 
         fCachedBalanceNeedsUpdating = true;
         nCachedBalance = 0;
-        
+
     }
     return true;
 }
@@ -4920,6 +4920,8 @@ void CWallet::FixSpentCoins(int& nMismatchFound, int64_t& nBalanceInQuestion, bo
             }
         }
     }
+
+    fCachedBalanceNeedsUpdating = true;
 }
 
 // ppcoin: disable transaction (only for coinstake)
@@ -4942,6 +4944,8 @@ void CWallet::DisableTransaction(const CTransaction &tx)
             }
         }
     }
+
+    fCachedBalanceNeedsUpdating = true;
 }
 
 bool CReserveKey::GetReservedKey(CPubKey& pubkey)
@@ -5008,6 +5012,7 @@ bool CWallet::UpdatedTransaction(const uint256 &hashTx)
         // Only notify UI if this transaction is in this wallet
         map<uint256, CWalletTx>::const_iterator mi = mapWallet.find(hashTx);
         if (mi != mapWallet.end()){
+            fCachedBalanceNeedsUpdating = true;
             NotifyTransactionChanged(this, hashTx, CT_UPDATED);
             return true;
         }
