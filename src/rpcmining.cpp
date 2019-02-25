@@ -165,7 +165,7 @@ Value getstakinginfo(const Array& params, bool fHelp)
         nTotalInputAmount += n;
     }
 
-    nAverageInputSize = nTotalInputAmount / nInputCount;
+    nAverageInputSize = nInputCount > 0 ? nTotalInputAmount / nInputCount : 0;
 
     Object obj;
 
