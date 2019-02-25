@@ -168,7 +168,7 @@ https://kekdaq.com
 ***
 
 **Nodes**
-addnode=seed.pepecoin.co
+addnode=seed.pepecoin.net
 addnode=seed.kekdaq.com
 addnode=seed.memetic.ai
 
