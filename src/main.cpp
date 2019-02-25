@@ -3493,6 +3493,10 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     }
     LogPrintf("ProcessBlock: ACCEPTED Height: %d Difficulty: %d\n", mapBlockIndex[hash]->nHeight, dDiff);
 
+#ifdef ENABLE_WALLET
+    pwalletMain->fCachedBalanceNeedsUpdating = true;  // update cached balance in case coins came out of stake with the accepted block
+#endif
+
     return true;
 }
 
