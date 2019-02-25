@@ -1066,7 +1066,7 @@ int GetInputAge(CTxIn& vin)
     const uint256& prevHash = vin.prevout.hash;
     CTransaction tx;
     uint256 hashBlock;
-    bool fFound = GetTransaction(prevHash, tx, hashBlock);
+    bool fFound = GetTransaction(prevHash, tx, hashBlock, false);
     if(fFound)
     {
     if(mapBlockIndex.find(hashBlock) != mapBlockIndex.end())
@@ -1132,14 +1132,17 @@ int CTxIndex::GetDepthInMainChain() const
 }
 
 // Return transaction in tx, and if it was found inside a block, its hash is placed in hashBlock
-bool GetTransaction(const uint256 &hash, CTransaction &tx, uint256 &hashBlock)
+bool GetTransaction(const uint256 &hash, CTransaction &tx, uint256 &hashBlock, bool fCheckMempool)
 {
     {
-        LOCK(cs_main);
+        if(fCheckMempool) // avoid the mempool check and lock on cs_main if called from the masternode message handler
         {
-            if (mempool.lookup(hash, tx))
+            LOCK(cs_main);
             {
-                return true;
+                if (mempool.lookup(hash, tx))
+                {
+                    return true;
+                }
             }
         }
         CTxDB txdb("r");

@@ -128,7 +128,7 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
         
 
         //search existing masternode list, this is where we update existing masternodes with new dsee broadcasts
-	LOCK(cs_masternodes);
+    //LOCK(cs_masternodes);
         BOOST_FOREACH(CMasterNode& mn, vecMasternodes) {
             if(mn.vin.prevout == vin.prevout) {
                 // count == -1 when it's a new entry
@@ -173,8 +173,8 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
         tx.vin.push_back(vin);
         tx.vout.push_back(vout);
         //if(AcceptableInputs(mempool, state, tx)){
-	bool* pfMissingInputs;    
-	if(AcceptableInputs(mempool, tx, false, pfMissingInputs)){
+    bool* pfMissingInputs;    
+    if(AcceptableInputs(mempool, tx, false, pfMissingInputs)){
             if(fDebug) LogPrintf("dsee - Accepted masternode entry %i %i\n", count, current);
 
             if(GetInputAge(vin) < MASTERNODE_MIN_CONFIRMATIONS){
@@ -248,11 +248,11 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
         }
 
         // see if we have this masternode
-	LOCK(cs_masternodes);
+    //LOCK(cs_masternodes);
         BOOST_FOREACH(CMasterNode& mn, vecMasternodes) {
             if(mn.vin.prevout == vin.prevout) {
-            	// LogPrintf("dseep - Found corresponding mn for vin: %s\n", vin.ToString().c_str());
-            	// take this only if it's newer
+                // LogPrintf("dseep - Found corresponding mn for vin: %s\n", vin.ToString().c_str());
+                // take this only if it's newer
                 if(mn.lastDseep < sigTime){
                     std::string strMessage = mn.addr.ToString() + boost::lexical_cast<std::string>(sigTime) + boost::lexical_cast<std::string>(stop);
 
@@ -321,7 +321,7 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
             //}
         } //else, asking for a specific node which is ok
 
-	LOCK(cs_masternodes);
+    LOCK(cs_masternodes);
         int count = vecMasternodes.size();
         int i = 0;
 
@@ -630,7 +630,7 @@ void CMasterNode::Check()
         //if(!AcceptableInputs(mempool, state, tx)){
         bool* pfMissingInputs;
         
-	if(!AcceptableInputs(mempool, tx, false, pfMissingInputs)){
+    if(!AcceptableInputs(mempool, tx, false, pfMissingInputs)){
             enabled = 3;
             return;
         }
@@ -781,7 +781,9 @@ bool CMasternodePayments::AddWinningMasternode(CMasternodePaymentWinner& winnerI
 
 void CMasternodePayments::CleanPaymentList()
 {
-    LOCK(cs_masternodes);
+    TRY_LOCK(cs_masternodes, lockMasternodes);
+    if(!lockMasternodes) return;
+    
     if(pindexBest == NULL) return;
 
     int nLimit = std::max(((int)vecMasternodes.size())*2, 1000);

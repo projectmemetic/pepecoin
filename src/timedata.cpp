@@ -16,6 +16,9 @@ using namespace std;
 static CCriticalSection cs_nTimeOffset;
 static int64_t nTimeOffset = 0;
 
+bool fTimeOffsetUpdated = false;
+int64_t nCachedTimeOffset = 0;
+
 //
 // "Never go to sea with two chronometers; take one or three."
 // Our three time sources are:
@@ -26,8 +29,17 @@ static int64_t nTimeOffset = 0;
 //
 int64_t GetTimeOffset()
 {
-    LOCK(cs_nTimeOffset);
-    return nTimeOffset;
+    if(!fTimeOffsetUpdated)
+    {
+        return nCachedTimeOffset;
+    }
+    else
+    {
+        LOCK(cs_nTimeOffset);
+        nCachedTimeOffset = nTimeOffset;
+        fTimeOffsetUpdated = false;
+        return nTimeOffset;
+    }
 }
 
 int64_t GetAdjustedTime()
@@ -75,10 +87,12 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime)
         if (abs64(nMedian) < 70 * 60)
         {
             nTimeOffset = nMedian;
+            fTimeOffsetUpdated = true;
         }
         else
         {
             nTimeOffset = 0;
+            fTimeOffsetUpdated = true;
 
             static bool fDone;
             if (!fDone)

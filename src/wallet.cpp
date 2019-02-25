@@ -767,6 +767,9 @@ bool CWallet::AddToWallet(const CWalletTx& wtxIn, bool fFromLoadWallet)
             boost::thread t(runCommand, strCmd); // thread runs free
         }
 
+        fCachedBalanceNeedsUpdating = true;
+        nCachedBalance = 0;
+        
     }
     return true;
 }
@@ -1420,8 +1423,11 @@ void CWallet::ResendWalletTransactions(bool fForce)
 //
 
 
-CAmount CWallet::GetBalance() const
+CAmount CWallet::GetBalance()
 {
+    if(!fCachedBalanceNeedsUpdating)
+        return nCachedBalance;
+    
     CAmount nTotal = 0;
     {
         LOCK2(cs_main, cs_wallet);
@@ -1431,6 +1437,8 @@ CAmount CWallet::GetBalance() const
             if (pcoin->IsTrusted())
                 nTotal += pcoin->GetAvailableCredit();
         }
+        nCachedBalance = nTotal;
+        fCachedBalanceNeedsUpdating = false;
     }
 
     return nTotal;

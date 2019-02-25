@@ -33,7 +33,7 @@ using namespace boost;
 
 unsigned int nMessageCores = 0;
 
-static const int MAX_OUTBOUND_CONNECTIONS = 15;
+static const int MAX_OUTBOUND_CONNECTIONS = 10;
 
 bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOutbound = NULL, const char *strDest = NULL, bool fOneShot = false);
 
@@ -875,7 +875,7 @@ void ThreadSocketHandler()
         //
         vector<CNode*> vNodesCopy;
         {
-            LOCK(cs_vNodes);
+            //LOCK(cs_vNodes);
             vNodesCopy = vNodes;
             BOOST_FOREACH(CNode* pnode, vNodesCopy)
                 pnode->AddRef();
@@ -974,11 +974,11 @@ void ThreadSocketHandler()
             }
         }
         {
-            LOCK(cs_vNodes);
+            //LOCK(cs_vNodes);
             BOOST_FOREACH(CNode* pnode, vNodesCopy)
                 pnode->Release();
         }
-	MilliSleep(200); // niceness
+    MilliSleep(2); // niceness
     }
 }
 
@@ -1295,6 +1295,7 @@ void ThreadOpenAddedConnections()
 
     if (HaveNameProxy()) {
         while(true) {
+            boost::this_thread::interruption_point();
             list<string> lAddresses(0);
             {
                 LOCK(cs_vAddedNodes);
@@ -1313,6 +1314,7 @@ void ThreadOpenAddedConnections()
 
     for (unsigned int i = 0; true; i++)
     {
+        boost::this_thread::interruption_point();
         list<string> lAddresses(0);
         {
             LOCK(cs_vAddedNodes);
@@ -1350,10 +1352,12 @@ void ThreadOpenAddedConnections()
         }
         BOOST_FOREACH(vector<CService>& vserv, lservAddressesToAdd)
         {
+            boost::this_thread::interruption_point();
             CSemaphoreGrant grant(*semOutbound);
             OpenNetworkConnection(CAddress(vserv[i % vserv.size()]), &grant);
             MilliSleep(500);
         }
+        boost::this_thread::interruption_point();
         MilliSleep(120000); // Retry every 2 minutes
     }
 }
@@ -1456,13 +1460,13 @@ void ThreadMessageHandler(int ncore)
         vector<CNode*> vNodesFullSet; // the full set of nodes
         vector<CNode*> vNodesCopy; // nodes to work on in this core
         {
-	        // niceness, try to get a lock if not wait and try again instead of blocking
+            // niceness, try to get a lock if not wait and try again instead of blocking
           /*  TRY_LOCK(cs_vNodes, lockNodes);
-    	    if(!lockNodes)
-    	    {
-        		MilliSleep(2);
-        		continue;
-    	    }*/
+            if(!lockNodes)
+            {
+                MilliSleep(2);
+                continue;
+            }*/
 
             vNodesFullSet = vNodes;
             // figure out the start and end indexes for this core to work on
@@ -1470,7 +1474,7 @@ void ThreadMessageHandler(int ncore)
             {
                 // the size is less than our core number, e.g. the size is 3 but we are core 4
                 // therefore we have nothing to work on, so sleep and then continue and look for work again
-                LogPrint("net", "ThreadMessageHandler: core %d no nodes for us to service nodes size %d\n", ncore, vNodesFullSet.size());
+                LogPrint("multicore", "ThreadMessageHandler: core %d no nodes for us to service nodes size %d\n", ncore, vNodesFullSet.size());
                 MilliSleep(500);
                 continue;
             }
@@ -1508,7 +1512,7 @@ void ThreadMessageHandler(int ncore)
                 vNodesCopy.push_back(vNodesFullSet[n]);
             }
 
-            LogPrint("net","ThreadMessageHandler: core %d nCoreStart %d nCoreEnd %d vNodesCopy size: %d vNodesFullSet size: %d\n", ncore, nCoreStart, nCoreEnd, vNodesCopy.size(), vNodesFullSet.size());
+            LogPrint("multicore","ThreadMessageHandler: core %d nCoreStart %d nCoreEnd %d VNodesCopy size: %d vNodesFullSet size: %d\n", ncore, nCoreStart, nCoreEnd, vNodesCopy.size(), vNodesFullSet.size());
 
             BOOST_FOREACH(CNode* pnode, vNodesCopy) {
                 pnode->AddRef();
@@ -1536,7 +1540,7 @@ void ThreadMessageHandler(int ncore)
                 TRY_LOCK(pnode->cs_vRecvMsg, lockRecv);
                 if (lockRecv)
                 {
-		            ProcessMessages(pnode);
+                    ProcessMessages(pnode);
                 }
             }
             boost::this_thread::interruption_point();
@@ -1551,19 +1555,20 @@ void ThreadMessageHandler(int ncore)
         }
 
         {
-            while(true)
-            {
-                TRY_LOCK(cs_vNodes, lockNodes);
-                if(!lockNodes) { MilliSleep(1); continue; }
+           // while(true)
+            //{
+              //  TRY_LOCK(cs_vNodes, lockNodes);
+              //  if(!lockNodes) { MilliSleep(1); continue; }
+            
                 BOOST_FOREACH(CNode* pnode, vNodesCopy)
                     pnode->Release();
 
-                break;
-            }
+             //   break;
+            //}
         }
 
-	    // niceness
-        MilliSleep(200);
+        // niceness
+        MilliSleep(10);
     }
 }
 
