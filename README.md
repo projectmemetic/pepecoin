@@ -169,7 +169,9 @@ https://kekdaq.com
 
 **Nodes**
 addnode=seed.pepecoin.net
+
 addnode=seed.kekdaq.com
+
 addnode=seed.memetic.ai
 
 ![pepecoin-256](https://i.imgur.com/xnSJvT9.jpg  "pepecoin-256")
