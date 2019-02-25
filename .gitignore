@@ -8,6 +8,10 @@ src/pepecoind
 pepecoin-qt
 Makefile
 qrc_bitcoin.cpp
+Makefile.Debug
+Makefile.release
+pepecoin-qt_plugin_import.cpp
+
 #################
 ## Eclipse
 #################
