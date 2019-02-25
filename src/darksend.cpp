@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <boost/assign/list_of.hpp>
 
+
 using namespace std;
 using namespace boost;
 
@@ -275,7 +276,7 @@ void ProcessMessageDarksend(CNode* pfrom, std::string& strCommand, CDataStream& 
                 CTransaction tx2;
                 uint256 hash;
                 //if(GetTransaction(i.prevout.hash, tx2, hash, true)){
-		if(GetTransaction(i.prevout.hash, tx2, hash)){
+        if(GetTransaction(i.prevout.hash, tx2, hash, false)){
                     if(tx2.vout.size() > i.prevout.n) {
                         nValueIn += tx2.vout[i.prevout.n].nValue;
                     }
@@ -307,7 +308,7 @@ void ProcessMessageDarksend(CNode* pfrom, std::string& strCommand, CDataStream& 
 
             //if(!AcceptableInputs(mempool, state, tx)){
             bool* pfMissingInputs;
-	    if(!AcceptableInputs(mempool, tx, false, pfMissingInputs)){
+        if(!AcceptableInputs(mempool, tx, false, pfMissingInputs)){
                 LogPrintf("dsi -- transaction not valid! \n");
                 error = _("Transaction not valid.");
                 pfrom->PushMessage("dssu", darkSendPool.sessionID, darkSendPool.GetState(), darkSendPool.GetEntriesCount(), MASTERNODE_REJECTED, error);
@@ -951,7 +952,7 @@ bool CDarkSendPool::IsCollateralValid(const CTransaction& txCollateral){
         CTransaction tx2;
         uint256 hash;
         //if(GetTransaction(i.prevout.hash, tx2, hash, true)){
-	if(GetTransaction(i.prevout.hash, tx2, hash)){
+    if(GetTransaction(i.prevout.hash, tx2, hash, false)){
             if(tx2.vout.size() > i.prevout.n) {
                 nValueIn += tx2.vout[i.prevout.n].nValue;
             }
@@ -1156,8 +1157,8 @@ void CDarkSendPool::SendDarksendDenominate(std::vector<CTxIn>& vin, std::vector<
         }
 
         //if(!AcceptableInputs(mempool, state, tx)){
-	bool* pfMissingInputs;
-	if(!AcceptableInputs(mempool, tx, false, pfMissingInputs)){
+    bool* pfMissingInputs;
+    if(!AcceptableInputs(mempool, tx, false, pfMissingInputs)){
             LogPrintf("dsi -- transaction not valid! %s \n", tx.ToString().c_str());
             return;
         }
@@ -1278,7 +1279,7 @@ bool CDarkSendPool::SignFinalTransaction(CTransaction& finalTransactionNew, CNod
                     LogPrintf("CDarkSendPool::Sign - My entries are not correct! Refusing to sign. %d entries %d target. \n", foundOutputs, targetOuputs);
                     return false;
                 }
-				
+                
                 if(fDebug) LogPrintf("CDarkSendPool::Sign - Signing my input %i\n", mine);
                 if(!SignSignature(*pwalletMain, prevPubKey, finalTransaction, mine, int(SIGHASH_ALL|SIGHASH_ANYONECANPAY))) { // changes scriptSig
                     if(fDebug) LogPrintf("CDarkSendPool::Sign - Unable to sign my own transaction! \n");
@@ -1510,7 +1511,7 @@ bool CDarkSendPool::DoAutomaticDenominating(bool fDryRun, bool ready)
                     LOCK(cs_vNodes);
                     BOOST_FOREACH(CNode* pnode, vNodes)
                     {
-                    	if((CNetAddr)pnode->addr != (CNetAddr)submittedToMasternode) continue;
+                        if((CNetAddr)pnode->addr != (CNetAddr)submittedToMasternode) continue;
 
                         std::string strReason;
                         if(txCollateral == CTransaction()){
@@ -1983,7 +1984,7 @@ bool CDarkSendSigner::IsVinAssociatedWithPubkey(CTxIn& vin, CPubKey& pubkey){
     CTransaction txVin;
     uint256 hash;
     //if(GetTransaction(vin.prevout.hash, txVin, hash, true)){
-    if(GetTransaction(vin.prevout.hash, txVin, hash)){
+    if(GetTransaction(vin.prevout.hash, txVin, hash, false)){
         BOOST_FOREACH(CTxOut out, txVin.vout){
             if(out.nValue == 15000*COIN){
                 if(out.scriptPubKey == payee2) return true;
@@ -2121,7 +2122,7 @@ void ThreadCheckDarkSendPool()
 
         if(IsSyncing())
             continue;
-        
+                        
         //LogPrintf("ThreadCheckDarkSendPool::check timeout\n");
         darkSendPool.CheckTimeout();
 
@@ -2135,52 +2136,59 @@ void ThreadCheckDarkSendPool()
         
 
         if(c % mtTimeout == 0){
-            LOCK(cs_main);
-            /*
-                cs_main is required for doing masternode.Check because something
-                is modifying the coins view without a mempool lock. It causes
-                segfaults from this code without the cs_main lock.
-            */
-
-            vector<CMasterNode>::iterator it = vecMasternodes.begin();
-            //check them separately
-            while(it != vecMasternodes.end()){
-                (*it).Check();
-                ++it;
-            }
-
-            int count = vecMasternodes.size();
-            int i = 0;
-
-            BOOST_FOREACH(CMasterNode mn, vecMasternodes) {
-
-                if(mn.addr.IsRFC1918()) continue; //local network
-                if(mn.IsEnabled()) {
-                    if(fDebug) LogPrintf("Sending masternode entry - %s \n", mn.addr.ToString().c_str());
-                LOCK(cs_vNodes);
-                {
-    		          BOOST_FOREACH(CNode* pnode, vNodes) {
-                            pnode->PushMessage("dsee", mn.vin, mn.addr, mn.sig, mn.now, mn.pubkey, mn.pubkey2, count, i, mn.lastTimeSeen, mn.protocolVersion);
-                      }
-        		}   
-             }
-            
-                i++;
-            }
-
-            //remove inactive
-            it = vecMasternodes.begin();
-            while(it != vecMasternodes.end()){
-                if((*it).enabled == 4 || (*it).enabled == 3){
-                    LogPrintf("Removing inactive masternode %s\n", (*it).addr.ToString().c_str());
-                    it = vecMasternodes.erase(it);
-                } else {
+            // lock cs_msternodes then cs_main to maintain same lock order as masternodes.cpp, avoid potential deaadlock
+            LOCK(cs_masternodes); 
+            {
+                LOCK(cs_main);
+                /*
+                    cs_main is required for doing masternode.Check because something
+                    is modifying the coins view without a mempool lock. It causes
+                    segfaults from this code without the cs_main lock.
+                */
+                
+                vector<CMasterNode>::iterator it = vecMasternodes.begin();
+                //check them separately
+                while(it != vecMasternodes.end()){
+                    (*it).Check();
                     ++it;
                 }
-            }
 
-            masternodePayments.CleanPaymentList();
-            CleanTransactionLocksList();
+                int count = vecMasternodes.size();
+                int i = 0;
+
+                {
+                    LOCK(cs_vNodes);
+                    BOOST_FOREACH(CMasterNode mn, vecMasternodes) {
+
+                        if(mn.addr.IsRFC1918()) continue; //local network
+                        if(mn.IsEnabled()) {
+                            if(fDebug) LogPrintf("Sending masternode entry - %s \n", mn.addr.ToString().c_str());
+                                        
+                        {
+                            BOOST_FOREACH(CNode* pnode, vNodes) {
+                                    pnode->PushMessage("dsee", mn.vin, mn.addr, mn.sig, mn.now, mn.pubkey, mn.pubkey2, count, i, mn.lastTimeSeen, mn.protocolVersion);
+                            }
+                        }   
+                    }
+                    
+                        i++;
+                    }
+                }
+
+                //remove inactive
+                it = vecMasternodes.begin();
+                while(it != vecMasternodes.end()){
+                    if((*it).enabled == 4 || (*it).enabled == 3){
+                        LogPrintf("Removing inactive masternode %s\n", (*it).addr.ToString().c_str());
+                        it = vecMasternodes.erase(it);
+                    } else {
+                        ++it;
+                    }
+                }
+
+                masternodePayments.CleanPaymentList();
+                CleanTransactionLocksList();
+            }
         }
 
 
@@ -2230,6 +2238,7 @@ void ThreadCheckDarkSendPool()
         }
 
         if(c % 60 == 0){
+            LOCK(cs_masternodes);
             //if we've used 1/5 of the masternode list, then clear the list.
             if((int)vecMasternodesUsed.size() > (int)vecMasternodes.size() / 5)
                 vecMasternodesUsed.clear();

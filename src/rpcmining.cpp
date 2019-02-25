@@ -13,6 +13,8 @@
 #include "kernel.h"
 #include "masternode.h"
 #include "base58.h"
+#include "wallet.h"
+#include "txdb.h"
 
 #include <boost/assign/list_of.hpp>
 
@@ -126,8 +128,8 @@ Value getstakinginfo(const Array& params, bool fHelp)
             "getstakinginfo\n"
             "Returns an object containing staking-related information.");
 
-    uint64_t nWeight = 0;
-    uint64_t nExpectedTime = 0;
+    CAmount nWeight = 0;
+    CAmount nExpectedTime = 0;
 
     if (pwalletMain)
         nWeight = pwalletMain->GetStakeWeight();
@@ -143,6 +145,27 @@ Value getstakinginfo(const Array& params, bool fHelp)
 
         nExpectedTime = staking ? (TARGET_SPACING * nNetworkWeight / nWeight) : 0;
 
+    // get number of inputs and average input size
+        uint64_t nInputCount = 0;
+        CAmount nTotalInputAmount = 0;
+        CAmount nAverageInputSize = 0;
+
+    vector<COutput> vCoins;
+    pwalletMain->AvailableCoinsForStaking(vCoins, pindexBest->GetBlockTime()+1);
+    BOOST_FOREACH(COutput output, vCoins)
+    {
+        if(!output.fSpendable)
+            continue;
+
+        const CWalletTx *pcoin = output.tx;
+        int i = output.i;
+        int64_t n = pcoin->vout[i].nValue;
+        
+        nInputCount++;
+        nTotalInputAmount += n;
+    }
+
+    nAverageInputSize = nInputCount > 0 ? nTotalInputAmount / nInputCount : 0;
 
     Object obj;
 
@@ -157,10 +180,14 @@ Value getstakinginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("difficulty", GetDifficulty(GetLastBlockIndex(pindexBest, true))));
     obj.push_back(Pair("search-interval", (int)nLastCoinStakeSearchInterval));
 
-    obj.push_back(Pair("weight", (uint64_t)nWeight));
-    obj.push_back(Pair("netstakeweight", (uint64_t)nNetworkWeight));
+    obj.push_back(Pair("weight", ValueFromAmount(nWeight)));
+    obj.push_back(Pair("netstakeweight", ValueFromAmount(nNetworkWeight)));
 
     obj.push_back(Pair("expectedtime", nExpectedTime));
+
+    obj.push_back(Pair("availableinputcount", nInputCount));
+    obj.push_back(Pair("availableinputtotalamount", ValueFromAmount(nTotalInputAmount)));
+    obj.push_back(Pair("availableinputaveragesize", ValueFromAmount(nAverageInputSize)));
 
     return obj;
 }

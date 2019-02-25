@@ -767,6 +767,9 @@ bool CWallet::AddToWallet(const CWalletTx& wtxIn, bool fFromLoadWallet)
             boost::thread t(runCommand, strCmd); // thread runs free
         }
 
+        fCachedBalanceNeedsUpdating = true;
+        nCachedBalance = 0;
+
     }
     return true;
 }
@@ -1420,8 +1423,11 @@ void CWallet::ResendWalletTransactions(bool fForce)
 //
 
 
-CAmount CWallet::GetBalance() const
+CAmount CWallet::GetBalance()
 {
+    if(!fCachedBalanceNeedsUpdating)
+        return nCachedBalance;
+    
     CAmount nTotal = 0;
     {
         LOCK2(cs_main, cs_wallet);
@@ -1431,6 +1437,8 @@ CAmount CWallet::GetBalance() const
             if (pcoin->IsTrusted())
                 nTotal += pcoin->GetAvailableCredit();
         }
+        nCachedBalance = nTotal;
+        fCachedBalanceNeedsUpdating = false;
     }
 
     return nTotal;
@@ -4912,6 +4920,8 @@ void CWallet::FixSpentCoins(int& nMismatchFound, int64_t& nBalanceInQuestion, bo
             }
         }
     }
+
+    fCachedBalanceNeedsUpdating = true;
 }
 
 // ppcoin: disable transaction (only for coinstake)
@@ -4934,6 +4944,8 @@ void CWallet::DisableTransaction(const CTransaction &tx)
             }
         }
     }
+
+    fCachedBalanceNeedsUpdating = true;
 }
 
 bool CReserveKey::GetReservedKey(CPubKey& pubkey)
@@ -5000,6 +5012,7 @@ bool CWallet::UpdatedTransaction(const uint256 &hashTx)
         // Only notify UI if this transaction is in this wallet
         map<uint256, CWalletTx>::const_iterator mi = mapWallet.find(hashTx);
         if (mi != mapWallet.end()){
+            fCachedBalanceNeedsUpdating = true;
             NotifyTransactionChanged(this, hashTx, CT_UPDATED);
             return true;
         }
