@@ -978,7 +978,7 @@ void ThreadSocketHandler()
             BOOST_FOREACH(CNode* pnode, vNodesCopy)
                 pnode->Release();
         }
-    MilliSleep(2); // niceness
+    MilliSleep(1); // niceness
     }
 }
 
@@ -1568,7 +1568,7 @@ void ThreadMessageHandler(int ncore)
         }
 
         // niceness
-        MilliSleep(3);
+        MilliSleep(2);
     }
 }
 
