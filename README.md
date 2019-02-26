@@ -1,7 +1,7 @@
 ![Memetic Logo](http://i.imgur.com/zLMetXi.png  "Memetic Logo") ![PepeCoin Logo](https://imgur.com/9KNdKWJ.png "PepeCoin Logo")
 ***
 # PepeCoin - PEPE  / Memetic - MEME
-#### v. 3.0.0.0
+#### v. 3.1.0.0
 
 Memetic, also known as PepeCoin, is a digital decentralized crypto-currency, listed as as Memetic / MEME on Bittrex, Upbit, Coinmarkets, and CoinMarketCap.
 
@@ -76,15 +76,19 @@ The strip command removes debugging data and lessens exectuable size.
 
 >sudo apt-get install build-essential libtool autotools-dev automake pkg-config libevent-dev bsdmainutils
 >
->sudo apt-get install libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev 
+>sudo apt-get install libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev libboost-thread-dev
 >
->sudo apt-get install libboost-thread-dev libminiupnpc-dev libgmp3-dev libdb-dev libdb++-dev libgmp3-dev lzma-dev libssl1.0-dev zlib1g-dev zlib1g libgmp-dev 
+>sudo apt-get install libminiupnpc-dev libgmp3-dev libdb-dev libdb++-dev libgmp3-dev lzma-dev libssl1.0-dev zlib1g-dev zlib1g libgmp-dev 
 >	
 >git clone https://github.com/pepeteam/pepecoin.git
 >
 >cd pepecoin/src
 >
->make -f makefile.unix USE_UPNP=-
+>make -f makefile.unix
+>
+> OR (if you intend to open ports yourself)
+>
+>make -f makefile.unix USE_UPNP=0
 >
 >strip pepecoind
 >
@@ -152,6 +156,8 @@ https://kekdaq.com
 
 [CoinLib](https://coinlib.io/coin/MEME/Pepe+Memetic)
 
+[TradingView](https://www.tradingview.com/symbols/MEMEBTC/)
+
 ### Social
 
 [Twitter](https://twitter.com/pepecoins) 
@@ -162,8 +168,10 @@ https://kekdaq.com
 ***
 
 **Nodes**
-addnode=seed.pepecoin.co
+addnode=seed.pepecoin.net
+
 addnode=seed.kekdaq.com
+
 addnode=seed.memetic.ai
 
 ![pepecoin-256](https://i.imgur.com/xnSJvT9.jpg  "pepecoin-256")

@@ -4361,8 +4361,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         
         while(true)
         {
-            TRY_LOCK(cs_main, lockMain);
-            if(!lockMain) { MilliSleep(2); continue; }
+            LOCK(cs_main);
             int nBlocksGet = 0;
 
             CTxDB txdb("r");
