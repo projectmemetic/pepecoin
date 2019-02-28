@@ -219,6 +219,7 @@ public:
 class CNode
 {
 public:
+    int ncore;
     // socket
     uint64_t nServices;
     SOCKET hSocket;
@@ -301,7 +302,6 @@ public:
     std::vector<CInv> vInventoryToSend;
     CCriticalSection cs_inventory;
     std::multimap<int64_t, CInv> mapAskFor;
-    CCriticalSection cs_node;
 
     // Masternode based relay
     std::set<uint256> setToadKnown;
@@ -322,6 +322,7 @@ public:
 
     CNode(SOCKET hSocketIn, CAddress addrIn, std::string addrNameIn = "", bool fInboundIn=false) : ssSend(SER_NETWORK, INIT_PROTO_VERSION), setAddrKnown(5000)
     {
+        ncore = -1;
         nServices = 0;
         hSocket = hSocketIn;
         nRecvVersion = INIT_PROTO_VERSION;
@@ -772,7 +773,6 @@ inline void RelayInventory(const CInv& inv)
         LOCK(cs_vNodes);
         BOOST_FOREACH(CNode* pnode, vNodes)
         {
-            LOCK(pnode->cs_node);
             pnode->PushInventory(inv);
         }
     }

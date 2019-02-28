@@ -3973,12 +3973,6 @@ bool static AlreadyHave(CTxDB& txdb, const CInv& inv)
 
 void static ProcessGetData(CNode* pfrom)
 {
-    // only proceed if we can get a lock
-    // if we can't, don't block and leave it in the queue for next time
-    /*TRY_LOCK(cs_main, lockMain);
-    if (!lockMain)
-        return;*/
-    LOCK(pfrom->cs_node);
     {
         std::deque<CInv>::iterator it = pfrom->vRecvGetData.begin();
 
@@ -4125,8 +4119,6 @@ void static ProcessGetData(CNode* pfrom)
 
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived)
 {
-    LOCK(pfrom->cs_node);
-
     RandAddSeedPerfmon();
     LogPrint("net", "received: %s (%u bytes) peer=%s\n", strCommand, vRecv.size(), pfrom->addr.ToString());
     if (mapArgs.count("-dropmessagestest") && GetRand(atoi(mapArgs["-dropmessagestest"])) == 0)
@@ -4913,8 +4905,6 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
     TRY_LOCK(cs_main, lockMain);
     if (lockMain) 
     {
-        LOCK(pto->cs_node);
-
         // Don't send anything until we get their version message
         if (pto->nVersion == 0)
             return true;
