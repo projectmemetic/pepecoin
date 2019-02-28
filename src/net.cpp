@@ -1515,19 +1515,19 @@ void ThreadMessageHandler(int ncore)
             LogPrint("multicore","ThreadMessageHandler: core %d nCoreStart %d nCoreEnd %d VNodesCopy size: %d vNodesFullSet size: %d\n", ncore, nCoreStart, nCoreEnd, vNodesCopy.size(), vNodesFullSet.size());
 
             BOOST_FOREACH(CNode* pnode, vNodesCopy) {
+                LOCK(pnode->cs_node);
                 pnode->AddRef();
                 if (pnode == pnodeSync)
                     fHaveSyncNode = true;
             }
 
-            // check if one of the other threads has the sync node
             BOOST_FOREACH(CNode* pnode, vNodesFullSet) {
                 if(pnode == pnodeSync)
                     fHaveSyncNode = true;
-            }
+            } 
         }
 
-        if (!fHaveSyncNode && IsSyncing()) // Only call this if IsSyncing is true
+        if (!fHaveSyncNode && IsSyncing())
             StartSync(vNodesCopy);
 
         // Poll the connected nodes for messages
@@ -1538,6 +1538,7 @@ void ThreadMessageHandler(int ncore)
         
         BOOST_FOREACH(CNode* pnode, vNodesCopy)
         {
+            LOCK(pnode->cs_node);
             if (pnode->fDisconnect)
                 continue;
 
@@ -1567,7 +1568,10 @@ void ThreadMessageHandler(int ncore)
               //  if(!lockNodes) { MilliSleep(1); continue; }
             
                 BOOST_FOREACH(CNode* pnode, vNodesCopy)
+                {
+                    LOCK(pnode->cs_node);
                     pnode->Release();
+                }
 
              //   break;
             //}
@@ -1784,7 +1788,7 @@ void StartNode(boost::thread_group& threadGroup)
     {
         LogPrintf("Init: Starting message handler thread for core %d/%d\n", c+1, nMessageCores);
         threadGroup.create_thread(boost::bind(&ThreadMessageHandler, c));
-        MilliSleep(50);
+        MilliSleep(100 + c);
 
         //threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "msghand", &ThreadMessageHandler));
     }
@@ -1871,6 +1875,7 @@ void RelayTransactionLockReq(const CTransaction& tx, const uint256& hash, bool r
         if(!relayToAll && !pnode->fRelayTxes)
             continue;
 
+        LOCK(pnode->cs_node);
         pnode->PushMessage("txlreq", tx);
     }
 
@@ -1881,6 +1886,7 @@ void RelayDarkSendFinalTransaction(const int sessionID, const CTransaction& txNe
     LOCK(cs_vNodes);
     BOOST_FOREACH(CNode* pnode, vNodes)
     {
+        LOCK(pnode->cs_node);
         pnode->PushMessage("dsf", sessionID, txNew);
     }
 }
@@ -1892,6 +1898,7 @@ void RelayDarkSendIn(const std::vector<CTxIn>& in, const int64_t& nAmount, const
     BOOST_FOREACH(CNode* pnode, vNodes)
     {
         if((CNetAddr)darkSendPool.submittedToMasternode != (CNetAddr)pnode->addr) continue;
+        LOCK(pnode->cs_node);
         LogPrintf("RelayDarkSendIn - found master, relaying message - %s \n", pnode->addr.ToString().c_str());
         pnode->PushMessage("dsi", in, nAmount, txCollateral, out);
     }
@@ -1902,6 +1909,7 @@ void RelayDarkSendStatus(const int sessionID, const int newState, const int newE
     LOCK(cs_vNodes);
     BOOST_FOREACH(CNode* pnode, vNodes)
     {
+        LOCK(pnode->cs_node);
         pnode->PushMessage("dssu", sessionID, newState, newEntriesCount, newAccepted, error);
     }
 }
@@ -1915,6 +1923,7 @@ void RelayDarkSendElectionEntry(const CTxIn vin, const CService addr, const std:
     LOCK(cs_vNodes);
     BOOST_FOREACH(CNode* pnode, vNodes)
     {
+        LOCK(pnode->cs_node);
         if(!pnode->fRelayTxes) continue;
         if(pnode->setToadKnown.count(hashCheck) != 0) continue;
 
@@ -1932,6 +1941,7 @@ void SendDarkSendElectionEntry(const CTxIn vin, const CService addr, const std::
     LOCK(cs_vNodes);
     BOOST_FOREACH(CNode* pnode, vNodes)
     {
+        LOCK(pnode->cs_node);
         if(!pnode->fRelayTxes) continue;
         if(pnode->setToadKnown.count(hashCheck) != 0) continue;
 
@@ -1949,6 +1959,7 @@ void RelayDarkSendElectionEntryPing(const CTxIn vin, const std::vector<unsigned 
     LOCK(cs_vNodes);
     BOOST_FOREACH(CNode* pnode, vNodes)
     {
+        LOCK(pnode->cs_node);
         if(!pnode->fRelayTxes) continue;
         if(pnode->setToadKnown.count(hashCheck) != 0) continue;
 
@@ -1966,6 +1977,7 @@ void SendDarkSendElectionEntryPing(const CTxIn vin, const std::vector<unsigned c
     LOCK(cs_vNodes);
     BOOST_FOREACH(CNode* pnode, vNodes)
     {
+        LOCK(pnode->cs_node);
         if(!pnode->fRelayTxes) continue;
         if(pnode->setToadKnown.count(hashCheck) != 0) continue;
 
@@ -1979,6 +1991,7 @@ void RelayDarkSendCompletedTransaction(const int sessionID, const bool error, co
     LOCK(cs_vNodes);
     BOOST_FOREACH(CNode* pnode, vNodes)
     {
+        LOCK(pnode->cs_node);
         pnode->PushMessage("dsc", sessionID, error, errorMessage);
     }
 }

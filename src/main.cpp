@@ -3978,151 +3978,155 @@ void static ProcessGetData(CNode* pfrom)
     /*TRY_LOCK(cs_main, lockMain);
     if (!lockMain)
         return;*/
+    LOCK(pfrom->cs_node);
+    {
+        std::deque<CInv>::iterator it = pfrom->vRecvGetData.begin();
 
-    std::deque<CInv>::iterator it = pfrom->vRecvGetData.begin();
+        vector<CInv> vNotFound;
 
-    vector<CInv> vNotFound;
+        LOCK(cs_main);
 
-    LOCK(cs_main);
-
-    while (it != pfrom->vRecvGetData.end()) {
-        // Don't bother if send buffer is too full to respond anyway
-        if (pfrom->nSendSize >= SendBufferSize())
-            break;
-
-        const CInv &inv = *it;
-        {
-            boost::this_thread::interruption_point();
-            it++;
-
-            if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK)
-            {
-                // Send block from disk
-                map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(inv.hash);
-                if (mi != mapBlockIndex.end())
-                {
-                    CBlock block;
-                    block.ReadFromDisk((*mi).second);
-                    pfrom->PushMessage("block", block);
-
-                    // Trigger them to send a getblocks request for the next batch of inventory
-                    if (inv.hash == pfrom->hashContinue)
-                    {
-                        // Bypass PushInventory, this must send even if redundant,
-                        // and we want it right after the last block so they don't
-                        // wait for other stuff first.
-                        vector<CInv> vInv;
-                        vInv.push_back(CInv(MSG_BLOCK, hashBestChain));
-                        pfrom->PushMessage("inv", vInv);
-                        pfrom->hashContinue = 0;
-                    }
-                }
-            }
-            else if (inv.IsKnownType())
-            {
-                if(fDebug) LogPrintf("ProcessGetData -- Starting \n");
-                // Send stream from relay memory
-                bool pushed = false;
-                {
-                    LOCK(cs_mapRelay);
-                    map<CInv, CDataStream>::iterator mi = mapRelay.find(inv);
-                    if (mi != mapRelay.end()) {
-                        pfrom->PushMessage(inv.GetCommand(), (*mi).second);
-                        if(fDebug) LogPrintf("ProcessGetData -- pushed = true Rest will fail\n");
-                        pushed = true;
-                    }
-                }
-
-                if (!pushed && inv.type == MSG_TX) {
-
-                    CTransaction tx;
-                    if (mempool.lookup(inv.hash, tx)) {
-                        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                        ss.reserve(1000);
-                        ss << tx;
-                        pfrom->PushMessage("tx", ss);
-                        pushed = true;
-                    }
-                }
-                if (!pushed && inv.type == MSG_TXLOCK_VOTE) {
-                    if(mapTxLockVote.count(inv.hash)){
-                        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                        ss.reserve(1000);
-                        ss << mapTxLockVote[inv.hash];
-                        pfrom->PushMessage("txlvote", ss);
-                        pushed = true;
-                    }
-                }
-                if (!pushed && inv.type == MSG_TXLOCK_REQUEST) {
-                    if(mapTxLockReq.count(inv.hash)){
-                        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                        ss.reserve(1000);
-                        ss << mapTxLockReq[inv.hash];
-                        pfrom->PushMessage("txlreq", ss);
-                        pushed = true;
-                    }
-                }
-                if (!pushed && inv.type == MSG_SPORK) {
-                    if(mapSporks.count(inv.hash)){
-                        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                        ss.reserve(1000);
-                        ss << mapSporks[inv.hash];
-                        pfrom->PushMessage("spork", ss);
-                        pushed = true;
-                    }
-                }
-                if (!pushed && inv.type == MSG_MASTERNODE_WINNER) {
-                    if(mapSeenMasternodeVotes.count(inv.hash)){
-                        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                        ss.reserve(1000);
-                        ss << mapSeenMasternodeVotes[inv.hash];
-                        pfrom->PushMessage("mnw", ss);
-                        pushed = true;
-                    }
-                }
-                if (!pushed && inv.type == MSG_DSTX) {
-                    if(mapDarksendBroadcastTxes.count(inv.hash)){
-                        CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-                        ss.reserve(1000);
-                        ss <<
-                            mapDarksendBroadcastTxes[inv.hash].tx <<
-                            mapDarksendBroadcastTxes[inv.hash].vin <<
-                            mapDarksendBroadcastTxes[inv.hash].vchSig <<
-                            mapDarksendBroadcastTxes[inv.hash].sigTime;
-
-                        pfrom->PushMessage("dstx", ss);
-                        pushed = true;
-                    }
-                }
-                if (!pushed) {
-                    vNotFound.push_back(inv);
-                }
-            }
-
-            // Track requests for our stuff.
-            g_signals.Inventory(inv.hash);
-
-            if (inv.type == MSG_BLOCK  || inv.type == MSG_FILTERED_BLOCK)
+        while (it != pfrom->vRecvGetData.end()) {
+            // Don't bother if send buffer is too full to respond anyway
+            if (pfrom->nSendSize >= SendBufferSize())
                 break;
+
+            const CInv &inv = *it;
+            {
+                boost::this_thread::interruption_point();
+                it++;
+
+                if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK)
+                {
+                    // Send block from disk
+                    map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(inv.hash);
+                    if (mi != mapBlockIndex.end())
+                    {
+                        CBlock block;
+                        block.ReadFromDisk((*mi).second);
+                        pfrom->PushMessage("block", block);
+
+                        // Trigger them to send a getblocks request for the next batch of inventory
+                        if (inv.hash == pfrom->hashContinue)
+                        {
+                            // Bypass PushInventory, this must send even if redundant,
+                            // and we want it right after the last block so they don't
+                            // wait for other stuff first.
+                            vector<CInv> vInv;
+                            vInv.push_back(CInv(MSG_BLOCK, hashBestChain));
+                            pfrom->PushMessage("inv", vInv);
+                            pfrom->hashContinue = 0;
+                        }
+                    }
+                }
+                else if (inv.IsKnownType())
+                {
+                    if(fDebug) LogPrintf("ProcessGetData -- Starting \n");
+                    // Send stream from relay memory
+                    bool pushed = false;
+                    {
+                        LOCK(cs_mapRelay);
+                        map<CInv, CDataStream>::iterator mi = mapRelay.find(inv);
+                        if (mi != mapRelay.end()) {
+                            pfrom->PushMessage(inv.GetCommand(), (*mi).second);
+                            if(fDebug) LogPrintf("ProcessGetData -- pushed = true Rest will fail\n");
+                            pushed = true;
+                        }
+                    }
+
+                    if (!pushed && inv.type == MSG_TX) {
+
+                        CTransaction tx;
+                        if (mempool.lookup(inv.hash, tx)) {
+                            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+                            ss.reserve(1000);
+                            ss << tx;
+                            pfrom->PushMessage("tx", ss);
+                            pushed = true;
+                        }
+                    }
+                    if (!pushed && inv.type == MSG_TXLOCK_VOTE) {
+                        if(mapTxLockVote.count(inv.hash)){
+                            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+                            ss.reserve(1000);
+                            ss << mapTxLockVote[inv.hash];
+                            pfrom->PushMessage("txlvote", ss);
+                            pushed = true;
+                        }
+                    }
+                    if (!pushed && inv.type == MSG_TXLOCK_REQUEST) {
+                        if(mapTxLockReq.count(inv.hash)){
+                            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+                            ss.reserve(1000);
+                            ss << mapTxLockReq[inv.hash];
+                            pfrom->PushMessage("txlreq", ss);
+                            pushed = true;
+                        }
+                    }
+                    if (!pushed && inv.type == MSG_SPORK) {
+                        if(mapSporks.count(inv.hash)){
+                            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+                            ss.reserve(1000);
+                            ss << mapSporks[inv.hash];
+                            pfrom->PushMessage("spork", ss);
+                            pushed = true;
+                        }
+                    }
+                    if (!pushed && inv.type == MSG_MASTERNODE_WINNER) {
+                        if(mapSeenMasternodeVotes.count(inv.hash)){
+                            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+                            ss.reserve(1000);
+                            ss << mapSeenMasternodeVotes[inv.hash];
+                            pfrom->PushMessage("mnw", ss);
+                            pushed = true;
+                        }
+                    }
+                    if (!pushed && inv.type == MSG_DSTX) {
+                        if(mapDarksendBroadcastTxes.count(inv.hash)){
+                            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+                            ss.reserve(1000);
+                            ss <<
+                                mapDarksendBroadcastTxes[inv.hash].tx <<
+                                mapDarksendBroadcastTxes[inv.hash].vin <<
+                                mapDarksendBroadcastTxes[inv.hash].vchSig <<
+                                mapDarksendBroadcastTxes[inv.hash].sigTime;
+
+                            pfrom->PushMessage("dstx", ss);
+                            pushed = true;
+                        }
+                    }
+                    if (!pushed) {
+                        vNotFound.push_back(inv);
+                    }
+                }
+
+                // Track requests for our stuff.
+                g_signals.Inventory(inv.hash);
+
+                if (inv.type == MSG_BLOCK  || inv.type == MSG_FILTERED_BLOCK)
+                    break;
+            }
         }
-    }
 
-    pfrom->vRecvGetData.erase(pfrom->vRecvGetData.begin(), it);
+        pfrom->vRecvGetData.erase(pfrom->vRecvGetData.begin(), it);
 
-    if (!vNotFound.empty()) {
-        // Let the peer know that we didn't find what it asked for, so it doesn't
-        // have to wait around forever. Currently only SPV clients actually care
-        // about this message: it's needed when they are recursively walking the
-        // dependencies of relevant unconfirmed transactions. SPV clients want to
-        // do that because they want to know about (and store and rebroadcast and
-        // risk analyze) the dependencies of transactions relevant to them, without
-        // having to download the entire memory pool.
-        pfrom->PushMessage("notfound", vNotFound);
+        if (!vNotFound.empty()) {
+            // Let the peer know that we didn't find what it asked for, so it doesn't
+            // have to wait around forever. Currently only SPV clients actually care
+            // about this message: it's needed when they are recursively walking the
+            // dependencies of relevant unconfirmed transactions. SPV clients want to
+            // do that because they want to know about (and store and rebroadcast and
+            // risk analyze) the dependencies of transactions relevant to them, without
+            // having to download the entire memory pool.
+            pfrom->PushMessage("notfound", vNotFound);
+        }
     }
 }
 
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived)
 {
+    LOCK(pfrom->cs_node);
+
     RandAddSeedPerfmon();
     LogPrint("net", "received: %s (%u bytes) peer=%s\n", strCommand, vRecv.size(), pfrom->addr.ToString());
     if (mapArgs.count("-dropmessagestest") && GetRand(atoi(mapArgs["-dropmessagestest"])) == 0)
@@ -4907,7 +4911,10 @@ bool ProcessMessages(CNode* pfrom)
 bool SendMessages(CNode* pto, bool fSendTrickle)
 {
     TRY_LOCK(cs_main, lockMain);
-    if (lockMain) {
+    if (lockMain) 
+    {
+        LOCK(pto->cs_node);
+
         // Don't send anything until we get their version message
         if (pto->nVersion == 0)
             return true;

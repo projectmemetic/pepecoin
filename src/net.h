@@ -301,6 +301,7 @@ public:
     std::vector<CInv> vInventoryToSend;
     CCriticalSection cs_inventory;
     std::multimap<int64_t, CInv> mapAskFor;
+    CCriticalSection cs_node;
 
     // Masternode based relay
     std::set<uint256> setToadKnown;
@@ -533,8 +534,6 @@ public:
         ssSend.GetAndClear(*it);
         nSendSize += (*it).size();
 
-        // Don't attempt optimistic write here, because this may be called from one of the
-        // message handling threads.  Leave it to be processed by the socket handling thread and avoid potential lock train.
         // If write queue empty, attempt "optimistic write"
         //if (it == vSendMsg.begin())
         //    SocketSendData(this);
@@ -772,7 +771,10 @@ inline void RelayInventory(const CInv& inv)
     {
         LOCK(cs_vNodes);
         BOOST_FOREACH(CNode* pnode, vNodes)
+        {
+            LOCK(pnode->cs_node);
             pnode->PushInventory(inv);
+        }
     }
 }
 
