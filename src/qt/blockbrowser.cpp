@@ -52,7 +52,7 @@ const CBlockIndex* getBlockIndex(int height)
 
 std::string getBlockHash(int Height)
 {
-    if(Height > pindexBest->nHeight) { return "00008cae6a01358d774087e2daf3b2108252b0b5a440195ffec4fd38f9892272"; }
+    if(Height > GetBestHeight()) { return "00008cae6a01358d774087e2daf3b2108252b0b5a440195ffec4fd38f9892272"; }
     if(Height < 0) { return "00008cae6a01358d774087e2daf3b2108252b0b5a440195ffec4fd38f9892272"; }
     int desiredheight;
     desiredheight = Height;
@@ -135,8 +135,8 @@ int blocksInPastHours(int hours)
 {
     int wayback = hours * 3600;
     bool check = true;
-    int height = pindexBest->nHeight;
-    int heightHour = pindexBest->nHeight;
+    int height = GetBestHeight();
+    int heightHour = GetBestHeight();
     int utime = (int)time(NULL);
     int target = utime - wayback;
 
@@ -356,10 +356,10 @@ void BlockBrowser::updateExplorer(bool block)
         ui->hardLabel->show();
         ui->hardBox->show();;
         int height = ui->heightBox->value();
-        if (height > pindexBest->nHeight)
+        if (height > GetBestHeight())
         {
-            ui->heightBox->setValue(pindexBest->nHeight);
-            height = pindexBest->nHeight;
+            ui->heightBox->setValue(GetBestHeight());
+            height = GetBestHeight();
         }
         std::string hash = getBlockHash(height);
         std::string merkle = getBlockMerkle(height);
