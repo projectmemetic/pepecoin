@@ -347,7 +347,8 @@ Value getblockcount(const Array& params, bool fHelp)
             "getblockcount\n"
             "Returns the number of blocks in the longest block chain.");
 
-    return nBestHeight;
+    int nBH = nBestHeight;
+    return nBH;
 }
 
 
