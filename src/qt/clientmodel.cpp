@@ -15,6 +15,8 @@
 #include <QTimer>
 #include <QDebug>
 
+#include <boost/atomic.hpp>
+
 static const int64_t nClientStartupTime = GetTime();
 
 ClientModel::ClientModel(OptionsModel *optionsModel, QObject *parent) :
