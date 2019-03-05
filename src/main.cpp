@@ -182,7 +182,7 @@ bool AbortNode(const std::string &strMessage, const std::string &userMessage) {
 
 int GetBestHeight()
 {
-    return GetHeight();
+    return GetpindexBest()->nHeight;
 }
 
 void SetpindexBest(CBlockIndex* pindex)
