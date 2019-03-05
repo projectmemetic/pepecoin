@@ -159,6 +159,20 @@ contains(USE_O0, 1) {
     QMAKE_CFLAGS += -O0
 }
 
+contains(USE_OFAST, 1) {
+    message(Building Ofast optimization flag)
+    QMAKE_CXXFLAGS_RELEASE -= -O2
+    QMAKE_CFLAGS_RELEASE -= -O2
+    QMAKE_CXXFLAGS += -Ofast
+    QMAKE_CFLAGS += -Ofast
+}
+
+contains(USE_NATIVE, 1) {
+    message(Building march=native architecture flag)
+    QMAKE_CXXFLAGS += -march=native
+    QMAKE_CFLAGS += -march=native
+}
+
 *-g++-32 {
     message("32 platform, adding -msse2 flag")
 
