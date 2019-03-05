@@ -581,7 +581,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
     //    throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "PepeCoin is downloading blocks...");
 
     if (GetBestHeight() >= Params().LastPOWBlock() && 
-        (GetBestHeight() < Params().RestartPOWBlock() || GetBestnHeight() >= PEPE_STAKEONLY_HEIGHT))
+        (GetBestHeight() < Params().RestartPOWBlock() || GetBestHeight() >= PEPE_STAKEONLY_HEIGHT))
         throw JSONRPCError(RPC_MISC_ERROR, "No more PoW blocks");
 
     // Update block
