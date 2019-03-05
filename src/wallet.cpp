@@ -1714,11 +1714,11 @@ void CWallet::AvailableCoins(vector<COutput>& vCoins, bool fOnlyConfirmed, const
                 if(coin_type == ONLY_DENOMINATED) {
                     found = IsDenominatedAmount(pcoin->vout[i].nValue);
                 } else if(coin_type == ONLY_NOT10000IFMN) {
-                    found = !(fMasterNode && pcoin->vout[i].nValue == GetMNCollateral(pindexBest->nHeight)*COIN);
+                    found = !(fMasterNode && pcoin->vout[i].nValue == GetMNCollateral(GetBestHeight())*COIN);
                 } else if (coin_type == ONLY_NONDENOMINATED_NOT10000IFMN){
                     if (IsCollateralAmount(pcoin->vout[i].nValue)) continue; // do not use collateral amounts
                     found = !IsDenominatedAmount(pcoin->vout[i].nValue);
-                    if(found && fMasterNode) found = pcoin->vout[i].nValue != GetMNCollateral(pindexBest->nHeight)*COIN; // do not use Hot MN funds
+                    if(found && fMasterNode) found = pcoin->vout[i].nValue != GetMNCollateral(GetBestHeight())*COIN; // do not use Hot MN funds
                 } else {
                     found = true;
                 }
@@ -1775,11 +1775,11 @@ void CWallet::AvailableCoinsMN(vector<COutput>& vCoins, bool fOnlyConfirmed, con
                 if(coin_type == ONLY_DENOMINATED) {
                     found = IsDenominatedAmount(pcoin->vout[i].nValue);
                 } else if(coin_type == ONLY_NOT10000IFMN) {
-                    found = !(fMasterNode && pcoin->vout[i].nValue == GetMNCollateral(pindexBest->nHeight)*COIN);
+                    found = !(fMasterNode && pcoin->vout[i].nValue == GetMNCollateral(GetBestHeight())*COIN);
                 } else if (coin_type == ONLY_NONDENOMINATED_NOT10000IFMN){
                     if (IsCollateralAmount(pcoin->vout[i].nValue)) continue; // do not use collateral amounts
                     found = !IsDenominatedAmount(pcoin->vout[i].nValue);
-                    if(found && fMasterNode) found = pcoin->vout[i].nValue != GetMNCollateral(pindexBest->nHeight)*COIN; // do not use Hot MN funds
+                    if(found && fMasterNode) found = pcoin->vout[i].nValue != GetMNCollateral(GetBestHeight())*COIN; // do not use Hot MN funds
                 } else {
                     found = true;
                 }
@@ -1816,11 +1816,11 @@ void CWallet::AvailableCoinsForStaking(vector<COutput>& vCoins, unsigned int nSp
                 TRY_LOCK(cs_wallet, lockWallet);
                 if(!lockWallet) { MilliSleep(1); continue; }
             {
-                CBlockIndex* pindexPrev = pindexBest;
+                CBlockIndex* pindexPrev = GetpindexBest();
                 
                 int nStakeMinConfirmations = 360;
 
-                if(pindexBest->nHeight >= PEPE_STAKE_WINTER_SWITCH_HEIGHT || Params().NetworkID() == CChainParams::TESTNET)
+                if(GetBestHeight() >= PEPE_STAKE_WINTER_SWITCH_HEIGHT || Params().NetworkID() == CChainParams::TESTNET)
                     nStakeMinConfirmations = 60;
                //  if(pindexPrev->nHeight+1 > PEPE_KEKDAQ_MID_FIX_HEIGHT)  removed to resolve block loading issue
                //     nStakeMinConfirmations = 600;
@@ -1859,7 +1859,7 @@ void CWallet::AvailableCoinsForStaking(vector<COutput>& vCoins, unsigned int nSp
                             found = true;
                             break;
                         }
-                        if (pcoin->vout[i].nValue == GetMNCollateral(pindexBest->nHeight)*COIN){
+                        if (pcoin->vout[i].nValue == GetMNCollateral(GetBestHeight())*COIN){
 
                             //LogPrintf("CWallet::AvailableCoinsForStaking - Found Masternode collateral.\n");
                             found = true;
@@ -2530,7 +2530,7 @@ bool CWallet::SelectCoinsDark(CAmount nValueMin, CAmount nValueMax, std::vector<
         if(out.tx->vout[out.i].nValue < CENT) continue;
         //do not allow collaterals to be selected
         if(IsCollateralAmount(out.tx->vout[out.i].nValue)) continue;
-        if(fMasterNode && out.tx->vout[out.i].nValue == GetMNCollateral(pindexBest->nHeight)*COIN) continue; //masternode input
+        if(fMasterNode && out.tx->vout[out.i].nValue == GetMNCollateral(GetBestHeight())*COIN) continue; //masternode input
 
         if(nValueRet + out.tx->vout[out.i].nValue <= nValueMax){
             CTxIn vin = CTxIn(out.tx->GetHash(),out.i);
@@ -3687,7 +3687,7 @@ bool CWallet::FindStealthTransactions(const CTransaction& tx, mapValue_t& mapNar
 
 uint64_t CWallet::GetStakeWeight() const
 {
-    CBlockIndex* pindexPrev = pindexBest;
+    CBlockIndex* pindexPrev = GetpindexBest();
     // Choose coins to use
     int64_t nBalance = GetBalance();
 
@@ -3712,7 +3712,7 @@ uint64_t CWallet::GetStakeWeight() const
     LOCK2(cs_main, cs_wallet);
     int nStakeMinConfirmations = 360;
     
-    if(pindexBest->nHeight+1 >= PEPE_STAKE_WINTER_SWITCH_HEIGHT || Params().NetworkID() == CChainParams::TESTNET)
+    if(GetBestHeight()+1 >= PEPE_STAKE_WINTER_SWITCH_HEIGHT || Params().NetworkID() == CChainParams::TESTNET)
             nStakeMinConfirmations = 60;
    // if((pindexPrev->nHeight+1) > PEPE_KEKDAQ_MID_FIX_HEIGHT)
    //         nStakeMinConfirmations = 600;
@@ -3733,7 +3733,7 @@ uint64_t CWallet::GetStakeWeight() const
 
 bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64_t nSearchInterval, int64_t nFees, CTransaction& txNew, CKey& key)
 {
-    CBlockIndex* pindexPrev = pindexBest;
+    CBlockIndex* pindexPrev = GetpindexBest();
     CBigNum bnTargetPerCoinDay;
     bnTargetPerCoinDay.SetCompact(nBits);
 
@@ -3770,7 +3770,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     {
         static int nMaxStakeSearchInterval = 60;
         bool fKernelFound = false;
-        for (unsigned int n=0; n<min(nSearchInterval,(int64_t)nMaxStakeSearchInterval) && !fKernelFound && pindexPrev == pindexBest; n++)
+        for (unsigned int n=0; n<min(nSearchInterval,(int64_t)nMaxStakeSearchInterval) && !fKernelFound && pindexPrev == GetpindexBest(); n++)
         {
             boost::this_thread::interruption_point();
             // Search backward in time from the given txNew timestamp

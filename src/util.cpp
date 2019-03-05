@@ -1103,8 +1103,13 @@ boost::filesystem::path GetDefaultDataDir()
 static boost::filesystem::path pathCached[CChainParams::MAX_NETWORK_TYPES+1];
 static CCriticalSection csPathCached;
 
+static boost::filesystem::path pathLoaded = "";
+
 const boost::filesystem::path &GetDataDir(bool fNetSpecific)
 {
+    if(pathLoaded != "")
+        return pathLoaded;
+
     namespace fs = boost::filesystem;
 
     LOCK(csPathCached);
@@ -1133,6 +1138,7 @@ const boost::filesystem::path &GetDataDir(bool fNetSpecific)
 
     fs::create_directory(path);
 
+    pathLoaded = path;
     return path;
 }
 

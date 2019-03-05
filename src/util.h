@@ -112,6 +112,15 @@ inline void MilliSleep(int64_t n)
 #endif
 }
 
+inline void MicroSleep(int64_t n)
+{
+#if BOOST_VERSION >= 105000
+    boost::this_thread::sleep_for(boost::chrono::microseconds(n));
+#else
+    boost::this_thread::sleep(boost::posix_time::microseconds(n));
+#endif
+}
+
 //Dark features
 
 extern bool fMasterNode;

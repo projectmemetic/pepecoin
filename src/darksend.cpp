@@ -276,7 +276,7 @@ void ProcessMessageDarksend(CNode* pfrom, std::string& strCommand, CDataStream& 
                 CTransaction tx2;
                 uint256 hash;
                 //if(GetTransaction(i.prevout.hash, tx2, hash, true)){
-        if(GetTransaction(i.prevout.hash, tx2, hash, false)){
+		if(GetTransaction(i.prevout.hash, tx2, hash, false)){
                     if(tx2.vout.size() > i.prevout.n) {
                         nValueIn += tx2.vout[i.prevout.n].nValue;
                     }
@@ -308,7 +308,7 @@ void ProcessMessageDarksend(CNode* pfrom, std::string& strCommand, CDataStream& 
 
             //if(!AcceptableInputs(mempool, state, tx)){
             bool* pfMissingInputs;
-        if(!AcceptableInputs(mempool, tx, false, pfMissingInputs)){
+	    if(!AcceptableInputs(mempool, tx, false, pfMissingInputs)){
                 LogPrintf("dsi -- transaction not valid! \n");
                 error = _("Transaction not valid.");
                 pfrom->PushMessage("dssu", darkSendPool.sessionID, darkSendPool.GetState(), darkSendPool.GetEntriesCount(), MASTERNODE_REJECTED, error);
@@ -952,7 +952,7 @@ bool CDarkSendPool::IsCollateralValid(const CTransaction& txCollateral){
         CTransaction tx2;
         uint256 hash;
         //if(GetTransaction(i.prevout.hash, tx2, hash, true)){
-    if(GetTransaction(i.prevout.hash, tx2, hash, false)){
+	if(GetTransaction(i.prevout.hash, tx2, hash, false)){
             if(tx2.vout.size() > i.prevout.n) {
                 nValueIn += tx2.vout[i.prevout.n].nValue;
             }
@@ -1157,8 +1157,8 @@ void CDarkSendPool::SendDarksendDenominate(std::vector<CTxIn>& vin, std::vector<
         }
 
         //if(!AcceptableInputs(mempool, state, tx)){
-    bool* pfMissingInputs;
-    if(!AcceptableInputs(mempool, tx, false, pfMissingInputs)){
+	bool* pfMissingInputs;
+	if(!AcceptableInputs(mempool, tx, false, pfMissingInputs)){
             LogPrintf("dsi -- transaction not valid! %s \n", tx.ToString().c_str());
             return;
         }
@@ -1279,7 +1279,7 @@ bool CDarkSendPool::SignFinalTransaction(CTransaction& finalTransactionNew, CNod
                     LogPrintf("CDarkSendPool::Sign - My entries are not correct! Refusing to sign. %d entries %d target. \n", foundOutputs, targetOuputs);
                     return false;
                 }
-                
+				
                 if(fDebug) LogPrintf("CDarkSendPool::Sign - Signing my input %i\n", mine);
                 if(!SignSignature(*pwalletMain, prevPubKey, finalTransaction, mine, int(SIGHASH_ALL|SIGHASH_ANYONECANPAY))) { // changes scriptSig
                     if(fDebug) LogPrintf("CDarkSendPool::Sign - Unable to sign my own transaction! \n");
@@ -1315,8 +1315,9 @@ void CDarkSendPool::NewBlock()
     if(!fEnableDarksend) return;
 
     if(!fMasterNode){
+        
         //denominate all non-denominated inputs every 25 minutes.
-        if(pindexBest->nHeight % 10 == 0) UnlockCoins();
+        if(GetpindexBest()->nHeight % 10 == 0) UnlockCoins();
         ProcessMasternodeConnections();
     }
 }
@@ -1336,7 +1337,8 @@ void CDarkSendPool::CompletedTransaction(bool error, std::string lastMessageNew)
         myEntries.clear();
 
         // To avoid race conditions, we'll only let DS run once per block
-        cachedLastSuccess = pindexBest->nHeight;
+        
+        cachedLastSuccess = GetpindexBest()->nHeight;
     }
     lastMessage = lastMessageNew;
 
@@ -1357,25 +1359,25 @@ void CDarkSendPool::ClearLastMessage()
 //
 bool CDarkSendPool::DoAutomaticDenominating(bool fDryRun, bool ready)
 {
-    // check if enabled first thing so we don't waste time acquiring a lock
     if(!fEnableDarksend) {
         if(fDebug) LogPrintf("CDarkSendPool::DoAutomaticDenominating - Darksend is disabled\n");
         strAutoDenomResult = _("Darksend is disabled.");
         return false;
     }
 
-    LOCK(cs_darksend);
+    LOCK2(cs_darksend, cs_main);
 
-    if(IsInitialBlockDownload()) return false;
+    if(IsInitialBlockDownload() || IsSyncing()) return false;
 
     if(fMasterNode) return false;
     if(state == POOL_STATUS_ERROR || state == POOL_STATUS_SUCCESS) return false;
 
-    if(pindexBest->nHeight - cachedLastSuccess < minBlockSpacing) {
+    if(GetpindexBest()->nHeight - cachedLastSuccess < minBlockSpacing) {
         LogPrintf("CDarkSendPool::DoAutomaticDenominating - Last successful darksend action was too recent\n");
         strAutoDenomResult = _("Last successful darksend action was too recent.");
         return false;
     }
+    
 
     if (!fDryRun && pwalletMain->IsLocked()){
         strAutoDenomResult = _("Wallet is locked.");
@@ -1513,7 +1515,7 @@ bool CDarkSendPool::DoAutomaticDenominating(bool fDryRun, bool ready)
                     LOCK(cs_vNodes);
                     BOOST_FOREACH(CNode* pnode, vNodes)
                     {
-                        if((CNetAddr)pnode->addr != (CNetAddr)submittedToMasternode) continue;
+                    	if((CNetAddr)pnode->addr != (CNetAddr)submittedToMasternode) continue;
 
                         std::string strReason;
                         if(txCollateral == CTransaction()){
@@ -1534,6 +1536,7 @@ bool CDarkSendPool::DoAutomaticDenominating(bool fDryRun, bool ready)
                 } else {
                     LogPrintf("DoAutomaticDenominating --- error connecting \n");
                     strAutoDenomResult = _("Error connecting to masternode.");
+                    if(!fEnableDarksend) return false;
                     return DoAutomaticDenominating();
                 }
 
@@ -1702,7 +1705,10 @@ bool CDarkSendPool::MakeCollateralAmounts()
 
     // use the same cachedLastSuccess as for DS mixinx to prevent race
     if(pwalletMain->CommitTransaction(wtx, reservekey))
-        cachedLastSuccess = pindexBest->nHeight;
+    {
+        
+        cachedLastSuccess = GetpindexBest()->nHeight;
+    }
 
     LogPrintf("MakeCollateralAmounts Success: tx %s\n", wtx.GetHash().GetHex().c_str());
 
@@ -1772,7 +1778,10 @@ bool CDarkSendPool::CreateDenominated(int64_t nTotalValue)
 
     // use the same cachedLastSuccess as for DS mixinx to prevent race
     if(pwalletMain->CommitTransaction(wtx, reservekey))
-        cachedLastSuccess = pindexBest->nHeight;
+    {
+        
+        cachedLastSuccess = GetpindexBest()->nHeight;
+    }
 
     LogPrintf("CreateDenominated Success: tx %s\n", wtx.GetHash().GetHex().c_str());
 
@@ -2120,7 +2129,7 @@ void ThreadCheckDarkSendPool()
     {
         c++;
 
-        MilliSleep(1000);
+        MilliSleep(20000);
 
         if(IsSyncing())
             continue;
@@ -2130,137 +2139,140 @@ void ThreadCheckDarkSendPool()
 
         int mtTimeout = 60;
 
-        if(pindexBest->nHeight >= MASTERTOAD_LOWERTRAFFIC_FORK)
-            mtTimeout = 120;    // every 2 minutes
-
-        if(pindexBest->nHeight >= MASTERTOAD_RELOWERTRAFFIC_FORK)
-            mtTimeout = 150;    // every 2.5 minutes
+        // lock cs_msternodes then cs_main to maintain same lock order as masternodes.cpp, avoid potential deaadlock
         
+        {
+            LOCK(cs_masternodes);
 
-        if(c % mtTimeout == 0){
-            // lock cs_msternodes then cs_main to maintain same lock order as masternodes.cpp, avoid potential deaadlock
-            LOCK(cs_masternodes); 
-            {
-                LOCK(cs_main);
-                /*
-                    cs_main is required for doing masternode.Check because something
-                    is modifying the coins view without a mempool lock. It causes
-                    segfaults from this code without the cs_main lock.
-                */
-                
-                vector<CMasterNode>::iterator it = vecMasternodes.begin();
-                //check them separately
-                while(it != vecMasternodes.end()){
-                    (*it).Check();
-                    ++it;
-                }
+            if(GetpindexBest()->nHeight >= MASTERTOAD_LOWERTRAFFIC_FORK)
+                mtTimeout = 120;    // every 2 minutes
 
-                int count = vecMasternodes.size();
-                int i = 0;
+            if(GetpindexBest()->nHeight >= MASTERTOAD_RELOWERTRAFFIC_FORK)
+                mtTimeout = 150;    // every 2.5 minutes
+            
 
+            if(c % mtTimeout == 0){
                 {
-                    LOCK(cs_vNodes);
-                    BOOST_FOREACH(CMasterNode mn, vecMasternodes) {
-
-                        if(mn.addr.IsRFC1918()) continue; //local network
-                        if(mn.IsEnabled()) {
-                            if(fDebug) LogPrintf("Sending masternode entry - %s \n", mn.addr.ToString().c_str());
-                                        
-                        {
-                            BOOST_FOREACH(CNode* pnode, vNodes) {
-                                    pnode->PushMessage("dsee", mn.vin, mn.addr, mn.sig, mn.now, mn.pubkey, mn.pubkey2, count, i, mn.lastTimeSeen, mn.protocolVersion);
-                            }
-                        }   
-                    }
+                    /*
+                        cs_main is required for doing masternode.Check because something
+                        is modifying the coins view without a mempool lock. It causes
+                        segfaults from this code without the cs_main lock.
+                    */
                     
-                        i++;
-                    }
-                }
-
-                //remove inactive
-                it = vecMasternodes.begin();
-                while(it != vecMasternodes.end()){
-                    if((*it).enabled == 4 || (*it).enabled == 3){
-                        LogPrintf("Removing inactive masternode %s\n", (*it).addr.ToString().c_str());
-                        it = vecMasternodes.erase(it);
-                    } else {
+                    vector<CMasterNode>::iterator it = vecMasternodes.begin();
+                    //check them separately
+                    while(it != vecMasternodes.end()){
+                        (*it).Check();
                         ++it;
                     }
+
+                    int count = vecMasternodes.size();
+                    int i = 0;
+
+                    {
+                        LOCK(cs_vNodes);
+                        BOOST_FOREACH(CMasterNode mn, vecMasternodes) {
+
+                            if(mn.addr.IsRFC1918()) continue; //local network
+                            if(mn.IsEnabled()) {
+                                if(fDebug) LogPrintf("Sending masternode entry - %s \n", mn.addr.ToString().c_str());
+                                            
+                            {
+                                BOOST_FOREACH(CNode* pnode, vNodes) {
+                                        pnode->PushMessage("dsee", mn.vin, mn.addr, mn.sig, mn.now, mn.pubkey, mn.pubkey2, count, i, mn.lastTimeSeen, mn.protocolVersion);
+                                }
+                            }   
+                        }
+                        
+                            i++;
+                        }
+                    }
+
+                    //remove inactive
+                    it = vecMasternodes.begin();
+                    while(it != vecMasternodes.end()){
+                        if((*it).enabled == 4 || (*it).enabled == 3){
+                            LogPrintf("Removing inactive masternode %s\n", (*it).addr.ToString().c_str());
+                            it = vecMasternodes.erase(it);
+                        } else {
+                            ++it;
+                        }
+                    }
+
+                    masternodePayments.CleanPaymentList();
+                    CleanTransactionLocksList();
                 }
-
-                masternodePayments.CleanPaymentList();
-                CleanTransactionLocksList();
             }
-        }
 
 
-        int mtRefresh = 5;  //try to sync the masternode list and payment list every 5 seconds from at least 3 nodes
+            int mtRefresh = 5;  //try to sync the masternode list and payment list every 5 seconds from at least 3 nodes
 
-        if(pindexBest->nHeight >= MASTERTOAD_LOWERTRAFFIC_FORK)
-            mtRefresh = 30;    // every 30 seconds instead of 5
-        
-        if(pindexBest->nHeight >= MASTERTOAD_RELOWERTRAFFIC_FORK)
-            mtRefresh = 90;    // every 90 seconds instead of 30
+            if(GetpindexBest()->nHeight >= MASTERTOAD_LOWERTRAFFIC_FORK)
+                mtRefresh = 30;    // every 30 seconds instead of 5
+            
+            if(GetpindexBest()->nHeight >= MASTERTOAD_RELOWERTRAFFIC_FORK)
+                mtRefresh = 90;    // every 90 seconds instead of 30
 
-        
-        if(c % mtRefresh == 0 && RequestedMasterNodeList < 3){
-            bool fIsInitialDownload = IsInitialBlockDownload();
-            if(!fIsInitialDownload) {
-                LOCK(cs_vNodes);
-                BOOST_FOREACH(CNode* pnode, vNodes)
-                {
-                    if (pnode->nVersion >= darkSendPool.MIN_PEER_PROTO_VERSION) {
+            
+            if(c % mtRefresh == 0 && RequestedMasterNodeList < 3){
+                bool fIsInitialDownload = IsInitialBlockDownload();
+                if(!fIsInitialDownload) {
+                    LOCK(cs_vNodes);
+                    BOOST_FOREACH(CNode* pnode, vNodes)
+                    {
+                        if (pnode->nVersion >= darkSendPool.MIN_PEER_PROTO_VERSION) {
 
-                        //keep track of who we've asked for the list
-                        if(pnode->HasFulfilledRequest("mnsync")) continue;
-                        pnode->FulfilledRequest("mnsync");
+                            //keep track of who we've asked for the list
+                            if(pnode->HasFulfilledRequest("mnsync")) continue;
+                            pnode->FulfilledRequest("mnsync");
 
-                        LogPrintf("Successfully synced, asking for Masternode list and payment list\n");
+                            LogPrintf("Successfully synced, asking for Masternode list and payment list\n");
 
-                        pnode->PushMessage("dseg", CTxIn()); //request full mn list
-                        pnode->PushMessage("mnget"); //sync payees
-                        pnode->PushMessage("getsporks"); //get current network sporks
-                        RequestedMasterNodeList++;
+                            pnode->PushMessage("dseg", CTxIn()); //request full mn list
+                            pnode->PushMessage("mnget"); //sync payees
+                            pnode->PushMessage("getsporks"); //get current network sporks
+                            RequestedMasterNodeList++;
+                        }
                     }
                 }
             }
-        }
-        
+            
 
-        int mtPingSeconds = MASTERNODE_PING_SECONDS;
+            int mtPingSeconds = MASTERNODE_PING_SECONDS;
 
-        if(pindexBest->nHeight >= MASTERTOAD_LOWERTRAFFIC_FORK)
-            mtPingSeconds = 10;     // 10 seconds
+            if(GetpindexBest()->nHeight >= MASTERTOAD_LOWERTRAFFIC_FORK)
+                mtPingSeconds = 10;     // 10 seconds
 
-        if(pindexBest->nHeight >= MASTERTOAD_RELOWERTRAFFIC_FORK)
-            mtPingSeconds = 20;     // 20 seconds
+            if(GetpindexBest()->nHeight >= MASTERTOAD_RELOWERTRAFFIC_FORK)
+                mtPingSeconds = 20;     // 20 seconds
 
-        if(c % mtPingSeconds == 0){
-            activeMasternode.ManageStatus();
-        }
+            if(c % mtPingSeconds == 0){
+                activeMasternode.ManageStatus();
+            }
 
-        if(c % 60 == 0){
-            LOCK(cs_masternodes);
-            //if we've used 1/5 of the masternode list, then clear the list.
-            if((int)vecMasternodesUsed.size() > (int)vecMasternodes.size() / 5)
-                vecMasternodesUsed.clear();
-        }
+            if(c % 60 == 0){
+                LOCK(cs_masternodes);
+                //if we've used 1/5 of the masternode list, then clear the list.
+                if((int)vecMasternodesUsed.size() > (int)vecMasternodes.size() / 5)
+                    vecMasternodesUsed.clear();
+            }
 
-        //auto denom every 2.5 minutes (liquidity provides try less often)
-        if(c % 60*(nLiquidityProvider+1) == 0){
-            if(nLiquidityProvider!=0){
-                int nRand = rand() % (101+nLiquidityProvider);
-                //about 1/100 chance of starting over after 4 rounds.
-                if(nRand == 50+nLiquidityProvider && pwalletMain->GetAverageAnonymizedRounds() > 8){
-                    darkSendPool.SendRandomPaymentToSelf();
-                    int nLeftToAnon = ((pwalletMain->GetBalance() - pwalletMain->GetAnonymizedBalance())/COIN)-3;
-                    if(nLeftToAnon > 999) nLeftToAnon = 999;
-                    nAnonymizePepeCoinAmount = (rand() % nLeftToAnon)+3;
+            //auto denom every 2.5 minutes (liquidity provides try less often)
+            if(fEnableDarksend && (c % 60*(nLiquidityProvider+1) == 0)){
+                if(nLiquidityProvider!=0){
+                    int nRand = rand() % (101+nLiquidityProvider);
+                    //about 1/100 chance of starting over after 4 rounds.
+                    if(nRand == 50+nLiquidityProvider && pwalletMain->GetAverageAnonymizedRounds() > 8){
+                        darkSendPool.SendRandomPaymentToSelf();
+                        int nLeftToAnon = ((pwalletMain->GetBalance() - pwalletMain->GetAnonymizedBalance())/COIN)-3;
+                        if(nLeftToAnon > 999) nLeftToAnon = 999;
+                        nAnonymizePepeCoinAmount = (rand() % nLeftToAnon)+3;
+                    } else {
+                        darkSendPool.DoAutomaticDenominating();
+                    }
                 } else {
                     darkSendPool.DoAutomaticDenominating();
                 }
-            } else {
-                darkSendPool.DoAutomaticDenominating();
             }
         }
     }

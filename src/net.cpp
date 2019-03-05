@@ -435,8 +435,9 @@ void CNode::CloseSocketDisconnect()
     LogPrint("net", "CloseSocketDisconnect: Try lock cs_vRecvMsg\n");
     TRY_LOCK(cs_vRecvMsg, lockRecv);
     if (lockRecv)
+    {//LOCK(cs_vRecvMsg);
         vRecvMsg.clear();
-
+    }
     // if this was the sync node, we'll need a new one
     if (this == pnodeSync)
         pnodeSync = NULL;
@@ -452,8 +453,9 @@ void CNode::PushVersion()
     CAddress addrMe = GetLocalAddress(&addr);
     RAND_bytes((unsigned char*)&nLocalHostNonce, sizeof(nLocalHostNonce));
     LogPrint("net", "send version message: version %d, blocks=%d, us=%s, them=%s, peer=%s\n", PROTOCOL_VERSION, nBestHeight, addrMe.ToString(), addrYou.ToString(), addr.ToString());
+    int nBH = nBestHeight;
     PushMessage("version", PROTOCOL_VERSION, nLocalServices, nTime, addrYou, addrMe,
-                nLocalHostNonce, FormatSubVersion(CLIENT_NAME, CLIENT_VERSION, std::vector<string>()), nBestHeight, true);
+                nLocalHostNonce, FormatSubVersion(CLIENT_NAME, CLIENT_VERSION, std::vector<string>()), nBH, true);
 }
 
 
@@ -697,6 +699,7 @@ void ThreadSocketHandler()
             vector<CNode*> vNodesCopy = vNodes;
             BOOST_FOREACH(CNode* pnode, vNodesCopy)
             {
+                boost::this_thread::interruption_point();
                 if (pnode->fDisconnect ||
                     (pnode->GetRefCount() <= 0 && pnode->vRecvMsg.empty() && pnode->nSendSize == 0 && pnode->ssSend.empty()))
                 {
@@ -721,17 +724,21 @@ void ThreadSocketHandler()
             list<CNode*> vNodesDisconnectedCopy = vNodesDisconnected;
             BOOST_FOREACH(CNode* pnode, vNodesDisconnectedCopy)
             {
+                boost::this_thread::interruption_point();
                 // wait until threads are done using it
                 if (pnode->GetRefCount() <= 0)
                 {
                     bool fDelete = false;
                     {
+                        //LOCK(pnode->cs_vSend);
                         TRY_LOCK(pnode->cs_vSend, lockSend);
                         if (lockSend)
                         {
+                            //LOCK(pnode->cs_vRecvMsg);
                             TRY_LOCK(pnode->cs_vRecvMsg, lockRecv);
                             if (lockRecv)
                             {
+                                //LOCK(pnode->cs_inventory);
                                 TRY_LOCK(pnode->cs_inventory, lockInv);
                                 if (lockInv)
                                     fDelete = true;
@@ -745,9 +752,41 @@ void ThreadSocketHandler()
                 }
             }
         }
-        if(vNodes.size() != nPrevNodeCount) {
-            nPrevNodeCount = vNodes.size();
-            uiInterface.NotifyNumConnectionsChanged(nPrevNodeCount);
+
+        {
+            LOCK(cs_vNodes);
+            if(vNodes.size() != nPrevNodeCount) {
+                nPrevNodeCount = vNodes.size();
+                uiInterface.NotifyNumConnectionsChanged(nPrevNodeCount);
+            }
+
+            // Address refresh broadcast
+            static int64_t nLastRebroadcast;
+            if (!IsInitialBlockDownload() && (GetTime() - nLastRebroadcast > 24 * 60 * 60))
+            {
+                {
+                    BOOST_FOREACH(CNode* pnode, vNodes)
+                    {
+                        boost::this_thread::interruption_point();
+                        // Periodically clear setAddrKnown to allow refresh broadcasts
+                        if (nLastRebroadcast)
+                        {
+                            pnode->setAddrKnown.clear();
+                        }
+
+                        // Rebroadcast our address
+                        if (!fNoListen)
+                        {
+                            CAddress addr = GetLocalAddress(&pnode->addr);
+                            if (addr.IsRoutable())
+                            {
+                                pnode->PushAddress(addr);
+                            }
+                        }
+                    }
+                }
+                nLastRebroadcast = GetTime();
+            }
         }
 
 
@@ -770,6 +809,7 @@ void ThreadSocketHandler()
 
 
         BOOST_FOREACH(SOCKET hListenSocket, vhListenSocket) {
+            boost::this_thread::interruption_point();
             FD_SET(hListenSocket, &fdsetRecv);
             hSocketMax = max(hSocketMax, hListenSocket);
             have_fds = true;
@@ -782,7 +822,11 @@ void ThreadSocketHandler()
 
                 if (pnode->hSocket == INVALID_SOCKET)
                     continue;
+
+                boost::this_thread::interruption_point();
                 {
+                    //LOCK(pnode->cs_vSend);
+                    //{
                     TRY_LOCK(pnode->cs_vSend, lockSend);
                     if (lockSend) {
                         // do not read, if draining write queue
@@ -823,6 +867,7 @@ void ThreadSocketHandler()
         BOOST_FOREACH(SOCKET hListenSocket, vhListenSocket)
         if (hListenSocket != INVALID_SOCKET && FD_ISSET(hListenSocket, &fdsetRecv))
         {
+            boost::this_thread::interruption_point();
             struct sockaddr_storage sockaddr;
             socklen_t len = sizeof(sockaddr);
             SOCKET hSocket = accept(hListenSocket, (struct sockaddr*)&sockaddr, &len);
@@ -845,11 +890,6 @@ void ThreadSocketHandler()
                 int nErr = WSAGetLastError();
                 if (nErr != WSAEWOULDBLOCK)
                     LogPrintf("socket error accept failed: %d\n", nErr);
-            }
-            else if(IsSyncing())
-            {
-                closesocket(hSocket);
-                LogPrintf("Inbound connection from %s dropped because we are syncing.\n");
             }
             else if (nInbound >= GetArg("-maxconnections", 125) - MAX_OUTBOUND_CONNECTIONS)
             {
@@ -904,6 +944,7 @@ void ThreadSocketHandler()
                 continue;
             if (FD_ISSET(pnode->hSocket, &fdsetRecv) || FD_ISSET(pnode->hSocket, &fdsetError))
             {
+                //LOCK(pnode->cs_vRecvMsg);
                 TRY_LOCK(pnode->cs_vRecvMsg, lockRecv);
                 if (lockRecv)
                 {
@@ -953,6 +994,7 @@ void ThreadSocketHandler()
                 continue;
             if (FD_ISSET(pnode->hSocket, &fdsetSend))
             {
+                //LOCK(pnode->cs_vSend);
                 TRY_LOCK(pnode->cs_vSend, lockSend);
                 if (lockSend)
                 {
@@ -996,7 +1038,9 @@ void ThreadSocketHandler()
                 pnode->Release();
             }
         }
-    MilliSleep(1); // niceness
+
+        boost::this_thread::interruption_point();
+    MicroSleep(250000); // niceness
     }
 }
 
@@ -1180,6 +1224,7 @@ void DumpAddresses()
     int64_t nStart = GetTimeMillis();
 
     CAddrDB adb;
+    LOCK(addrman.cs);
     adb.Write(addrman);
 
     LogPrint("net", "Flushed %d addresses to peers.dat  %dms\n",
@@ -1206,18 +1251,22 @@ void static ProcessOneShot()
 
 void ThreadOpenConnections()
 {
+    boost::this_thread::interruption_point();
     // Connect to specific addresses
     if (mapArgs.count("-connect") && mapMultiArgs["-connect"].size() > 0)
     {
         for (int64_t nLoop = 0;; nLoop++)
         {
+            boost::this_thread::interruption_point();
             ProcessOneShot();
             BOOST_FOREACH(string strAddr, mapMultiArgs["-connect"])
             {
+                boost::this_thread::interruption_point();
                 CAddress addr;
                 OpenNetworkConnection(addr, NULL, strAddr.c_str());
                 for (int i = 0; i < 10 && i < nLoop; i++)
                 {
+                    boost::this_thread::interruption_point();
                     MilliSleep(500);
                 }
             }
@@ -1229,6 +1278,7 @@ void ThreadOpenConnections()
     int64_t nStart = GetTime();
     while (true)
     {
+        boost::this_thread::interruption_point();
         ProcessOneShot();
 
         MilliSleep(500);
@@ -1258,6 +1308,7 @@ void ThreadOpenConnections()
         {
             LOCK(cs_vNodes);
             BOOST_FOREACH(CNode* pnode, vNodes) {
+                boost::this_thread::interruption_point();
                 if (!pnode->fInbound) {
                     setConnected.insert(pnode->addr.GetGroup());
                     nOutbound++;
@@ -1270,6 +1321,7 @@ void ThreadOpenConnections()
         int nTries = 0;
         while (true)
         {
+            boost::this_thread::interruption_point();
             // use an nUnkBias between 10 (no outgoing connections) and 90 (8 outgoing connections)
             CAddress addr = addrman.Select(10 + min(nOutbound,8)*10);
 
@@ -1306,6 +1358,7 @@ void ThreadOpenConnections()
 
 void ThreadOpenAddedConnections()
 {
+    boost::this_thread::interruption_point();
     {
         LOCK(cs_vAddedNodes);
         vAddedNodes = mapMultiArgs["-addnode"];
@@ -1321,11 +1374,13 @@ void ThreadOpenAddedConnections()
                     lAddresses.push_back(strAddNode);
             }
             BOOST_FOREACH(string& strAddNode, lAddresses) {
+                boost::this_thread::interruption_point();
                 CAddress addr;
                 CSemaphoreGrant grant(*semOutbound);
                 OpenNetworkConnection(addr, &grant, strAddNode.c_str());
                 MilliSleep(500);
             }
+            boost::this_thread::interruption_point();
             MilliSleep(120000); // Retry every 2 minutes
         }
     }
@@ -1343,6 +1398,7 @@ void ThreadOpenAddedConnections()
         list<vector<CService> > lservAddressesToAdd(0);
         BOOST_FOREACH(string& strAddNode, lAddresses)
         {
+            boost::this_thread::interruption_point();
             vector<CService> vservNode(0);
             if(Lookup(strAddNode.c_str(), vservNode, Params().GetDefaultPort(), fNameLookup, 0))
             {
@@ -1359,6 +1415,8 @@ void ThreadOpenAddedConnections()
         {
             LOCK(cs_vNodes);
             BOOST_FOREACH(CNode* pnode, vNodes)
+            {
+                boost::this_thread::interruption_point();
                 for (list<vector<CService> >::iterator it = lservAddressesToAdd.begin(); it != lservAddressesToAdd.end(); it++)
                     BOOST_FOREACH(CService& addrNode, *(it))
                         if (pnode->addr == addrNode)
@@ -1367,6 +1425,7 @@ void ThreadOpenAddedConnections()
                             it--;
                             break;
                         }
+            }
         }
         BOOST_FOREACH(vector<CService>& vserv, lservAddressesToAdd)
         {
@@ -1397,10 +1456,11 @@ bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOu
 
     // if we are trying to sync but the sync peer hasn't responded and started the sync
     // drop it so we can open a connection to a new sync peer
-    DropNonRespondingSyncPeer();
+   /* DropNonRespondingSyncPeer();
 
     // if we are syncing and if we already have an active sync node, don't open more connections
     bool bAlreadySyncing = false;
+    LOCK(cs_vNodes);
     BOOST_FOREACH(CNode* pnode, vNodes) {
         if(pnode->fStartSync && !pnode->fDisconnect && IsSyncing())
         {
@@ -1409,7 +1469,7 @@ bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOu
         }
     }
     if(bAlreadySyncing)
-        return false;
+        return false;*/
 
     CNode* pnode = ConnectNode(addrConnect, strDest);
     boost::this_thread::interruption_point();
@@ -1472,13 +1532,13 @@ void ThreadMessageHandler(int ncore)
     RenameThread(s.c_str());  
 
     std::vector<CNode*> vCoreNodes;
+    vector<CNode*> vNodesFullSet; // the full set of nodes
 
     while (true)
     {
         boost::this_thread::interruption_point();
         bool fHaveSyncNode = false;
-
-        vector<CNode*> vNodesFullSet; // the full set of nodes
+        
         vector<CNode*> vNodesCopy; // nodes to work on in this core
         {
             {
@@ -1531,7 +1591,6 @@ void ThreadMessageHandler(int ncore)
             }
 
             {
-                LOCK(cs_vNodes);
                 // clean our node list of any nodes that have been disconnected and don't exist in the master node list anymore
                 std::vector<CNode*> vCoreNodesToRemove; 
                 BOOST_FOREACH(CNode* pnode, vCoreNodes)
@@ -1555,6 +1614,7 @@ void ThreadMessageHandler(int ncore)
 
                 // claim nodes for this core until the slice size is reached
                 int d = 0;
+                LOCK(cs_vNodes);
                 BOOST_FOREACH(CNode* pnode, vNodesFullSet)
                 {
                     if(!pnode) continue;  
@@ -1598,30 +1658,40 @@ void ThreadMessageHandler(int ncore)
             pnodeTrickle = vNodesCopy[GetRand(vCoreNodes.size())];
 
         
-        BOOST_FOREACH(CNode* pnode, vCoreNodes)
         {
-            if(!pnode) continue; 
+            
 
-            if (pnode->fDisconnect)
-                continue;
-
-            // Receive messages
+            BOOST_FOREACH(CNode* pnode, vCoreNodes)
             {
-                TRY_LOCK(pnode->cs_vRecvMsg, lockRecv);
-                if (lockRecv)
+                if(!pnode) continue; 
+
+                if (pnode->fDisconnect)
+                    continue;
+
+                //TRY_LOCK(cs_main, lockMain); // grab a lock on cs_main here to avoid potential deadlock with darksend masternode send that locks cs_main->cs_vSend
+                //if(lockMain)
                 {
-                    ProcessMessages(pnode);
-                }
-            }
-            boost::this_thread::interruption_point();
+                    // Receive messages
+                    {
+                        //LOCK(pnode->cs_vRecvMsg);
+                        TRY_LOCK(pnode->cs_vRecvMsg, lockRecv);
+                        if (lockRecv)
+                        {
+                            ProcessMessages(pnode);
+                        }
+                    }
+                    boost::this_thread::interruption_point();
 
-            // Send messages
-            {
-                TRY_LOCK(pnode->cs_vSend, lockSend);
-                if (lockSend)
-                    SendMessages(pnode, false); //pnode == pnodeTrickle);
+                    // Send messages
+                    {
+                        //LOCK(pnode->cs_vSend);
+                        TRY_LOCK(pnode->cs_vSend, lockSend);
+                        if (lockSend)
+                            SendMessages(pnode, false); //pnode == pnodeTrickle);
+                    }
+                }
+                boost::this_thread::interruption_point();
             }
-            boost::this_thread::interruption_point();
         }
 
         {
@@ -1633,7 +1703,7 @@ void ThreadMessageHandler(int ncore)
         }
 
         // niceness
-        MilliSleep(2);
+        MicroSleep(500000);
     }
 }
 

@@ -145,14 +145,14 @@ public:
 
     int GetMasternodeInputAge()
     {
-        if(pindexBest == NULL) return 0;
+        if(GetpindexBest() == NULL) return 0;
 
         if(cacheInputAge == 0){
             cacheInputAge = GetInputAge(vin);
-            cacheInputAgeBlock = pindexBest->nHeight;
+            cacheInputAgeBlock = GetpindexBest()->nHeight;
         }
 
-        return cacheInputAge+(pindexBest->nHeight-cacheInputAgeBlock);
+        return cacheInputAge+(GetpindexBest()->nHeight-cacheInputAgeBlock);
     }
 };
 

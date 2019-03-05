@@ -50,7 +50,7 @@ Value getsubsidy(const Array& params, bool fHelp)
             "getsubsidy [nTarget]\n"
             "Returns proof-of-work subsidy value for the specified value of target.");
 
-    return (int64_t)GetProofOfWorkReward(pindexBest->nHeight, 0);
+    return (int64_t)GetProofOfWorkReward(GetBestHeight(), 0);
 }
 
 Value getstakesubsidy(const Array& params, bool fHelp)
@@ -75,10 +75,10 @@ Value getstakesubsidy(const Array& params, bool fHelp)
     uint64_t nCoinAge;
     int64_t nCoinValue;
     CTxDB txdb("r");
-    if (!tx.GetCoinAge(txdb, pindexBest, nCoinAge, nCoinValue))
+    if (!tx.GetCoinAge(txdb, GetpindexBest(), nCoinAge, nCoinValue))
         throw JSONRPCError(RPC_MISC_ERROR, "GetCoinAge failed");
 
-    return (uint64_t)GetProofOfStakeReward(pindexBest->pprev, nCoinAge, 0, nCoinValue);
+    return (uint64_t)GetProofOfStakeReward(GetpindexBest()->pprev, nCoinAge, 0, nCoinValue);
 }
 
 Value getmininginfo(const Array& params, bool fHelp)
@@ -98,13 +98,13 @@ Value getmininginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("currentblocktx",(uint64_t)nLastBlockTx));
 
     diff.push_back(Pair("proof-of-work",        GetDifficulty()));
-    diff.push_back(Pair("proof-of-stake",       GetDifficulty(GetLastBlockIndex(pindexBest, true))));
+    diff.push_back(Pair("proof-of-stake",       GetDifficulty(GetLastBlockIndex(GetpindexBest(), true))));
 
     obj.push_back(Pair("difficulty",    diff));
 
     // obj.push_back(Pair("difficulty",    GetDifficulty(GetLastBlockIndex(pindexBest, true))));
 
-    obj.push_back(Pair("blockvalue",    (int64_t)GetProofOfWorkReward(pindexBest->pprev, 0)));
+    obj.push_back(Pair("blockvalue",    (int64_t)GetProofOfWorkReward(GetpindexBest()->pprev, 0)));
     obj.push_back(Pair("netmhashps",     GetPoWMHashPS()));
     obj.push_back(Pair("netstakeweight", GetPoSKernelPS()));
     obj.push_back(Pair("errors",        GetWarnings("statusbar")));
@@ -151,7 +151,7 @@ Value getstakinginfo(const Array& params, bool fHelp)
         CAmount nAverageInputSize = 0;
 
     vector<COutput> vCoins;
-    pwalletMain->AvailableCoinsForStaking(vCoins, pindexBest->GetBlockTime()+1);
+    pwalletMain->AvailableCoinsForStaking(vCoins, GetpindexBest()->GetBlockTime()+1);
     BOOST_FOREACH(COutput output, vCoins)
     {
         if(!output.fSpendable)
@@ -177,7 +177,7 @@ Value getstakinginfo(const Array& params, bool fHelp)
     obj.push_back(Pair("currentblocktx", (uint64_t)nLastBlockTx));
     obj.push_back(Pair("pooledtx", (uint64_t)mempool.size()));
 
-    obj.push_back(Pair("difficulty", GetDifficulty(GetLastBlockIndex(pindexBest, true))));
+    obj.push_back(Pair("difficulty", GetDifficulty(GetLastBlockIndex(GetpindexBest(), true))));
     obj.push_back(Pair("search-interval", (int)nLastCoinStakeSearchInterval));
 
     obj.push_back(Pair("weight", ValueFromAmount(nWeight)));
@@ -212,7 +212,7 @@ Value checkkernel(const Array& params, bool fHelp)
         throw JSONRPCError(-10, "PepeCoin is downloading blocks...");
 
     COutPoint kernel;
-    CBlockIndex* pindexPrev = pindexBest;
+    CBlockIndex* pindexPrev = GetpindexBest();
     unsigned int nBits = GetNextTargetRequired(pindexPrev, true);
     int64_t nTime = GetAdjustedTime();
     nTime &= ~STAKE_TIMESTAMP_MASK;
@@ -292,8 +292,8 @@ Value getworkex(const Array& params, bool fHelp)
     if (IsInitialBlockDownload())
         throw JSONRPCError(-10, "PepeCoin is downloading blocks...");
 
-    if (pindexBest->nHeight >= Params().LastPOWBlock() && 
-        (pindexBest->nHeight < Params().RestartPOWBlock() || pindexBest->nHeight >= PEPE_STAKEONLY_HEIGHT))
+    if (GetBestHeight() >= Params().LastPOWBlock() && 
+        (GetBestHeight() < Params().RestartPOWBlock() || GetBestHeight() >= PEPE_STAKEONLY_HEIGHT))
         throw JSONRPCError(RPC_MISC_ERROR, "No more PoW blocks");
 
     typedef map<uint256, pair<CBlock*, CScript> > mapNewBlock_t;
@@ -307,10 +307,10 @@ Value getworkex(const Array& params, bool fHelp)
         static CBlockIndex* pindexPrev;
         static int64_t nStart;
         static CBlock* pblock;
-        if (pindexPrev != pindexBest ||
+        if (pindexPrev != GetpindexBest() ||
             (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 60))
         {
-            if (pindexPrev != pindexBest)
+            if (pindexPrev != GetpindexBest())
             {
                 // Deallocate old blocks since they're obsolete now
                 mapNewBlock.clear();
@@ -319,7 +319,7 @@ Value getworkex(const Array& params, bool fHelp)
                 vNewBlock.clear();
             }
             nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
-            pindexPrev = pindexBest;
+            pindexPrev = GetpindexBest();
             nStart = GetTime();
 
             // Create new block
@@ -427,8 +427,8 @@ Value getwork(const Array& params, bool fHelp)
     if (IsInitialBlockDownload())
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "PepeCoin is downloading blocks...");
 
-    if (pindexBest->nHeight >= Params().LastPOWBlock() && 
-        (pindexBest->nHeight < Params().RestartPOWBlock() || pindexBest->nHeight >= PEPE_STAKEONLY_HEIGHT))
+    if (GetBestHeight() >= Params().LastPOWBlock() && 
+        (GetBestHeight() < Params().RestartPOWBlock() || GetBestHeight() >= PEPE_STAKEONLY_HEIGHT))
         throw JSONRPCError(RPC_MISC_ERROR, "No more PoW blocks");
 
     typedef map<uint256, pair<CBlock*, CScript> > mapNewBlock_t;
@@ -442,10 +442,10 @@ Value getwork(const Array& params, bool fHelp)
         static CBlockIndex* pindexPrev;
         static int64_t nStart;
         static CBlock* pblock;
-        if (pindexPrev != pindexBest ||
+        if (pindexPrev != GetpindexBest() ||
             (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 60))
         {
-            if (pindexPrev != pindexBest)
+            if (pindexPrev != GetpindexBest())
             {
                 // Deallocate old blocks since they're obsolete now
                 mapNewBlock.clear();
@@ -459,7 +459,7 @@ Value getwork(const Array& params, bool fHelp)
 
             // Store the pindexBest used before CreateNewBlock, to avoid races
             nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
-            CBlockIndex* pindexPrevNew = pindexBest;
+            CBlockIndex* pindexPrevNew = GetpindexBest();
             nStart = GetTime();
 
             // Create new block
@@ -580,8 +580,8 @@ Value getblocktemplate(const Array& params, bool fHelp)
     //if (IsInitialBlockDownload())
     //    throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "PepeCoin is downloading blocks...");
 
-    if (pindexBest->nHeight >= Params().LastPOWBlock() && 
-        (pindexBest->nHeight < Params().RestartPOWBlock() || pindexBest->nHeight >= PEPE_STAKEONLY_HEIGHT))
+    if (GetBestHeight() >= Params().LastPOWBlock() && 
+        (GetBestHeight() < Params().RestartPOWBlock() || GetBestnHeight() >= PEPE_STAKEONLY_HEIGHT))
         throw JSONRPCError(RPC_MISC_ERROR, "No more PoW blocks");
 
     // Update block
@@ -589,7 +589,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
     static CBlockIndex* pindexPrev;
     static int64_t nStart;
     static CBlock* pblock;
-    if (pindexPrev != pindexBest ||
+    if (pindexPrev != GetpindexBest() ||
         (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 5))
     {
         // Clear pindexPrev so future calls make a new block, despite any failures from here on
@@ -597,7 +597,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
 
         // Store the pindexBest used before CreateNewBlock, to avoid races
         nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
-        CBlockIndex* pindexPrevNew = pindexBest;
+        CBlockIndex* pindexPrevNew = GetpindexBest();
         nStart = GetTime();
 
         // Create new block

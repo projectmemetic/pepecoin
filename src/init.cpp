@@ -120,7 +120,7 @@ void Shutdown()
         LOCK(cs_main);
 #ifdef ENABLE_WALLET
         if (pwalletMain)
-            pwalletMain->SetBestChain(CBlockLocator(pindexBest));
+            pwalletMain->SetBestChain(CBlockLocator(GetpindexBest()));
 #endif
     }
 #ifdef ENABLE_WALLET
@@ -908,7 +908,7 @@ bool AppInit2(boost::thread_group& threadGroup)
                     strErrors << _("Cannot write default address") << "\n";
             }
 
-            pwalletMain->SetBestChain(CBlockLocator(pindexBest));
+            pwalletMain->SetBestChain(CBlockLocator(GetpindexBest()));
         }
 
         LogPrintf("%s", strErrors.str());
@@ -916,7 +916,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
         RegisterWallet(pwalletMain);
 
-        CBlockIndex *pindexRescan = pindexBest;
+        CBlockIndex *pindexRescan = GetpindexBest();
         if (GetBoolArg("-rescan", false))
             pindexRescan = pindexGenesisBlock;
         else
@@ -928,14 +928,14 @@ bool AppInit2(boost::thread_group& threadGroup)
             else
                 pindexRescan = pindexGenesisBlock;
         }
-        if (pindexBest != pindexRescan && pindexBest && pindexRescan && pindexBest->nHeight > pindexRescan->nHeight)
+        if (GetpindexBest() != pindexRescan && GetpindexBest() && pindexRescan && GetBestHeight() > pindexRescan->nHeight)
         {
             uiInterface.InitMessage(_("Rescanning..."));
-            LogPrintf("Rescanning last %i blocks (from block %i)...\n", pindexBest->nHeight - pindexRescan->nHeight, pindexRescan->nHeight);
+            LogPrintf("Rescanning last %i blocks (from block %i)...\n", GetBestHeight() - pindexRescan->nHeight, pindexRescan->nHeight);
             nStart = GetTimeMillis();
             pwalletMain->ScanForWalletTransactions(pindexRescan, true);
             LogPrintf(" rescan      %15dms\n", GetTimeMillis() - nStart);
-            pwalletMain->SetBestChain(CBlockLocator(pindexBest));
+            pwalletMain->SetBestChain(CBlockLocator(GetpindexBest()));
             nWalletDBUpdated++;
         }
     } // (!fDisableWallet)
@@ -1081,7 +1081,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     if(GetBoolArg("-reindexaddr", false))
     {
         uiInterface.InitMessage(_("Rebuilding address index..."));
-        CBlockIndex *pblockAddrIndex = pindexBest;
+        CBlockIndex *pblockAddrIndex = GetpindexBest();
 	CTxDB txdbAddr("rw");
 	while(pblockAddrIndex)
 	{

@@ -37,7 +37,7 @@ void ProcessMasternodeConnections(){
     {
         //if it's our masternode, let it be
         if(darkSendPool.submittedToMasternode == pnode->addr) continue;
-        
+
         if(pnode->fDarkSendMaster){
             LogPrintf("Closing masternode connection %s \n", pnode->addr.ToString().c_str());
             pnode->CloseSocketDisconnect();
@@ -47,8 +47,6 @@ void ProcessMasternodeConnections(){
 
 void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
 {
-
-    if(fLiteMode) return;
 
     if (strCommand == "dsee") { //DarkSend Election Entry
         if(fLiteMode) return; //disable all darksend/masternode related functionality
@@ -130,7 +128,7 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
         
 
         //search existing masternode list, this is where we update existing masternodes with new dsee broadcasts
-    LOCK(cs_masternodes);
+	LOCK(cs_masternodes);
         BOOST_FOREACH(CMasterNode& mn, vecMasternodes) {
             if(mn.vin.prevout == vin.prevout) {
                 // count == -1 when it's a new entry
@@ -175,45 +173,48 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
         tx.vin.push_back(vin);
         tx.vout.push_back(vout);
         //if(AcceptableInputs(mempool, state, tx)){
-    bool* pfMissingInputs;    
-    if(AcceptableInputs(mempool, tx, false, pfMissingInputs)){
-            if(fDebug) LogPrintf("dsee - Accepted masternode entry %i %i\n", count, current);
+	{
+        bool* pfMissingInputs;  
+         
+    	if(AcceptableInputs(mempool, tx, false, pfMissingInputs)){
+                if(fDebug) LogPrintf("dsee - Accepted masternode entry %i %i\n", count, current);
 
-            if(GetInputAge(vin) < MASTERNODE_MIN_CONFIRMATIONS){
-                LogPrintf("dsee - Input must have least %d confirmations\n", MASTERNODE_MIN_CONFIRMATIONS);
-                Misbehaving(pfrom->GetId(), 20);
-                return;
+                if(GetInputAge(vin) < MASTERNODE_MIN_CONFIRMATIONS){
+                    LogPrintf("dsee - Input must have least %d confirmations\n", MASTERNODE_MIN_CONFIRMATIONS);
+                    Misbehaving(pfrom->GetId(), 20);
+                    return;
+                }
+
+                // use this as a peer
+                addrman.Add(CAddress(addr), pfrom->addr, 2*60*60);
+
+                // add our masternode
+                CMasterNode mn(addr, vin, pubkey, vchSig, sigTime, pubkey2, protocolVersion);
+                mn.UpdateLastSeen(lastUpdated);
+                vecMasternodes.push_back(mn);
+
+                // if it matches our masternodeprivkey, then we've been remotely activated
+                if(pubkey2 == activeMasternode.pubKeyMasternode && protocolVersion == PROTOCOL_VERSION){
+                    activeMasternode.EnableHotColdMasterNode(vin, addr);
+                }
+
+                if(count == -1 && !isLocal)
+                    RelayDarkSendElectionEntry(vin, addr, vchSig, sigTime, pubkey, pubkey2, count, current, lastUpdated, protocolVersion);
+
+            } else {
+                LogPrintf("dsee - Rejected masternode entry %s\n", addr.ToString().c_str());
+
+                int nDoS = 0;
+                if (state.IsInvalid(nDoS))
+                {
+                    LogPrintf("dsee - %s from %s %s was not accepted into the memory pool\n", tx.GetHash().ToString().c_str(),
+                        pfrom->addr.ToString().c_str(), pfrom->cleanSubVer.c_str());
+                    if (nDoS > 0)
+                        Misbehaving(pfrom->GetId(), nDoS);
+                }
             }
-
-            // use this as a peer
-            addrman.Add(CAddress(addr), pfrom->addr, 2*60*60);
-
-            // add our masternode
-            CMasterNode mn(addr, vin, pubkey, vchSig, sigTime, pubkey2, protocolVersion);
-            mn.UpdateLastSeen(lastUpdated);
-            vecMasternodes.push_back(mn);
-
-            // if it matches our masternodeprivkey, then we've been remotely activated
-            if(pubkey2 == activeMasternode.pubKeyMasternode && protocolVersion == PROTOCOL_VERSION){
-                activeMasternode.EnableHotColdMasterNode(vin, addr);
-            }
-
-            if(count == -1 && !isLocal)
-                RelayDarkSendElectionEntry(vin, addr, vchSig, sigTime, pubkey, pubkey2, count, current, lastUpdated, protocolVersion);
-
-        } else {
-            LogPrintf("dsee - Rejected masternode entry %s\n", addr.ToString().c_str());
-
-            int nDoS = 0;
-            if (state.IsInvalid(nDoS))
-            {
-                LogPrintf("dsee - %s from %s %s was not accepted into the memory pool\n", tx.GetHash().ToString().c_str(),
-                    pfrom->addr.ToString().c_str(), pfrom->cleanSubVer.c_str());
-                if (nDoS > 0)
-                    Misbehaving(pfrom->GetId(), nDoS);
-            }
-        }
     }
+}
 
     else if (strCommand == "dseep") { //DarkSend Election Entry Ping
         if(fLiteMode) return; //disable all darksend/masternode related functionality
@@ -250,11 +251,11 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
         }
 
         // see if we have this masternode
-    LOCK(cs_masternodes);
+	LOCK(cs_masternodes);
         BOOST_FOREACH(CMasterNode& mn, vecMasternodes) {
             if(mn.vin.prevout == vin.prevout) {
-                // LogPrintf("dseep - Found corresponding mn for vin: %s\n", vin.ToString().c_str());
-                // take this only if it's newer
+            	// LogPrintf("dseep - Found corresponding mn for vin: %s\n", vin.ToString().c_str());
+            	// take this only if it's newer
                 if(mn.lastDseep < sigTime){
                     std::string strMessage = mn.addr.ToString() + boost::lexical_cast<std::string>(sigTime) + boost::lexical_cast<std::string>(stop);
 
@@ -323,7 +324,7 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
             //}
         } //else, asking for a specific node which is ok
 
-    LOCK(cs_masternodes);
+	LOCK(cs_masternodes);
         int count = vecMasternodes.size();
         int i = 0;
 
@@ -367,17 +368,17 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
         CMasternodePaymentWinner winner;
         int a = 0;
         vRecv >> winner >> a;
-
-        if(pindexBest == NULL) return;
+        
+        if(GetpindexBest() == NULL) return;
 
         uint256 hash = winner.GetHash();
         if(mapSeenMasternodeVotes.count(hash)) {
-            if(fDebug) LogPrintf("mnw - seen vote %s Height %d bestHeight %d\n", hash.ToString().c_str(), winner.nBlockHeight, pindexBest->nHeight);
+            if(fDebug) LogPrintf("mnw - seen vote %s Height %d bestHeight %d\n", hash.ToString().c_str(), winner.nBlockHeight, GetpindexBest()->nHeight);
             return;
         }
 
-        if(winner.nBlockHeight < pindexBest->nHeight - 10 || winner.nBlockHeight > pindexBest->nHeight+20){
-            LogPrintf("mnw - winner out of range %s Height %d bestHeight %d\n", winner.vin.ToString().c_str(), winner.nBlockHeight, pindexBest->nHeight);
+        if(winner.nBlockHeight < GetpindexBest()->nHeight - 10 || winner.nBlockHeight > GetpindexBest()->nHeight+20){
+            LogPrintf("mnw - winner out of range %s Height %d bestHeight %d\n", winner.vin.ToString().c_str(), winner.nBlockHeight, GetpindexBest()->nHeight);
             return;
         }
 
@@ -387,7 +388,7 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
             return;
         }
 
-        LogPrintf("mnw - winning vote  %s Height %d bestHeight %d\n", winner.vin.ToString().c_str(), winner.nBlockHeight, pindexBest->nHeight);
+        LogPrintf("mnw - winning vote  %s Height %d bestHeight %d\n", winner.vin.ToString().c_str(), winner.nBlockHeight, GetpindexBest()->nHeight);
 
         if(!masternodePayments.CheckSignature(winner)){
             LogPrintf("mnw - invalid signature\n");
@@ -549,23 +550,24 @@ int GetMasternodeRank(CTxIn& vin, int64_t nBlockHeight, int minProtocol)
 //Get the last hash that matches the modulus given. Processed in reverse order
 bool GetBlockHash(uint256& hash, int nBlockHeight)
 {
-    if (pindexBest == NULL) return false;
+    
+    if (GetpindexBest() == NULL) return false;
 
     if(nBlockHeight == 0)
-        nBlockHeight = pindexBest->nHeight;
+        nBlockHeight = GetpindexBest()->nHeight;
 
     if(mapCacheBlockHashes.count(nBlockHeight)){
         hash = mapCacheBlockHashes[nBlockHeight];
         return true;
     }
 
-    const CBlockIndex *BlockLastSolved = pindexBest;
-    const CBlockIndex *BlockReading = pindexBest;
+    const CBlockIndex *BlockLastSolved = GetpindexBest();
+    const CBlockIndex *BlockReading = GetpindexBest();
 
-    if (BlockLastSolved == NULL || BlockLastSolved->nHeight == 0 || pindexBest->nHeight+1 < nBlockHeight) return false;
+    if (BlockLastSolved == NULL || BlockLastSolved->nHeight == 0 || GetpindexBest()->nHeight+1 < nBlockHeight) return false;
 
     int nBlocksAgo = 0;
-    if(nBlockHeight > 0) nBlocksAgo = (pindexBest->nHeight+1)-nBlockHeight;
+    if(nBlockHeight > 0) nBlocksAgo = (GetpindexBest()->nHeight+1)-nBlockHeight;
     assert(nBlocksAgo >= 0);
 
     int n = 0;
@@ -591,7 +593,8 @@ bool GetBlockHash(uint256& hash, int nBlockHeight)
 //
 uint256 CMasterNode::CalculateScore(int mod, int64_t nBlockHeight)
 {
-    if(pindexBest == NULL) return 0;
+    
+    if(GetpindexBest() == NULL) return 0;
 
     uint256 hash = 0;
     uint256 aux = vin.prevout.hash + vin.prevout.n;
@@ -631,8 +634,8 @@ void CMasterNode::Check()
 
         //if(!AcceptableInputs(mempool, state, tx)){
         bool* pfMissingInputs;
-        
-    if(!AcceptableInputs(mempool, tx, false, pfMissingInputs)){
+       
+	if(!AcceptableInputs(mempool, tx, false, pfMissingInputs)){
             enabled = 3;
             return;
         }
@@ -786,16 +789,20 @@ void CMasternodePayments::CleanPaymentList()
     TRY_LOCK(cs_masternodes, lockMasternodes);
     if(!lockMasternodes) return;
     
-    if(pindexBest == NULL) return;
+    {
+        
 
-    int nLimit = std::max(((int)vecMasternodes.size())*2, 1000);
+        if(GetpindexBest() == NULL) return;
 
-    vector<CMasternodePaymentWinner>::iterator it;
-    for(it=vWinning.begin();it<vWinning.end();it++){
-        if(pindexBest->nHeight - (*it).nBlockHeight > nLimit){
-            if(fDebug) LogPrintf("CMasternodePayments::CleanPaymentList - Removing old masternode payment - block %d\n", (*it).nBlockHeight);
-            vWinning.erase(it);
-            break;
+        int nLimit = std::max(((int)vecMasternodes.size())*2, 1000);
+
+        vector<CMasternodePaymentWinner>::iterator it;
+        for(it=vWinning.begin();it<vWinning.end();it++){
+            if(GetpindexBest()->nHeight - (*it).nBlockHeight > nLimit){
+                if(fDebug) LogPrintf("CMasternodePayments::CleanPaymentList - Removing old masternode payment - block %d\n", (*it).nBlockHeight);
+                vWinning.erase(it);
+                break;
+            }
         }
     }
 }
@@ -870,9 +877,10 @@ void CMasternodePayments::Relay(CMasternodePaymentWinner& winner)
 
 void CMasternodePayments::Sync(CNode* node)
 {
+    
     int a = 0;
     BOOST_FOREACH(CMasternodePaymentWinner& winner, vWinning)
-        if(winner.nBlockHeight >= pindexBest->nHeight-10 && winner.nBlockHeight <= pindexBest->nHeight + 20)
+        if(winner.nBlockHeight >= GetpindexBest()->nHeight-10 && winner.nBlockHeight <= GetpindexBest()->nHeight + 20)
             node->PushMessage("mnw", winner, a);
 }
 

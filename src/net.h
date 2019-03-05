@@ -25,7 +25,7 @@
 
 class CNode;
 class CBlockIndex;
-extern int nBestHeight;
+extern std::atomic<int> nBestHeight;
 
 extern unsigned int nMessageCores;
 
@@ -219,7 +219,7 @@ public:
 class CNode
 {
 public:
-    int ncore;
+    std::atomic<int> ncore;
     // socket
     uint64_t nServices;
     SOCKET hSocket;
@@ -269,8 +269,8 @@ public:
     bool fRelayTxes;
     bool fDarkSendMaster;
     CSemaphoreGrant grantOutbound;
-    int nRefCount;
-    CCriticalSection cs_nRefCount;
+    std::atomic<int> nRefCount;
+    //CCriticalSection cs_nRefCount;
     NodeId id;
 protected:
 
@@ -420,14 +420,14 @@ public:
 
     CNode* AddRef()
     {
-        LOCK(cs_nRefCount);
+        //LOCK(cs_nRefCount);
         nRefCount++;
         return this;
     }
 
     void Release()
     {
-        LOCK(cs_nRefCount);
+        //LOCK(cs_nRefCount);
         nRefCount--;
     }
 
@@ -773,7 +773,8 @@ inline void RelayInventory(const CInv& inv)
         LOCK(cs_vNodes);
         BOOST_FOREACH(CNode* pnode, vNodes)
         {
-            pnode->PushInventory(inv);
+            if(pnode)
+                pnode->PushInventory(inv);
         }
     }
 }

@@ -107,7 +107,7 @@ CBlock* CreateNewBlock(CReserveKey& reservekey, bool fProofOfStake, int64_t* pFe
     if (!pblock.get())
         return NULL;
 
-    CBlockIndex* pindexPrev = pindexBest;
+    CBlockIndex* pindexPrev = GetpindexBest();
     int nHeight = pindexPrev->nHeight + 1;
 
     // Create coinbase tx
@@ -566,7 +566,7 @@ void ThreadStakeMiner(CWallet *pwallet)
         if (fTryToSync)
         {
             fTryToSync = false;
-            if (vNodes.size() < 3 || pindexBest->GetBlockTime() < GetTime() - 10 * 60)
+            if (vNodes.size() < 3 || GetpindexBest()->GetBlockTime() < GetTime() - 10 * 60)
             {
                 MilliSleep(10000);
                 continue;

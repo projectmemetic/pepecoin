@@ -1730,10 +1730,10 @@ Value listsinceblock(const Array& params, bool fHelp)
     }
     else
     {
-        int target_height = pindexBest->nHeight + 1 - target_confirms;
+        int target_height = GetBestHeight() + 1 - target_confirms;
 
         CBlockIndex *block;
-        for (block = pindexBest;
+        for (block = GetpindexBest();
              block && block->nHeight > target_height;
              block = block->pprev)  { }
 

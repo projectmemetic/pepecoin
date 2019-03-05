@@ -162,8 +162,7 @@ public:
 class CAddrMan
 {
 private:
-    // critical section to protect the inner data structures
-    mutable CCriticalSection cs;
+    
 
     // secret key to randomize bucket select with
     std::vector<unsigned char> nKey;
@@ -241,6 +240,9 @@ protected:
     void Connected_(const CService &addr, int64_t nTime);
 
 public:
+    // critical section to protect the inner data structures
+    mutable CCriticalSection cs;
+    
     // serialized format:
     // * version byte (currently 0)
     // * nKey

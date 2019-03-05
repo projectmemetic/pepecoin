@@ -166,11 +166,11 @@ extern int nStakeMinConfirmations;
 extern unsigned int nStakeMinAge;
 extern unsigned int nNodeLifespan;
 extern int nCoinbaseMaturity;
-extern int nBestHeight;
+extern std::atomic<int> nBestHeight;
 extern uint256 nBestChainTrust;
 extern uint256 nBestInvalidTrust;
 extern uint256 hashBestChain;
-extern CBlockIndex* pindexBest;
+extern std::atomic<CBlockIndex*> pindexBest;
 extern uint64_t nLastBlockTx;
 extern uint64_t nLastBlockSize;
 extern int64_t nLastCoinStakeSearchInterval;
@@ -193,6 +193,10 @@ extern bool fLargeWorkInvalidChainFound;
 
 // Minimum disk space required - used in CheckDiskSpace()
 static const uint64_t nMinDiskSpace = 52428800;
+
+void SetpindexBest(CBlockIndex* pindex);
+CBlockIndex* GetpindexBest();
+int GetBestHeight();
 
 class CReserveKey;
 class CTxDB;
@@ -1149,7 +1153,7 @@ public:
 
     bool IsInMainChain() const
     {
-        return (pnext || this == pindexBest);
+        return (pnext || this == GetpindexBest());
     }
 
     bool CheckIndex() const

@@ -19,10 +19,10 @@ double GetDifficulty(const CBlockIndex* blockindex)
     // minimum difficulty = 1.0.
     if (blockindex == NULL)
     {
-        if (pindexBest == NULL)
+        if (GetpindexBest() == NULL)
             return 1.0;
         else
-            blockindex = GetLastBlockIndex(pindexBest, false);
+            blockindex = GetLastBlockIndex(GetpindexBest(), false);
     }
 
     int nShift = (blockindex->nBits >> 24) & 0xff;
@@ -46,7 +46,7 @@ double GetDifficulty(const CBlockIndex* blockindex)
 
 double GetPoWMHashPS()
 {
-    if (pindexBest->nHeight >= Params().LastPOWBlock() && pindexBest->nHeight < Params().RestartPOWBlock())
+    if (GetBestHeight() >= Params().LastPOWBlock() && GetBestHeight() < Params().RestartPOWBlock())
         return 0;
 
     int nPoWInterval = 72;
@@ -77,7 +77,7 @@ double GetPoSKernelPS()
     double dStakeKernelsTriedAvg = 0;
     int nStakesHandled = 0, nStakesTime = 0;
 
-    CBlockIndex* pindex = pindexBest;;
+    CBlockIndex* pindex = GetpindexBest();;
     CBlockIndex* pindexPrevStake = NULL;
 
     while (pindex && nStakesHandled < nPoSInterval)
@@ -293,7 +293,7 @@ Value getlastmessages(const Array& params, bool fHelp)
     Array a;
 
     int i = 0;
-    CBlockIndex* pblockindex = pindexBest;
+    CBlockIndex* pblockindex = GetpindexBest();
     while(pblockindex && i < nBlocks)
     {
         Object o;
@@ -361,7 +361,7 @@ Value getdifficulty(const Array& params, bool fHelp)
     //Object obj;
     //obj.push_back(Pair("proof-of-work",        GetDifficulty()));
     //obj.push_back(Pair("proof-of-stake",       GetDifficulty(GetLastBlockIndex(pindexBest, true))));
-    return GetDifficulty(GetLastBlockIndex(pindexBest, true));
+    return GetDifficulty(GetLastBlockIndex(GetpindexBest(), true));
 }
 
 

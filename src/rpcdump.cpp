@@ -240,7 +240,7 @@ Value importwallet(const Array& params, bool fHelp)
     if (!file.is_open())
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Cannot open wallet dump file");
 
-    int64_t nTimeBegin = pindexBest->nTime;
+    int64_t nTimeBegin = GetpindexBest()->nTime;
 
     int64_t nFilesize = std::max((int64_t)1, (int64_t)file.tellg());
     bool fGood = true;
@@ -296,14 +296,14 @@ Value importwallet(const Array& params, bool fHelp)
     file.close();
     pwalletMain->ShowProgress("", 100); // hide progress dialog in GUI
 
-    CBlockIndex *pindex = pindexBest;
+    CBlockIndex *pindex = GetpindexBest();
     while (pindex && pindex->pprev && pindex->nTime > nTimeBegin - 7200)
         pindex = pindex->pprev;
 
     if (!pwalletMain->nTimeFirstKey || nTimeBegin < pwalletMain->nTimeFirstKey)
         pwalletMain->nTimeFirstKey = nTimeBegin;
 
-    LogPrintf("Rescanning last %i blocks\n", pindexBest->nHeight - pindex->nHeight + 1);
+    LogPrintf("Rescanning last %i blocks\n", GetBestHeight() - pindex->nHeight + 1);
     pwalletMain->ScanForWalletTransactions(pindex);
     pwalletMain->ReacceptWalletTransactions();
     pwalletMain->MarkDirty();
@@ -414,7 +414,7 @@ Value dumpwallet(const Array& params, bool fHelp)
     file << strprintf("# Wallet dump created by PepeCoin %s (%s)\n", CLIENT_BUILD, CLIENT_DATE);
     file << strprintf("# * Created on %s\n", EncodeDumpTime(GetTime()));
     file << strprintf("# * Best block at time of backup was %i (%s),\n", nBestHeight, hashBestChain.ToString());
-    file << strprintf("#   mined on %s\n", EncodeDumpTime(pindexBest->nTime));
+    file << strprintf("#   mined on %s\n", EncodeDumpTime(GetpindexBest()->nTime));
     file << "\n";
     for (std::vector<std::pair<int64_t, CKeyID> >::const_iterator it = vKeyBirth.begin(); it != vKeyBirth.end(); it++) {
         const CKeyID &keyid = it->second;

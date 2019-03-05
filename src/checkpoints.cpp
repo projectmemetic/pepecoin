@@ -114,17 +114,17 @@ namespace Checkpoints
     const CBlockIndex* AutoSelectSyncCheckpoint()
     {
         // tighten automatic checkpointing to 10 blocks in past for reorg fix attempt
-        if (pindexBest->nHeight >= PEPE_JACKOLANTERN_FORK_HEIGHT)
+        if (GetBestHeight() >= PEPE_JACKOLANTERN_FORK_HEIGHT)
             nCheckpointSpan = 10;
 
         // set autocheckpointing to 25 blocks max to limit forced resyncs
-        if (pindexBest->nHeight >= PEPE_STAKE_CONF_TWEAK)
+        if (GetBestHeight() >= PEPE_STAKE_CONF_TWEAK)
             nCheckpointSpan = 25;
 
 
-        const CBlockIndex *pindex = pindexBest;
+        const CBlockIndex *pindex = GetpindexBest();
         // Search backward for a block within max span and maturity window
-        while (pindex->pprev && pindex->nHeight + nCheckpointSpan > pindexBest->nHeight)
+        while (pindex->pprev && pindex->nHeight + nCheckpointSpan > GetBestHeight())
             pindex = pindex->pprev;
         return pindex;
     }

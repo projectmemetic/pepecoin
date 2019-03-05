@@ -514,13 +514,13 @@ bool CTxDB::LoadBlockIndex()
     }
     if (!mapBlockIndex.count(hashBestChain))
         return error("CTxDB::LoadBlockIndex() : hashBestChain not found in the block index");
-    pindexBest = mapBlockIndex[hashBestChain];
-    nBestHeight = pindexBest->nHeight;
-    nBestChainTrust = pindexBest->nChainTrust;
+    SetpindexBest(mapBlockIndex[hashBestChain]);
+    nBestHeight = GetBestHeight();
+    nBestChainTrust = GetpindexBest()->nChainTrust;
 
     LogPrintf("LoadBlockIndex(): hashBestChain=%s  height=%d  trust=%s  date=%s\n",
       hashBestChain.ToString(), nBestHeight, CBigNum(nBestChainTrust).ToString(),
-      DateTimeStrFormat("%x %H:%M:%S", pindexBest->GetBlockTime()));
+      DateTimeStrFormat("%x %H:%M:%S", GetpindexBest()->GetBlockTime()));
 
     // Load bnBestInvalidTrust, OK if it doesn't exist
     CBigNum bnBestInvalidTrust;
@@ -537,7 +537,7 @@ bool CTxDB::LoadBlockIndex()
     LogPrintf("Verifying last %i blocks at level %i\n", nCheckDepth, nCheckLevel);
     CBlockIndex* pindexFork = NULL;
     map<pair<unsigned int, unsigned int>, CBlockIndex*> mapBlockPos;
-    for (CBlockIndex* pindex = pindexBest; pindex && pindex->pprev; pindex = pindex->pprev)
+    for (CBlockIndex* pindex = GetpindexBest(); pindex && pindex->pprev; pindex = pindex->pprev)
     {
         boost::this_thread::interruption_point();
         if (pindex->nHeight < nBestHeight-nCheckDepth)
