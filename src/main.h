@@ -28,6 +28,8 @@
 #include <list>
 #include <algorithm>
 
+#include <boost/atomic.hpp>
+
 class CValidationState;
 
 #define START_MASTERNODE_PAYMENTS_TESTNET 1496987073 // June 9, 2017 2:20:04 AM GMT
@@ -166,11 +168,11 @@ extern int nStakeMinConfirmations;
 extern unsigned int nStakeMinAge;
 extern unsigned int nNodeLifespan;
 extern int nCoinbaseMaturity;
-extern std::atomic<int> nBestHeight;
+extern boost::atomic<int> nBestHeight;
 extern uint256 nBestChainTrust;
 extern uint256 nBestInvalidTrust;
 extern uint256 hashBestChain;
-extern std::atomic<CBlockIndex*> pindexBest;
+extern boost::atomic<CBlockIndex*> pindexBest;
 extern uint64_t nLastBlockTx;
 extern uint64_t nLastBlockSize;
 extern int64_t nLastCoinStakeSearchInterval;

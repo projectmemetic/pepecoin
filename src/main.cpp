@@ -17,6 +17,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/atomic.hpp>
 
 #include "alert.h"
 #include "chainparams.h"
@@ -59,13 +60,13 @@ unsigned int nModifierInterval = 2 * 60; // time to elapse before new modifier i
 
 int nCoinbaseMaturity = 60;     // 60 blocks until new POW or POS minted coins can be moved
 CBlockIndex* pindexGenesisBlock = NULL;
-std::atomic<int> nBestHeight(-1);
+boost::atomic<int> nBestHeight(-1);
 
 uint256 nBestChainTrust = 0;
 uint256 nBestInvalidTrust = 0;
 
 uint256 hashBestChain = 0;
-std::atomic<CBlockIndex*> pindexBest(NULL);
+boost::atomic<CBlockIndex*> pindexBest(NULL);
 int64_t nTimeBestReceived = 0;
 bool fImporting = false;
 bool fReindex = false;

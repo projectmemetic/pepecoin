@@ -9,6 +9,7 @@
 #include <boost/array.hpp>
 #include <boost/foreach.hpp>
 #include <boost/signals2/signal.hpp>
+#include <boost/atomic.hpp>
 #include <openssl/rand.h>
 
 
@@ -25,7 +26,7 @@
 
 class CNode;
 class CBlockIndex;
-extern std::atomic<int> nBestHeight;
+extern boost::atomic<int> nBestHeight;
 
 extern unsigned int nMessageCores;
 
@@ -219,7 +220,7 @@ public:
 class CNode
 {
 public:
-    std::atomic<int> ncore;
+    boost::atomic<int> ncore;
     // socket
     uint64_t nServices;
     SOCKET hSocket;
@@ -269,7 +270,7 @@ public:
     bool fRelayTxes;
     bool fDarkSendMaster;
     CSemaphoreGrant grantOutbound;
-    std::atomic<int> nRefCount;
+    boost::atomic<int> nRefCount;
     //CCriticalSection cs_nRefCount;
     NodeId id;
 protected:
