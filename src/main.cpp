@@ -4005,7 +4005,7 @@ void static ProcessGetData(CNode* pfrom)
         bool fBlockPack = !(pfrom->nServices & NODE_BLOCKPACK);
         int nBlockPackCounter = 0;
         int nCheckBlockPackSizeInterval = 1000;
-        CDataStream ssCheckBlockPack;
+        CDataStream ssCheckBlockPack(SER_NETWORK, INIT_PROTO_VERSION);
         
         while (it != pfrom->vRecvGetData.end()) {
             // Don't bother if send buffer is too full to respond anyway
