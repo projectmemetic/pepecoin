@@ -4000,7 +4000,13 @@ void static ProcessGetData(CNode* pfrom)
         vector<CInv> vNotFound;
 
         LOCK(cs_main);
-
+        
+        vector<CBlock> vBlockPack;
+        bool fBlockPack = !(pfrom->nServices & NODE_BLOCKPACK);
+        int nBlockPackCounter = 0;
+        int nCheckBlockPackSizeInterval = 1000;
+        CDataStream ssCheckBlockPack;
+        
         while (it != pfrom->vRecvGetData.end()) {
             // Don't bother if send buffer is too full to respond anyway
             if (pfrom->nSendSize >= SendBufferSize())
@@ -4019,8 +4025,30 @@ void static ProcessGetData(CNode* pfrom)
                     {
                         CBlock block;
                         block.ReadFromDisk((*mi).second);
-                        pfrom->PushMessage("block", block);
-
+                        
+                        if(fBlockPack)
+                        {
+                            vBlockPack.push_back(block);
+                            
+                            nBlockPackCounter++;
+                            
+                            if(nBlockPackCounter % 1000 == 0)
+                            {
+                                ssCheckBlockPack << vBlockPack;
+                                bool fSizeReached = (ssCheckBlockPack.size() >= (SendBufferSize() * 0.9));
+                                ssCheckBlockPack.clear();
+                                if(fSizeReached)
+                                {
+                                    // don't send any more in the pack
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            pfrom->PushMessage("block", block);
+                        }
+                        
                         // Trigger them to send a getblocks request for the next batch of inventory
                         if (inv.hash == pfrom->hashContinue)
                         {
@@ -4121,6 +4149,11 @@ void static ProcessGetData(CNode* pfrom)
                 if (inv.type == MSG_BLOCK  || inv.type == MSG_FILTERED_BLOCK)
                     break;
             }
+        }
+        
+        if(fBlockPack && vBlockPack.size() > 0)
+        {
+            pfrom->PushMessage("blockpack", vBlockPack);
         }
 
         pfrom->vRecvGetData.erase(pfrom->vRecvGetData.begin(), it);
@@ -4348,6 +4381,31 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             pfrom->fGetAddr = false;
         if (pfrom->fOneShot)
             pfrom->fDisconnect = true;
+    }
+    
+    else if (strCommand == "blockpack")
+    {
+        vector<CBlock> vBlockPack;
+        vRecv >> vBlockPack;
+        
+        LOCK(cs_main);
+        BOOST_FOREACH(CBlock block, vBlockPack)
+        {
+            uint256 hashBlock = block.GetHash();
+            
+            CInv inv(MSG_BLOCK, hashBlock);
+
+            pfrom->AddInventoryKnown(inv);
+
+            if (ProcessBlock(pfrom, &block))
+            {
+                mapAlreadyAskedFor.erase(inv);
+                pfrom->tBlockRecved = GetTimeMillis();
+            }
+            if (block.nDoS) pfrom->Misbehaving(block.nDoS);
+            if (fSecMsgEnabled)
+                SecureMsgScanBlock(block);
+        }
     }
 
     else if (strCommand == "inv")
