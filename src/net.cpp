@@ -825,10 +825,10 @@ void ThreadSocketHandler()
 
                 boost::this_thread::interruption_point();
                 {
-                    //LOCK(pnode->cs_vSend);
-                    //{
-                    TRY_LOCK(pnode->cs_vSend, lockSend);
-                    if (lockSend) {
+                    LOCK(pnode->cs_vSend);
+                    {
+                    //TRY_LOCK(pnode->cs_vSend, lockSend);
+                    //if (lockSend) {
                         // do not read, if draining write queue
                         if (!pnode->vSendMsg.empty())
                             FD_SET(pnode->hSocket, &fdsetSend);
@@ -944,9 +944,9 @@ void ThreadSocketHandler()
                 continue;
             if (FD_ISSET(pnode->hSocket, &fdsetRecv) || FD_ISSET(pnode->hSocket, &fdsetError))
             {
-                //LOCK(pnode->cs_vRecvMsg);
-                TRY_LOCK(pnode->cs_vRecvMsg, lockRecv);
-                if (lockRecv)
+                LOCK(pnode->cs_vRecvMsg);
+                //TRY_LOCK(pnode->cs_vRecvMsg, lockRecv);
+                //if (lockRecv)
                 {
                     if (pnode->GetTotalRecvSize() > ReceiveFloodSize()) {
                         if (!pnode->fDisconnect)
@@ -994,9 +994,9 @@ void ThreadSocketHandler()
                 continue;
             if (FD_ISSET(pnode->hSocket, &fdsetSend))
             {
-                //LOCK(pnode->cs_vSend);
-                TRY_LOCK(pnode->cs_vSend, lockSend);
-                if (lockSend)
+                LOCK(pnode->cs_vSend);
+                //TRY_LOCK(pnode->cs_vSend, lockSend);
+                //if (lockSend)
                 {
                     SocketSendData(pnode);
                 }
@@ -1040,7 +1040,7 @@ void ThreadSocketHandler()
         }
 
         boost::this_thread::interruption_point();
-    MicroSleep(250000); // niceness
+    //MicroSleep(250000); // niceness
     }
 }
 
@@ -1673,9 +1673,9 @@ void ThreadMessageHandler(int ncore)
                 {
                     // Receive messages
                     {
-                        //LOCK(pnode->cs_vRecvMsg);
-                        TRY_LOCK(pnode->cs_vRecvMsg, lockRecv);
-                        if (lockRecv)
+                        LOCK(pnode->cs_vRecvMsg);
+                        //TRY_LOCK(pnode->cs_vRecvMsg, lockRecv);
+                        //if (lockRecv)
                         {
                             ProcessMessages(pnode);
                         }
@@ -1684,9 +1684,9 @@ void ThreadMessageHandler(int ncore)
 
                     // Send messages
                     {
-                        //LOCK(pnode->cs_vSend);
-                        TRY_LOCK(pnode->cs_vSend, lockSend);
-                        if (lockSend)
+                        LOCK(pnode->cs_vSend);
+                        //TRY_LOCK(pnode->cs_vSend, lockSend);
+                        //if (lockSend)
                             SendMessages(pnode, false); //pnode == pnodeTrickle);
                     }
                 }
@@ -1703,7 +1703,7 @@ void ThreadMessageHandler(int ncore)
         }
 
         // niceness
-        MicroSleep(500000);
+        MicroSleep(5000);
     }
 }
 
