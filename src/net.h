@@ -17,6 +17,7 @@
 #include <arpa/inet.h>
 #endif
 
+#include "limitedmap.h"
 #include "mruset.h"
 #include "netbase.h"
 #include "protocol.h"
@@ -120,7 +121,7 @@ extern CCriticalSection cs_vNodes;
 extern std::map<CInv, CDataStream> mapRelay;
 extern std::deque<std::pair<int64_t, CInv> > vRelayExpiration;
 extern CCriticalSection cs_mapRelay;
-extern std::map<CInv, int64_t> mapAlreadyAskedFor;
+extern limitedmap<CInv, int64_t> mapAlreadyAskedFor;
 
 extern std::vector<std::string> vAddedNodes;
 extern CCriticalSection cs_vAddedNodes;
