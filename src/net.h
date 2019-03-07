@@ -33,11 +33,17 @@ extern unsigned int nMessageCores;
 /** Time between pings automatically sent out for latency probing and keepalive (in seconds). */
 static const int PING_INTERVAL = 5 * 60;
 /** Time after which to disconnect, after waiting for a ping response (or inactivity). */
-static const int TIMEOUT_INTERVAL = 20 * 60;
+static const int TIMEOUT_INTERVAL = 60 * 60;
+
+/** The maximum number of entries in mapAskFor */
+static const size_t MAPASKFOR_MAX_SZ = MAX_INV_SZ;
+/** The maximum number of entries in setAskFor (larger due to getdata latency)*/
+static const size_t SETASKFOR_MAX_SZ = 2 * MAX_INV_SZ;
 
 inline unsigned int ReceiveFloodSize() { return 1000*GetArg("-maxreceivebuffer", 10*1000); }
 inline unsigned int SendBufferSize() { return 1000*GetArg("-maxsendbuffer", 2*1000); }
 
+void RemoveAskFor(const uint256& hash);
 void AddOneShot(std::string strDest);
 bool RecvLine(SOCKET hSocket, std::string& strLine);
 void AddressCurrentlyConnected(const CService& addr);
@@ -235,12 +241,14 @@ public:
     std::deque<CNetMessage> vRecvMsg;
     CCriticalSection cs_vRecvMsg;
     uint64_t nRecvBytes;
-    int nRecvVersion;
+    boost::atomic<int> nRecvVersion;
 
-    int64_t nLastSend;
-    int64_t nLastRecv;
+    boost::atomic<int64_t> nLastSend;
+    boost::atomic<int64_t> nLastRecv;
     int64_t nTimeConnected;
-
+    boost::atomic<int64_t> nLastWarningTime;
+    boost::atomic<int> nNumWarningsSkipped;
+    
     int64_t tGetblocks = 0;
     int64_t tBlockInvs = 0;
     int64_t tGetdataBlock = 0;
@@ -251,7 +259,7 @@ public:
     CAddress addr;
     std::string addrName;
     CService addrLocal;
-    int nVersion;
+    boost::atomic<int> nVersion;
     // strSubVer is whatever byte array we read from the wire. However, this field is intended
     // to be printed out, displayed to humans in various forms and so on. So we sanitize it and
     // store the sanitized version in cleanSubVer. The original should be used when dealing with
@@ -261,8 +269,8 @@ public:
     bool fClient;
     bool fInbound;
     bool fNetworkNode;
-    bool fSuccessfullyConnected;
-    bool fDisconnect;
+    boost::atomic_bool<bool> fSuccessfullyConnected;
+    boost::atomic_bool<bool> fDisconnect;
     // We use fRelayTxes for two purposes -
     // a) it allows us to not relay tx invs before receiving the peer's version message
     // b) the peer may tell us in their version message that we should not relay tx invs
@@ -302,6 +310,7 @@ public:
     mruset<CInv> setInventoryKnown;
     std::vector<CInv> vInventoryToSend;
     CCriticalSection cs_inventory;
+    std::set<uint256> setAskFor;
     std::multimap<int64_t, CInv> mapAskFor;
 
     // Masternode based relay
@@ -465,12 +474,24 @@ public:
                 vInventoryToSend.push_back(inv);
         }
     }
-
+    
+    void CNode::RemoveAskFor(const uint256& hash)
+{
+    setAskFor.erase(hash);
+    for (std::multimap::iterator<int64_t, CInv> it = mapAskFor.begin(); it != mapAskFor.end();) {
+        if (it->second.hash == hash) {
+            it = mapAskFor.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+    
     void AskFor(const CInv& inv)
     {
         // We're using mapAskFor as a priority queue,
         // the key is the earliest time the request can be sent
-        int64_t& nRequestTime = mapAlreadyAskedFor[inv];
+       /* int64_t& nRequestTime = mapAlreadyAskedFor[inv];
         LogPrint("net", "askfor %s   %d (%s)\n", inv.ToString(), nRequestTime, DateTimeStrFormat("%H:%M:%S", nRequestTime/1000000));
 
         // Make sure not to reuse time indexes to keep things in the same order
@@ -482,6 +503,49 @@ public:
 
         // Each retry is 2 minutes after the last
         nRequestTime = std::max(nRequestTime + 2 * 60 * 1000000, nNow);
+        mapAskFor.insert(std::make_pair(nRequestTime, inv));*/
+       if (mapAskFor.size() > MAPASKFOR_MAX_SZ || setAskFor.size() > SETASKFOR_MAX_SZ) 
+       {
+            int64_t nNow = GetTime();
+            if(nNow - nLastWarningTime > WARNING_INTERVAL) {
+            LogPrintf("CNode::AskFor -- WARNING: inventory message dropped: mapAskFor.size = %d, setAskFor.size = %d, MAPASKFOR_MAX_SZ = %d, SETASKFOR_MAX_SZ = %d, nSkipped = %d, peer=%d\n",
+                mapAskFor.size(), setAskFor.size(), MAPASKFOR_MAX_SZ, SETASKFOR_MAX_SZ, nNumWarningsSkipped, id);
+            nLastWarningTime = nNow;
+            nNumWarningsSkipped = 0;
+        }
+        else {
+            ++nNumWarningsSkipped;
+        }
+        return;
+    }
+        // a peer may not have multiple non-responded queue positions for a single inv item
+        if (!setAskFor.insert(inv.hash).second)
+            return;
+
+        // We're using mapAskFor as a priority queue,
+        // the key is the earliest time the request can be sent
+        int64_t nRequestTime;
+        map<uint256, int64_t>::const_iterator it = mapAlreadyAskedFor.find(inv.hash);
+        if (it != mapAlreadyAskedFor.end())
+            nRequestTime = it->second;
+        else
+            nRequestTime = 0;
+
+        LogPrint("net", "askfor %s  %d (%s) peer=%s\n", inv.ToString(), nRequestTime, DateTimeStrFormat("%H:%M:%S", nRequestTime/1000000), addr.ToString());
+
+        // Make sure not to reuse time indexes to keep things in the same order
+        int64_t nNow = GetTimeMicros() - 1000000;
+        static int64_t nLastTime;
+        ++nLastTime;
+        nNow = std::max(nNow, nLastTime);
+        nLastTime = nNow;
+
+        // Each retry is 2 minutes after the last
+        nRequestTime = std::max(nRequestTime + 2 * 60 * 1000000, nNow);
+        if (it != mapAlreadyAskedFor.end())
+            mapAlreadyAskedFor.update(it, nRequestTime);
+        else
+            mapAlreadyAskedFor.insert(std::make_pair(inv.hash, nRequestTime));
         mapAskFor.insert(std::make_pair(nRequestTime, inv));
     }
 

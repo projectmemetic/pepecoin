@@ -1040,7 +1040,7 @@ void ThreadSocketHandler()
         }
 
         boost::this_thread::interruption_point();
-    //MicroSleep(250000); // niceness
+        MicroSleep(50000); // niceness
     }
 }
 
@@ -1703,7 +1703,7 @@ void ThreadMessageHandler(int ncore)
         }
 
         // niceness
-        MicroSleep(5000);
+        MicroSleep(75000);
     }
 }
 
@@ -2112,6 +2112,28 @@ void RelayDarkSendCompletedTransaction(const int sessionID, const bool error, co
     }
 }
 
+void RemoveAskFor(const uint256& hash)
+{
+    mapAlreadyAskedFor.erase(hash);
+
+    LOCK(cs_vNodes);
+    BOOST_FOREACH(CNode* pnode, vNodes)
+    {
+        pnode->RemoveAskFor(hash);
+    }
+}
+
+void CNode::RemoveAskFor(const uint256& hash)
+{
+    setAskFor.erase(hash);
+    for (std::multimap::iterator<int64_t, CInv> it = mapAskFor.begin(); it != mapAskFor.end();) {
+        if (it->second.hash == hash) {
+            it = mapAskFor.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
 
 void CNode::RecordBytesRecv(uint64_t bytes)
 {

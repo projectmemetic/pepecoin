@@ -91,7 +91,6 @@ CScript COINBASE_FLAGS;
 
 const string strMessageMagic = "PepeCoin Signed Message:\n";
 
-std::set<uint256> setValidatedTx;
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -4002,7 +4001,7 @@ void static ProcessGetData(CNode* pfrom)
         LOCK(cs_main);
         
         vector<CBlock> vBlockPack;
-        bool fBlockPack = (pfrom->nServices & NODE_BLOCKPACK) == NODE_BLOCKPACK;
+        bool fBlockPack = (pfrom->nServices & NODE_BLOCKPACK);
         int nBlockPackCounter = 0;
         int nCheckBlockPackSizeInterval = 1000;
         CDataStream ssCheckBlockPack(SER_NETWORK, INIT_PROTO_VERSION);
@@ -4021,11 +4020,25 @@ void static ProcessGetData(CNode* pfrom)
                 if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK)
                 {
                     // Send block from disk
+                    bool send = false;
                     map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(inv.hash);
                     if (mi != mapBlockIndex.end())
                     {
+                        CBlockIndex* pindex = (*mi).second;
+                        if (!pindex || !pindex->IsInMainChain())
+                        {
+                            send = false;
+                            LogPrintf("ProcessGetData(): ignoring request from peer=%s for old block that isn't in the main chain\n", pfrom->addr.ToString());
+                        }
+                        else
+                            send = true;
+                    }
+                    
+                    if(send)
+                    {                  
                         CBlock block;
-                        block.ReadFromDisk((*mi).second);
+                        if(!block.ReadFromDisk((*mi).second))
+                            assert(!"could not load block from disk!");
                         
                         if(fBlockPack)
                         {
@@ -4040,7 +4053,7 @@ void static ProcessGetData(CNode* pfrom)
                             if(nBlockPackCounter % 1000 == 0)
                             {
                                 ssCheckBlockPack << vBlockPack;
-                                bool fSizeReached = (ssCheckBlockPack.size() >= (SendBufferSize() * 0.9));
+                                bool fSizeReached = (ssCheckBlockPack.size() >= (SendBufferSize() * 90 / 100));
                                 ssCheckBlockPack.clear();
                                 if(fSizeReached)
                                 {
@@ -4052,10 +4065,14 @@ void static ProcessGetData(CNode* pfrom)
                             
                             // optimistically try to send up to 500 next blocks
                             int l = 0;
-                            CBlockIndex* pblock = (*mi).second;
-                            while(pblock->pnext && l<500)
-                            {
-                                uint256 blockHash = pblock->pnext->GetBlockHash();
+                            CBlockIndex* pblock = (*mi).second->pnext;
+                            while(pblock && l<500)
+                            {                                
+                                if (!pblock || !pblock->IsInMainChain())
+                                    break;
+                                
+                                uint256 blockHash = pblock->GetBlockHash();
+                                
                                 if(std::find(vBlockHashesAlreadyQueued.begin(), vBlockHashesAlreadyQueued.end(), blockHash) == vBlockHashesAlreadyQueued.end())
                                 {
                                     CBlock blockAdd;
@@ -4069,7 +4086,7 @@ void static ProcessGetData(CNode* pfrom)
                                 if(nBlockPackCounter % 1000 == 0)
                                 {
                                     ssCheckBlockPack << vBlockPack;
-                                    bool fSizeReached = (ssCheckBlockPack.size() >= (SendBufferSize() * 0.9));
+                                    bool fSizeReached = (ssCheckBlockPack.size() >= (SendBufferSize() * 90 / 100));
                                     ssCheckBlockPack.clear();
                                     if(fSizeReached)
                                     {
