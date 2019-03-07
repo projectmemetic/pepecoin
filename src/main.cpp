@@ -4002,7 +4002,7 @@ void static ProcessGetData(CNode* pfrom)
         LOCK(cs_main);
         
         vector<CBlock> vBlockPack;
-        bool fBlockPack = !(pfrom->nServices & NODE_BLOCKPACK);
+        bool fBlockPack = (pfrom->nServices & NODE_BLOCKPACK) == NODE_BLOCKPACK;
         int nBlockPackCounter = 0;
         int nCheckBlockPackSizeInterval = 1000;
         CDataStream ssCheckBlockPack(SER_NETWORK, INIT_PROTO_VERSION);
