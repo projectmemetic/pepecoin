@@ -4029,6 +4029,7 @@ void static ProcessGetData(CNode* pfrom)
                         
                         if(fBlockPack)
                         {
+                            LogPrintf("BLOCKPACK: Blockpack enabled for peer, assembling pack.\n");
                             if(std::find(vBlockHashesAlreadyQueued.begin(), vBlockHashesAlreadyQueued.end(), inv.hash) == vBlockHashesAlreadyQueued.end())
                             {
                                 vBlockPack.push_back(block);
@@ -4043,6 +4044,7 @@ void static ProcessGetData(CNode* pfrom)
                                 ssCheckBlockPack.clear();
                                 if(fSizeReached)
                                 {
+                                    LogPrintf("BLOCKPACK: Size limit reached for this pack.\n");
                                     // don't send any more in the pack
                                     break;
                                 }
@@ -4078,7 +4080,8 @@ void static ProcessGetData(CNode* pfrom)
                                 
                                 l++;
                                 pblock = pblock->pnext;
-                            }                            
+                            }   
+                            LogPrintf("BLOCKPACK: Pack of %d blocks assembled for peer.\n, vBlockPack.size());
                         }
                         else
                         {
@@ -4189,6 +4192,7 @@ void static ProcessGetData(CNode* pfrom)
         
         if(fBlockPack && vBlockPack.size() > 0)
         {
+            LogPrintf("BLOCKPACK: Pushing blockpack message for pack of %d blocks.\n", vBlockPack.size());
             pfrom->PushMessage("blockpack", vBlockPack);
         }
 
