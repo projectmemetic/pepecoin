@@ -4074,7 +4074,7 @@ void static ProcessGetData(CNode* pfrom)
                                 }
                                 
                                 l++;
-                                pblock = pnext;
+                                pblock = pblock->pnext;
                             }                            
                         }
                         else
