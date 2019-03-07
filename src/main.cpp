@@ -4050,10 +4050,10 @@ void static ProcessGetData(CNode* pfrom)
                             
                             // optimistically try to send up to 500 next blocks
                             int l = 0;
-                            CBlockIndex* pblock = (*mi).first;
+                            CBlockIndex* pblock = (*mi).second;
                             while(pblock->pnext && l<500)
                             {
-                                uint256 blockHash = pnext->GetBlockHash();
+                                uint256 blockHash = pblock->pnext->GetBlockHash();
                                 if(std::find(vBlockHashesAlreadyQueued.begin(), vBlockHashesAlreadyQueued.end(), blockHash) != vBlockHashesAlreadyQueued.end())
                                 {
                                     vBlockPack.push_back(block);
