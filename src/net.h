@@ -482,7 +482,7 @@ public:
     void CNode::RemoveAskFor(const uint256& hash)
 {
     setAskFor.erase(hash);
-    for (std::multimap::iterator<int64_t, CInv> it = mapAskFor.begin(); it != mapAskFor.end();) {
+    for (std::multimap<int64_t, CInv>::iterator it = mapAskFor.begin(); it != mapAskFor.end();) {
         if (it->second.hash == hash) {
             it = mapAskFor.erase(it);
         } else {

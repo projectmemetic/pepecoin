@@ -5246,13 +5246,21 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                     pto->PushMessage("getdata", vGetData);
                     vGetData.clear();
                 }
-                mapAlreadyAskedFor[inv] = nNow;
             }
-            pto->mapAskFor.erase(pto->mapAskFor.begin());
+            else 
+            {
+                //If we're not going to ask, don't expect a response.
+                LogPrint("net", "SendMessages -- GETDATA -- already have inv = %s peer=%s\n", inv.ToString(), pto->addr.ToString());
+pto->setAskFor.erase(inv.hash);
+                pto->mapAskFor.erase(pto->mapAskFor.begin());
+            }
         }
         if (!vGetData.empty())
+        {
             pto->PushMessage("getdata", vGetData);
-
+            LogPrint("net", "SendMessages -- GETDATA -- pushed size = %lu peer=%s\n", vGetData.size(), pto->addr.ToString());
+        }
+        
         if (fSecMsgEnabled)
             SecureMsgSendData(pto, fSendTrickle); // should be in cs_main?
 
