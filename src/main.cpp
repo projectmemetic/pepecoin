@@ -4006,6 +4006,7 @@ void static ProcessGetData(CNode* pfrom)
         int nBlockPackCounter = 0;
         int nCheckBlockPackSizeInterval = 1000;
         CDataStream ssCheckBlockPack(SER_NETWORK, INIT_PROTO_VERSION);
+        vector<uint256> vBlockHashesAlreadyQueued;
         
         while (it != pfrom->vRecvGetData.end()) {
             // Don't bother if send buffer is too full to respond anyway
@@ -4028,9 +4029,12 @@ void static ProcessGetData(CNode* pfrom)
                         
                         if(fBlockPack)
                         {
-                            vBlockPack.push_back(block);
-                            
-                            nBlockPackCounter++;
+                            if(vBlockHashesAlreadyQueued.find(vBlockHashesAlreadyQueued.begin(), vBlockHashesAlreadyQueued.end(), inv.hash) != vBlockHashesAlreadyQueued.end())
+                            {
+                                vBlockPack.push_back(block);
+                                vBlockHashesAlreadyQueued.push_back(inv.hash);                             
+                                nBlockPackCounter++;
+                            }
                             
                             if(nBlockPackCounter % 1000 == 0)
                             {
@@ -4043,6 +4047,35 @@ void static ProcessGetData(CNode* pfrom)
                                     break;
                                 }
                             }
+                            
+                            // optimistically try to send up to 500 next blocks
+                            int l = 0;
+                            CBlockIndex* pblock = (*mi).first;
+                            while(pblock->pnext && l<500)
+                            {
+                                uint256 blockHash = pnext->GetBlockHash();
+                                if(vBlockHashesAlreadyQueued.find(vBlockHashesAlreadyQueued.begin(), vBlockHashesAlreadyQueued.end(), blockHash) != vBlockHashesAlreadyQueued.end())
+                                {
+                                    vBlockPack.push_back(block);
+                                    vBlockHashesAlreadyQueued.push_back(blockHash);                             
+                                    nBlockPackCounter++;
+                                }
+                                
+                                if(nBlockPackCounter % 1000 == 0)
+                                {
+                                    ssCheckBlockPack << vBlockPack;
+                                    bool fSizeReached = (ssCheckBlockPack.size() >= (SendBufferSize() * 0.9));
+                                    ssCheckBlockPack.clear();
+                                    if(fSizeReached)
+                                    {
+                                        // don't send any more in the pack
+                                        break;
+                                    }
+                                }
+                                
+                                l++;
+                                pblock = pnext;
+                            }                            
                         }
                         else
                         {
