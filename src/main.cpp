@@ -4081,7 +4081,7 @@ void static ProcessGetData(CNode* pfrom)
                                 l++;
                                 pblock = pblock->pnext;
                             }   
-                            LogPrintf("BLOCKPACK: Pack of %d blocks assembled for peer.\n, vBlockPack.size());
+                            LogPrintf("BLOCKPACK: Pack of %d blocks assembled for peer.\n", vBlockPack.size());
                         }
                         else
                         {
