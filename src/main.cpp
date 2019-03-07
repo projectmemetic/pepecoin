@@ -4056,7 +4056,10 @@ void static ProcessGetData(CNode* pfrom)
                                 uint256 blockHash = pblock->pnext->GetBlockHash();
                                 if(std::find(vBlockHashesAlreadyQueued.begin(), vBlockHashesAlreadyQueued.end(), blockHash) == vBlockHashesAlreadyQueued.end())
                                 {
-                                    vBlockPack.push_back(block);
+                                    CBlock blockAdd;
+                                    blockAdd.ReadFromDisk(pblock);
+                        
+                                    vBlockPack.push_back(blockAdd);
                                     vBlockHashesAlreadyQueued.push_back(blockHash);                             
                                     nBlockPackCounter++;
                                 }
