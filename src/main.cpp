@@ -4029,7 +4029,7 @@ void static ProcessGetData(CNode* pfrom)
                         
                         if(fBlockPack)
                         {
-                            if(vBlockHashesAlreadyQueued.find(vBlockHashesAlreadyQueued.begin(), vBlockHashesAlreadyQueued.end(), inv.hash) != vBlockHashesAlreadyQueued.end())
+                            if(std::find(vBlockHashesAlreadyQueued.begin(), vBlockHashesAlreadyQueued.end(), inv.hash) != vBlockHashesAlreadyQueued.end())
                             {
                                 vBlockPack.push_back(block);
                                 vBlockHashesAlreadyQueued.push_back(inv.hash);                             
@@ -4054,7 +4054,7 @@ void static ProcessGetData(CNode* pfrom)
                             while(pblock->pnext && l<500)
                             {
                                 uint256 blockHash = pnext->GetBlockHash();
-                                if(vBlockHashesAlreadyQueued.find(vBlockHashesAlreadyQueued.begin(), vBlockHashesAlreadyQueued.end(), blockHash) != vBlockHashesAlreadyQueued.end())
+                                if(std::find(vBlockHashesAlreadyQueued.begin(), vBlockHashesAlreadyQueued.end(), blockHash) != vBlockHashesAlreadyQueued.end())
                                 {
                                     vBlockPack.push_back(block);
                                     vBlockHashesAlreadyQueued.push_back(blockHash);                             
