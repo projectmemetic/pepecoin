@@ -241,10 +241,10 @@ public:
     std::deque<CNetMessage> vRecvMsg;
     CCriticalSection cs_vRecvMsg;
     uint64_t nRecvBytes;
-    boost::atomic<int> nRecvVersion;
+    int nRecvVersion;
 
-    boost::atomic<int64_t> nLastSend;
-    boost::atomic<int64_t> nLastRecv;
+    int64_t nLastSend;
+    int64_t nLastRecv;
     int64_t nTimeConnected;
     boost::atomic<int64_t> nLastWarningTime;
     boost::atomic<int> nNumWarningsSkipped;
@@ -259,7 +259,7 @@ public:
     CAddress addr;
     std::string addrName;
     CService addrLocal;
-    boost::atomic<int> nVersion;
+    int nVersion;
     // strSubVer is whatever byte array we read from the wire. However, this field is intended
     // to be printed out, displayed to humans in various forms and so on. So we sanitize it and
     // store the sanitized version in cleanSubVer. The original should be used when dealing with
@@ -269,8 +269,8 @@ public:
     bool fClient;
     bool fInbound;
     bool fNetworkNode;
-    boost::atomic_bool<bool> fSuccessfullyConnected;
-    boost::atomic_bool<bool> fDisconnect;
+    bool fSuccessfullyConnected;
+    bool fDisconnect;
     // We use fRelayTxes for two purposes -
     // a) it allows us to not relay tx invs before receiving the peer's version message
     // b) the peer may tell us in their version message that we should not relay tx invs
