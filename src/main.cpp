@@ -4042,12 +4042,16 @@ void static ProcessGetData(CNode* pfrom)
                         
                         if(fBlockPack)
                         {
-                            LogPrintf("BLOCKPACK: Blockpack enabled for peer, assembling pack.\n");
+                            if(setInventoryKnown.find(CInv(MSG_BLOCK, inv.hash) != setInventoryKnown.end())
+                                continue;
+                            
+                            LogPrint("blockpack", "BLOCKPACK: Blockpack enabled for peer, assembling pack.\n");
                             if(std::find(vBlockHashesAlreadyQueued.begin(), vBlockHashesAlreadyQueued.end(), inv.hash) == vBlockHashesAlreadyQueued.end())
                             {
                                 vBlockPack.push_back(block);
                                 vBlockHashesAlreadyQueued.push_back(inv.hash);                             
                                 nBlockPackCounter++;
+                                pto->setInventoryKnown.push_back(inv);
                             }
                             
                             if(nBlockPackCounter % 1000 == 0)
@@ -4061,44 +4065,8 @@ void static ProcessGetData(CNode* pfrom)
                                     // don't send any more in the pack
                                     break;
                                 }
-                            }
-                            
-                            // optimistically try to send up to 500 next blocks
-                            int l = 0;
-                            CBlockIndex* pblock = (*mi).second->pnext;
-                            while(pblock && l<500)
-                            {                                
-                                if (!pblock || !pblock->IsInMainChain())
-                                    break;
-                                
-                                uint256 blockHash = pblock->GetBlockHash();
-                                
-                                if(std::find(vBlockHashesAlreadyQueued.begin(), vBlockHashesAlreadyQueued.end(), blockHash) == vBlockHashesAlreadyQueued.end())
-                                {
-                                    CBlock blockAdd;
-                                    blockAdd.ReadFromDisk(pblock);
-                        
-                                    vBlockPack.push_back(blockAdd);
-                                    vBlockHashesAlreadyQueued.push_back(blockHash);                             
-                                    nBlockPackCounter++;
-                                }
-                                
-                                if(nBlockPackCounter % 1000 == 0)
-                                {
-                                    ssCheckBlockPack << vBlockPack;
-                                    bool fSizeReached = (ssCheckBlockPack.size() >= (SendBufferSize() * 90 / 100));
-                                    ssCheckBlockPack.clear();
-                                    if(fSizeReached)
-                                    {
-                                        // don't send any more in the pack
-                                        break;
-                                    }
-                                }
-                                
-                                l++;
-                                pblock = pblock->pnext;
-                            }   
-                            LogPrintf("BLOCKPACK: Pack of %d blocks assembled for peer.\n", vBlockPack.size());
+                            }                                                   
+                            LogPrint("blockpack", "BLOCKPACK: Block added to pack for peer. Size: %d\n", vBlockPack.size());
                         }
                         else
                         {
@@ -4209,6 +4177,52 @@ void static ProcessGetData(CNode* pfrom)
         
         if(fBlockPack && vBlockPack.size() > 0)
         {
+            ssCheckBlockPack << vBlockPack;
+            bool fSizeReached = (ssCheckBlockPack.size() >= (SendBufferSize() * 90 / 100));
+            ssCheckBlockPack.clear();
+            if(!fSizeReached) // there's still more room to pack in more blocks
+            {
+                // optimistically try to send up to 500 next blocks
+                int l = 0;
+                CBlock block = vBlockPack[vBlockPack.size() - 1];
+                map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(block.GetBlockHash());
+                CBlockIndex* pblock = (*mi).second->pnext;
+                while(pblock && l<1001)
+                {                                
+                    if (!pblock || !pblock->IsInMainChain())
+                        break;
+                    
+                    uint256 blockHash = pblock->GetBlockHash();
+                    if(setInventoryKnown.find(CInv(MSG_BLOCK, blockHash) != setInventoryKnown.end())
+                        continue;
+                    
+                    if(std::find(vBlockHashesAlreadyQueued.begin(), vBlockHashesAlreadyQueued.end(), blockHash) == vBlockHashesAlreadyQueued.end())
+                    {
+                        CBlock blockAdd;
+                        blockAdd.ReadFromDisk(pblock);
+            
+                        vBlockPack.push_back(blockAdd);
+                        vBlockHashesAlreadyQueued.push_back(blockHash);                             
+                        nBlockPackCounter++;
+                        pto->setInventoryKnown.push_back(CInv(MSG_BLOCK, blockHash));
+                    }
+                    
+                    if(nBlockPackCounter % 500 == 0)
+                    {
+                        ssCheckBlockPack << vBlockPack;
+                        bool fSizeReached = (ssCheckBlockPack.size() >= (SendBufferSize() * 90 / 100));
+                        ssCheckBlockPack.clear();
+                        if(fSizeReached)
+                        {
+                            // don't send any more in the pack
+                            break;
+                        }
+                    }
+                    
+                    l++;
+                    pblock = pblock->pnext;
+                }
+            }
             LogPrintf("BLOCKPACK: Pushing blockpack message for pack of %d blocks.\n", vBlockPack.size());
             pfrom->PushMessage("blockpack", vBlockPack);
         }
