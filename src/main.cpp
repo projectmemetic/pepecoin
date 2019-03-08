@@ -4041,17 +4041,18 @@ void static ProcessGetData(CNode* pfrom)
                             assert(!"could not load block from disk!");
                         
                         if(fBlockPack)
-                        {
-                            if(pfrom->setInventoryKnown.find(CInv(MSG_BLOCK, inv.hash) )!= pfrom->setInventoryKnown.end())
-                                continue;
-                            
+                        {                            
                             LogPrint("blockpack", "BLOCKPACK: Blockpack enabled for peer, assembling pack.\n");
+                            
+                            if(std::find(pfrom->vBlockInventorySent.begin(), pfrom->vBlockInventorySent.end(), CInv(MSG_BLOCK, blockHash)) != pfrom->vBlockInventorySent.end())
+                                continue;
+                        
                             if(std::find(vBlockHashesAlreadyQueued.begin(), vBlockHashesAlreadyQueued.end(), inv.hash) == vBlockHashesAlreadyQueued.end())
                             {
                                 vBlockPack.push_back(block);
                                 vBlockHashesAlreadyQueued.push_back(inv.hash);                             
                                 nBlockPackCounter++;
-                                pfrom->setInventoryKnown.insert(inv);
+                                pfrom->vBlockInventorySent.push_back(inv);
                             }
                             
                             if(nBlockPackCounter % 1000 == 0)
@@ -4194,7 +4195,7 @@ void static ProcessGetData(CNode* pfrom)
                         break;
                     
                     uint256 blockHash = pblock->GetBlockHash();
-                    if(pfrom->setInventoryKnown.find(CInv(MSG_BLOCK, blockHash)) != pfrom->setInventoryKnown.end())
+                    if(std::find(pfrom->vBlockInventorySent.begin(), pfrom->vBlockInventorySent.end(), CInv(MSG_BLOCK, blockHash)) != pfrom->vBlockInventorySent.end())
                         continue;
                     
                     if(std::find(vBlockHashesAlreadyQueued.begin(), vBlockHashesAlreadyQueued.end(), blockHash) == vBlockHashesAlreadyQueued.end())
@@ -4205,7 +4206,7 @@ void static ProcessGetData(CNode* pfrom)
                         vBlockPack.push_back(blockAdd);
                         vBlockHashesAlreadyQueued.push_back(blockHash);                             
                         nBlockPackCounter++;
-                        pfrom->setInventoryKnown.insert(CInv(MSG_BLOCK, blockHash));
+                        pfrom->vBlockInventorySent.push_back(CInv(MSG_BLOCK, blockHash));
                     }
                     
                     if(nBlockPackCounter % 500 == 0)
