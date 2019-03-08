@@ -253,8 +253,8 @@ public:
     int64_t nLastSend;
     int64_t nLastRecv;
     int64_t nTimeConnected;
-    boost::atomic<int64_t> nLastWarningTime;
-    boost::atomic<int> nNumWarningsSkipped;
+    boost::atomic<int64_t> nLastWarningTime(0);
+    boost::atomic<int> nNumWarningsSkipped(0);
     
     int64_t tGetblocks = 0;
     int64_t tBlockInvs = 0;
@@ -486,7 +486,17 @@ public:
     {
         LogPrint("node", "RemoveAskFor called\n");
         setAskFor.erase(hash);
-        mapAskFor.erase(hash);
+        for (std::multimap<int64_t, CInv>::iterator it = mapAskFor.begin(); it != mapAskFor.end(); ++it) 
+        {
+            if (it->second.hash == hash) 
+            {
+                mapAskFor.erase(it);
+            } 
+            else 
+            {
+                ++it;
+            }
+        }   
     }
     
     void AskFor(const CInv& inv)
@@ -510,8 +520,8 @@ public:
        {
             int64_t nNow = GetTime();
             if(nNow - nLastWarningTime > WARNING_INTERVAL) {
-            LogPrintf("CNode::AskFor -- WARNING: inventory message dropped: mapAskFor.size = %d, setAskFor.size = %d, MAPASKFOR_MAX_SZ = %d, SETASKFOR_MAX_SZ = %d, nSkipped = %d, peer=%d\n",
-                mapAskFor.size(), setAskFor.size(), MAPASKFOR_MAX_SZ, SETASKFOR_MAX_SZ, nNumWarningsSkipped, id);
+            LogPrintf("CNode::AskFor -- WARNING: inventory message dropped: mapAskFor.size = %d, setAskFor.size = %d, MAPASKFOR_MAX_SZ = %d, SETASKFOR_MAX_SZ = %d, nSkipped = %d, peer=%s\n",
+                mapAskFor.size(), setAskFor.size(), MAPASKFOR_MAX_SZ, SETASKFOR_MAX_SZ, nNumWarningsSkipped, addr.ToString());
             nLastWarningTime = nNow;
             nNumWarningsSkipped = 0;
         }
