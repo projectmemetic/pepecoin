@@ -24,6 +24,7 @@
 #include "addrman.h"
 #include "hash.h"
 #include "core.h"
+#include "main.h"
 
 class CNode;
 class CBlockIndex;

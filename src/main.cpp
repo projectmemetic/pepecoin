@@ -4716,7 +4716,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
         if (ProcessBlock(pfrom, &block))
         {
-            mapAlreadyAskedFor.erase(inv);
             pfrom->tBlockRecved = GetTimeMillis();
         }
         if (block.nDoS) pfrom->Misbehaving(block.nDoS);
