@@ -253,8 +253,8 @@ public:
     int64_t nLastSend;
     int64_t nLastRecv;
     int64_t nTimeConnected;
-    boost::atomic<int64_t> nLastWarningTime(0);
-    boost::atomic<int> nNumWarningsSkipped(0);
+    boost::atomic<int64_t> nLastWarningTime;
+    boost::atomic<int> nNumWarningsSkipped;
     
     int64_t tGetblocks = 0;
     int64_t tBlockInvs = 0;
@@ -339,6 +339,8 @@ public:
 
     CNode(SOCKET hSocketIn, CAddress addrIn, std::string addrNameIn = "", bool fInboundIn=false) : ssSend(SER_NETWORK, INIT_PROTO_VERSION), setAddrKnown(5000)
     {
+        nLastwarningTime = 0;
+        nNumWarningsSkipped = 0;
         ncore = -1;
         nServices = 0;
         hSocket = hSocketIn;
