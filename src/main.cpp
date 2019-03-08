@@ -4051,7 +4051,7 @@ void static ProcessGetData(CNode* pfrom)
                                 vBlockPack.push_back(block);
                                 vBlockHashesAlreadyQueued.push_back(inv.hash);                             
                                 nBlockPackCounter++;
-                                pfrom->setInventoryKnown.push_back(inv);
+                                pfrom->setInventoryKnown.insert(inv);
                             }
                             
                             if(nBlockPackCounter % 1000 == 0)
@@ -4205,7 +4205,7 @@ void static ProcessGetData(CNode* pfrom)
                         vBlockPack.push_back(blockAdd);
                         vBlockHashesAlreadyQueued.push_back(blockHash);                             
                         nBlockPackCounter++;
-                        pfrom->setInventoryKnown.push_back(CInv(MSG_BLOCK, blockHash));
+                        pfrom->setInventoryKnown.insert(CInv(MSG_BLOCK, blockHash));
                     }
                     
                     if(nBlockPackCounter % 500 == 0)
