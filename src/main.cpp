@@ -5225,9 +5225,9 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         // Message: getdata
         //
         vector<CInv> vGetData;
-        int64_t nNow = GetTime() * 1000000;
+        int64_t nNow = GetTime();
         CTxDB txdb("r");
-        while (!pto->mapAskFor.empty() && (*pto->mapAskFor.begin()).first <= nNow)
+        while (!pto->fDisconnect && !pto->mapAskFor.empty() && (*pto->mapAskFor.begin()).first <= nNow)
         {
             const CInv& inv = (*pto->mapAskFor.begin()).second;
             if (!AlreadyHave(txdb, inv))
@@ -5247,9 +5247,9 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             {
                 //If we're not going to ask, don't expect a response.
                 LogPrint("net", "SendMessages -- GETDATA -- already have inv = %s peer=%s\n", inv.ToString(), pto->addr.ToString());
-pto->setAskFor.erase(inv.hash);
-                pto->mapAskFor.erase(pto->mapAskFor.begin());
+pto->setAskFor.erase(inv.hash);                
             }
+            pto->mapAskFor.erase(pto->mapAskFor.begin());
         }
         if (!vGetData.empty())
         {

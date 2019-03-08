@@ -14,14 +14,14 @@
 static const char* ppszTypeName[] =
 {
     "ERROR",
-    "tx",
-    "dstx",
+    "tx",    
     "block",
     "filtered block",
     "tx lock request",
     "tx lock vote",
     "spork",
     "masternode winner",
+    "dstx",
     "unknown",
     "unknown",
     "unknown",

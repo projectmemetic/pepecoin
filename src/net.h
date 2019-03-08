@@ -548,14 +548,14 @@ public:
         LogPrint("net", "askfor %s  %d (%s) peer=%s\n", inv.ToString(), nRequestTime, DateTimeStrFormat("%H:%M:%S", nRequestTime/1000000), addr.ToString());
 
         // Make sure not to reuse time indexes to keep things in the same order
-        int64_t nNow = GetTimeMicros() - 1000000;
+        int64_t nNow = GetTime() -1 ;//GetTimeMicros() - 1000000;
         static int64_t nLastTime;
         ++nLastTime;
         nNow = std::max(nNow, nLastTime);
         nLastTime = nNow;
 
         // Each retry is 2 minutes after the last
-        nRequestTime = std::max(nRequestTime + 2 * 60 * 1000000, nNow);
+        nRequestTime = std::max(nRequestTime + 2 * 60, nNow);
         if (it != mapAlreadyAskedFor.end())
             mapAlreadyAskedFor.update(it, nRequestTime);
         else
