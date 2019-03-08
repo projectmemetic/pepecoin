@@ -4456,7 +4456,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
             if (ProcessBlock(pfrom, &block))
             {
-                mapAlreadyAskedFor.erase(inv);
                 pfrom->tBlockRecved = GetTimeMillis();
             }
             if (block.nDoS) pfrom->Misbehaving(block.nDoS);
@@ -4638,8 +4637,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         LOCK(cs_main);
 
         bool fMissingInputs = false;
-
-        mapAlreadyAskedFor.erase(inv);
 
         if (AcceptToMemoryPool(mempool, tx, true, &fMissingInputs))
         {

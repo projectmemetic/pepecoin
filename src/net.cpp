@@ -2124,18 +2124,6 @@ void RemoveAskFor(const uint256& hash)
     }
 }
 
-void CNode::RemoveAskFor(const uint256& hash)
-{
-    setAskFor.erase(hash);
-    for (std::multimap<int64_t, CInv>::iterator it = mapAskFor.begin(); it != mapAskFor.end();) {
-        if (it->second.hash == hash) {
-            it = mapAskFor.erase(it);
-        } else {
-            ++it;
-        }
-    }
-}
-
 void CNode::RecordBytesRecv(uint64_t bytes)
 {
     LOCK(cs_totalBytesRecv);
