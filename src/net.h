@@ -24,7 +24,7 @@
 #include "addrman.h"
 #include "hash.h"
 #include "core.h"
-#include "main.h"
+
 
 class CNode;
 class CBlockIndex;
@@ -39,6 +39,9 @@ static const int TIMEOUT_INTERVAL = 60 * 60;
 
 /** Minimum time between warnings printed to log. */
 static const int WARNING_INTERVAL = 10 * 60;
+
+/** The maximum number of entries in an 'inv' protocol message */
+static const unsigned int MAX_INV_SZ = 50000;
 
 /** The maximum number of entries in mapAskFor */
 static const size_t MAPASKFOR_MAX_SZ = MAX_INV_SZ;
