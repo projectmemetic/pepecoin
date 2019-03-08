@@ -4044,7 +4044,7 @@ void static ProcessGetData(CNode* pfrom)
                         {                            
                             LogPrint("blockpack", "BLOCKPACK: Blockpack enabled for peer, assembling pack.\n");
                             
-                            if(std::find(pfrom->vBlockInventorySent.begin(), pfrom->vBlockInventorySent.end(), inv) != pfrom->vBlockInventorySent.end())
+                            if(std::find(pfrom->vBlockInventorySent.begin(), pfrom->vBlockInventorySent.end(), inv.hash) != pfrom->vBlockInventorySent.end())
                                 continue;
                         
                             if(std::find(vBlockHashesAlreadyQueued.begin(), vBlockHashesAlreadyQueued.end(), inv.hash) == vBlockHashesAlreadyQueued.end())
@@ -4195,8 +4195,8 @@ void static ProcessGetData(CNode* pfrom)
                         break;
                     
                     uint256 blockHash = pblock->GetBlockHash();
-                    CInv invb = CInv(MSG_BLOCK, blockHash);
-                    if(std::find(pfrom->vBlockInventorySent.begin(), pfrom->vBlockInventorySent.end(), invb) != pfrom->vBlockInventorySent.end())
+                    
+                    if(std::find(pfrom->vBlockInventorySent.begin(), pfrom->vBlockInventorySent.end(), blockHash) != pfrom->vBlockInventorySent.end())
                         continue;
                     
                     if(std::find(vBlockHashesAlreadyQueued.begin(), vBlockHashesAlreadyQueued.end(), blockHash) == vBlockHashesAlreadyQueued.end())

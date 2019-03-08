@@ -323,7 +323,7 @@ public:
     // Masternode based relay
     std::set<uint256> setToadKnown;
     
-    std::vector<CInv> vBlockInventorySent;
+    std::vector<uint256> vBlockInventorySent;
 
     SecMsgNode smsgData;
 
