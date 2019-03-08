@@ -4042,7 +4042,7 @@ void static ProcessGetData(CNode* pfrom)
                         
                         if(fBlockPack)
                         {
-                            if(pto->setInventoryKnown.find(CInv(MSG_BLOCK, inv.hash) != pto->setInventoryKnown.end())
+                            if(pfrom->setInventoryKnown.find(CInv(MSG_BLOCK, inv.hash) != pfrom->setInventoryKnown.end())
                                 continue;
                             
                             LogPrint("blockpack", "BLOCKPACK: Blockpack enabled for peer, assembling pack.\n");
@@ -4051,7 +4051,7 @@ void static ProcessGetData(CNode* pfrom)
                                 vBlockPack.push_back(block);
                                 vBlockHashesAlreadyQueued.push_back(inv.hash);                             
                                 nBlockPackCounter++;
-                                pto->setInventoryKnown.push_back(inv);
+                                pfrom->setInventoryKnown.push_back(inv);
                             }
                             
                             if(nBlockPackCounter % 1000 == 0)
@@ -4185,15 +4185,16 @@ void static ProcessGetData(CNode* pfrom)
                 // optimistically try to send up to 500 next blocks
                 int l = 0;
                 CBlock block = vBlockPack[vBlockPack.size() - 1];
-                map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(block.GetBlockHash());
-                CBlockIndex* pblock = (*mi).second->pnext;
+                map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(block.hashPrevBlock);
+                CBlockIndex* pblock = (*mi).second->pnext; // the last block in the blockpack
+                pblock = pblock->pnext; // the next block after the last block in the blockpack so far
                 while(pblock && l<1001)
                 {                                
                     if (!pblock || !pblock->IsInMainChain())
                         break;
                     
                     uint256 blockHash = pblock->GetBlockHash();
-                    if(pto->setInventoryKnown.find(CInv(MSG_BLOCK, blockHash) != pto->setInventoryKnown.end())
+                    if(pfrom->setInventoryKnown.find(CInv(MSG_BLOCK, blockHash) != pfrom->setInventoryKnown.end())
                         continue;
                     
                     if(std::find(vBlockHashesAlreadyQueued.begin(), vBlockHashesAlreadyQueued.end(), blockHash) == vBlockHashesAlreadyQueued.end())
@@ -4204,7 +4205,7 @@ void static ProcessGetData(CNode* pfrom)
                         vBlockPack.push_back(blockAdd);
                         vBlockHashesAlreadyQueued.push_back(blockHash);                             
                         nBlockPackCounter++;
-                        pto->setInventoryKnown.push_back(CInv(MSG_BLOCK, blockHash));
+                        pfrom->setInventoryKnown.push_back(CInv(MSG_BLOCK, blockHash));
                     }
                     
                     if(nBlockPackCounter % 500 == 0)
