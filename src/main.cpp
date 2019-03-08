@@ -90,7 +90,7 @@ map<uint256, set<uint256> > mapOrphanTransactionsByPrev;
 CScript COINBASE_FLAGS;
 
 const string strMessageMagic = "PepeCoin Signed Message:\n";
-
+std::set<uint256> setValidatedTx;
 
 //////////////////////////////////////////////////////////////////////////////
 //
