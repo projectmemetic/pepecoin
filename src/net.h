@@ -25,7 +25,6 @@
 #include "hash.h"
 #include "core.h"
 
-
 class CNode;
 class CBlockIndex;
 extern boost::atomic<int> nBestHeight;
@@ -488,7 +487,7 @@ public:
     setAskFor.erase(hash);
     for (std::multimap<int64_t, CInv>::iterator it = mapAskFor.begin(); it != mapAskFor.end();) {
         if (it->second.hash == hash) {
-            it = mapAskFor.erase(it);
+            mapAskFor.erase(hash);
         } else {
             ++it;
         }
