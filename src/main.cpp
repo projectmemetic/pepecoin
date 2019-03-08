@@ -4052,7 +4052,7 @@ void static ProcessGetData(CNode* pfrom)
                                 vBlockPack.push_back(block);
                                 vBlockHashesAlreadyQueued.push_back(inv.hash);                             
                                 nBlockPackCounter++;
-                                pfrom->vBlockInventorySent.push_back(inv);
+                                pfrom->vBlockInventorySent.push_back(inv.hash);
                             }
                             
                             if(nBlockPackCounter % 1000 == 0)
@@ -4207,7 +4207,7 @@ void static ProcessGetData(CNode* pfrom)
                         vBlockPack.push_back(blockAdd);
                         vBlockHashesAlreadyQueued.push_back(blockHash);                             
                         nBlockPackCounter++;
-                        pfrom->vBlockInventorySent.push_back(CInv(MSG_BLOCK, blockHash));
+                        pfrom->vBlockInventorySent.push_back(blockHash);
                     }
                     
                     if(nBlockPackCounter % 500 == 0)
