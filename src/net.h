@@ -318,7 +318,7 @@ public:
     std::vector<CInv> vInventoryToSend;
     CCriticalSection cs_inventory;
     std::set<uint256> setAskFor;
-    std::multimap<int64_t, CInv> mapAskFor;
+    boost::multimap<int64_t, CInv> mapAskFor;
 
     // Masternode based relay
     std::set<uint256> setToadKnown;
@@ -483,16 +483,17 @@ public:
     }
     
     void CNode::RemoveAskFor(const uint256& hash)
-{
-    setAskFor.erase(hash);
-    for (std::multimap<int64_t, CInv>::iterator it = mapAskFor.begin(); it != mapAskFor.end(); ++it) {
-        if (it->second.hash == hash) {
-            mapAskFor.erase(it);
-        } else {
-            ++it;
+    {
+        LogPrint("node", "RemoveAskFor called\n");
+        setAskFor.erase(hash);
+        for (boost::multimap<int64_t, CInv>::iterator it = mapAskFor.begin(); it != mapAskFor.end(); ) {
+            if (it->second.hash == hash) {
+                it = mapAskFor.erase(it);
+            } else {
+                ++it;
+            }
         }
     }
-}
     
     void AskFor(const CInv& inv)
     {
