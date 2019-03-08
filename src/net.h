@@ -339,7 +339,7 @@ public:
 
     CNode(SOCKET hSocketIn, CAddress addrIn, std::string addrNameIn = "", bool fInboundIn=false) : ssSend(SER_NETWORK, INIT_PROTO_VERSION), setAddrKnown(5000)
     {
-        nLastwarningTime = 0;
+        nLastWarningTime = 0;
         nNumWarningsSkipped = 0;
         ncore = -1;
         nServices = 0;
