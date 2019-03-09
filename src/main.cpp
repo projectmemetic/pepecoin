@@ -4649,10 +4649,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             if (!fAlreadyHave) {
                 if (!fImporting)
                     if (inv.type == MSG_BLOCK) {
-                        if (pfrom->tGetblocks > pfrom->tBlockInvs || !IsSyncing()) {
+                        //if (pfrom->tGetblocks > pfrom->tBlockInvs || !IsSyncing()) {
                             pfrom->AskFor(inv);
                             nBlocksGet++;
-                        }
+                        //}
                     } else
                         pfrom->AskFor(inv);                                 
             } else if (inv.type == MSG_BLOCK && mapOrphanBlocks.count(inv.hash)) {
