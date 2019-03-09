@@ -5140,9 +5140,16 @@ bool ProcessMessages(CNode* pfrom)
         bool fRet = false;
         try
         {
-            LogPrint("net", "ProcessMessages: calling ProcessMessage for %s\n", strCommand);
-            fRet = ProcessMessage(pfrom, strCommand, vRecv, msg.nTime);
-            boost::this_thread::interruption_point();
+            if(fLiteMode && (strCommand=="dsee" || strCommand=="dseep"))
+            {
+                fRet = true;
+            }
+            else
+            {
+                LogPrint("net", "ProcessMessages: calling ProcessMessage for %s\n", strCommand);
+                fRet = ProcessMessage(pfrom, strCommand, vRecv, msg.nTime);
+                boost::this_thread::interruption_point();
+            }
         }
         catch (std::ios_base::failure& e)
         {
@@ -5377,7 +5384,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         // Message: getdata
         //
         vector<CInv> vGetData;
-        int64_t nNow = GetTime();
+        int64_t nNow = GetTimeMillis();
         CTxDB txdb("r");
         while (!pto->fDisconnect && !pto->mapAskFor.empty() && (*pto->mapAskFor.begin()).first <= nNow && ((GetTime() - pto->nLastGetData) > 5))
         {
@@ -5413,6 +5420,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         if (!vGetData.empty())
         {
             pto->PushMessage("getdata", vGetData);
+            pto->nLastGetData = GetTime();
             LogPrint("net", "SendMessages -- GETDATA -- pushed size = %lu peer=%s\n", vGetData.size(), pto->addr.ToString());
         }
         

@@ -34,7 +34,7 @@ extern unsigned int nMessageCores;
 /** Time between pings automatically sent out for latency probing and keepalive (in seconds). */
 static const int PING_INTERVAL = 5 * 60;
 /** Time after which to disconnect, after waiting for a ping response (or inactivity). */
-static const int TIMEOUT_INTERVAL = 20 * 60;
+static const int TIMEOUT_INTERVAL = 60 * 60;
 
 /** Minimum time between warnings printed to log. */
 static const int WARNING_INTERVAL = 10 * 60;
@@ -361,6 +361,7 @@ public:
 
     CNode(SOCKET hSocketIn, CAddress addrIn, std::string addrNameIn = "", bool fInboundIn=false) : ssSend(SER_NETWORK, INIT_PROTO_VERSION), setAddrKnown(5000)
     {
+        nLastGetData = 0;
         fProcessingBlockPack = false;
         nTotalBlockPacksServed = 0;
         nBlockPackCount = 0;
