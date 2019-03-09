@@ -53,6 +53,8 @@ unsigned int nMinerSleep;
 bool fUseFastIndex;
 bool fOnlyTor = false;
 
+boost::thread_group threadGroup;
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // Shutdown

@@ -11,6 +11,8 @@ namespace boost {
     class thread_group;
 } // namespace boost
 
+extern boost::thread_group threadGroup;
+
 extern CWallet* pwalletMain;
 void StartShutdown();
 bool ShutdownRequested();

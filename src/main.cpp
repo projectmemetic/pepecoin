@@ -5228,7 +5228,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         if (pto->fStartSync && !fImporting && !fReindex) {
             pto->fStartSync = false;
             PushGetBlocks(pto, pindexBest, uint256(0));
-            pfrom->tGetblocks = GetTimeMillis();
+            pto->tGetblocks = GetTimeMillis();
         }
 
         // Resend wallet transactions that haven't gotten in a block yet

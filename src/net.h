@@ -242,7 +242,7 @@ class CNode
 public:
     CCriticalSection cs_askfor;
     int64_t nLastBlockPackSentTime = 0;
-    boost::atomic<bool> nTotalBlockPacksServed;
+    boost::atomic<int> nTotalBlockPacksServed;
     int64_t nLastGetData = 0;
     int nBlockPacksWaiting = 0;
     int64_t nTotalBlocksQueued = 0;
