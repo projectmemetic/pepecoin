@@ -34,7 +34,7 @@ extern unsigned int nMessageCores;
 /** Time between pings automatically sent out for latency probing and keepalive (in seconds). */
 static const int PING_INTERVAL = 5 * 60;
 /** Time after which to disconnect, after waiting for a ping response (or inactivity). */
-static const int TIMEOUT_INTERVAL = 60 * 60;
+static const int TIMEOUT_INTERVAL = 20 * 60;
 
 /** Minimum time between warnings printed to log. */
 static const int WARNING_INTERVAL = 10 * 60;
@@ -156,7 +156,14 @@ public:
     bool fSyncNode;
     double dPingTime;
     double dPingWait;
-    std::string addrLocal;    
+    std::string addrLocal;  
+    int64_t nLastBlockPackTime;
+    int64_t nLastBlockPackSize;
+    int nBlockPackCount;
+    int64_t nTotalBlocksQueued; 
+    int nBlockPacksWaiting;
+    int64_t nLastBlockPackSentTime;
+    int64_t nTotalBlockPacksServed;
 };
 
 
@@ -233,6 +240,19 @@ public:
 class CNode
 {
 public:
+    CCriticalSection cs_askfor;
+    int64_t nLastBlockPackSentTime = 0;
+    boost::atomic<bool> nTotalBlockPacksServed;
+    int64_t nLastGetData = 0;
+    int nBlockPacksWaiting = 0;
+    int64_t nTotalBlocksQueued = 0;
+    int64_t nLastBlockPackTime = 0;
+    int64_t nLastBlockPackSize = 0;
+    vector<uint256> vAlreadyAskedForHash;
+    boost::atomic<bool> fProcessingBlockPack;
+    boost::atomic<int> nBlockPackCount;
+    CCriticalSection cs_blockqueue;
+    std::map<int, CDataStream> mapBlockPackQueue;
     boost::atomic<int> ncore;
     // socket
     uint64_t nServices;
@@ -341,6 +361,9 @@ public:
 
     CNode(SOCKET hSocketIn, CAddress addrIn, std::string addrNameIn = "", bool fInboundIn=false) : ssSend(SER_NETWORK, INIT_PROTO_VERSION), setAddrKnown(5000)
     {
+        fProcessingBlockPack = false;
+        nTotalBlockPacksServed = 0;
+        nBlockPackCount = 0;
         nLastWarningTime = 0;
         nNumWarningsSkipped = 0;
         ncore = -1;
@@ -486,21 +509,17 @@ public:
         }
     }
     
-    void CNode::RemoveAskFor(const uint256& hash)
+    void RemoveAskFor(const uint256& hash)
     {
-        LogPrint("node", "RemoveAskFor called\n");
-        setAskFor.erase(hash);
-        for (std::multimap<int64_t, CInv>::iterator it = mapAskFor.begin(); it != mapAskFor.end(); ++it) 
-        {
-            if (it->second.hash == hash) 
-            {
+        //setAskFor.erase(hash);
+        LOCK(cs_askfor);
+        for (std::multimap<int64_t, CInv>::iterator it = mapAskFor.begin(); it != mapAskFor.end(); ) {
+            if (it->second.hash == hash) {
                 mapAskFor.erase(it);
-            } 
-            else 
-            {
+            } else {
                 ++it;
             }
-        }   
+        }
     }
     
     void AskFor(const CInv& inv)
@@ -509,34 +528,35 @@ public:
         // the key is the earliest time the request can be sent
        /* int64_t& nRequestTime = mapAlreadyAskedFor[inv];
         LogPrint("net", "askfor %s   %d (%s)\n", inv.ToString(), nRequestTime, DateTimeStrFormat("%H:%M:%S", nRequestTime/1000000));
-
         // Make sure not to reuse time indexes to keep things in the same order
         int64_t nNow = (GetTime() - 1) * 1000000;
         static int64_t nLastTime;
         ++nLastTime;
         nNow = std::max(nNow, nLastTime);
         nLastTime = nNow;
-
         // Each retry is 2 minutes after the last
         nRequestTime = std::max(nRequestTime + 2 * 60 * 1000000, nNow);
         mapAskFor.insert(std::make_pair(nRequestTime, inv));*/
-       if (mapAskFor.size() > MAPASKFOR_MAX_SZ || setAskFor.size() > SETASKFOR_MAX_SZ) 
+        LOCK(cs_askfor);
+       if (mapAskFor.size() > MAPASKFOR_MAX_SZ)// || setAskFor.size() > SETASKFOR_MAX_SZ) 
        {
             int64_t nNow = GetTime();
-            if(nNow - nLastWarningTime > WARNING_INTERVAL) {
-            LogPrintf("CNode::AskFor -- WARNING: inventory message dropped: mapAskFor.size = %d, setAskFor.size = %d, MAPASKFOR_MAX_SZ = %d, SETASKFOR_MAX_SZ = %d, nSkipped = %d, peer=%s\n",
-                mapAskFor.size(), setAskFor.size(), MAPASKFOR_MAX_SZ, SETASKFOR_MAX_SZ, nNumWarningsSkipped, addr.ToString());
-            nLastWarningTime = nNow;
-            nNumWarningsSkipped = 0;
-        }
-        else {
-            ++nNumWarningsSkipped;
-        }
-        return;
-    }
-        // a peer may not have multiple non-responded queue positions for a single inv item
-        if (!setAskFor.insert(inv.hash).second)
+            if(nNow - nLastWarningTime > WARNING_INTERVAL) 
+            {
+                LogPrintf("CNode::AskFor -- WARNING: inventory message dropped: mapAskFor.size = %d, setAskFor.size = %d, MAPASKFOR_MAX_SZ = %d, SETASKFOR_MAX_SZ = %d, nSkipped = %d, peer=%d\n",
+                    mapAskFor.size(), setAskFor.size(), MAPASKFOR_MAX_SZ, SETASKFOR_MAX_SZ, nNumWarningsSkipped, id);
+                nLastWarningTime = nNow;
+                nNumWarningsSkipped = 0;
+            }
+            else 
+            {
+                ++nNumWarningsSkipped;
+            }
             return;
+        }
+        // a peer may not have multiple non-responded queue positions for a single inv item
+        //if (!setAskFor.insert(inv.hash).second)
+        //    return;
 
         // We're using mapAskFor as a priority queue,
         // the key is the earliest time the request can be sent
@@ -550,14 +570,14 @@ public:
         LogPrint("net", "askfor %s  %d (%s) peer=%s\n", inv.ToString(), nRequestTime, DateTimeStrFormat("%H:%M:%S", nRequestTime/1000000), addr.ToString());
 
         // Make sure not to reuse time indexes to keep things in the same order
-        int64_t nNow = GetTime() -1 ;//GetTimeMicros() - 1000000;
+        int64_t nNow = GetTimeMillis() - 1000;//Micros() - 1000000;
         static int64_t nLastTime;
         ++nLastTime;
         nNow = std::max(nNow, nLastTime);
         nLastTime = nNow;
 
         // Each retry is 2 minutes after the last
-        nRequestTime = std::max(nRequestTime + 2 * 60, nNow);
+        nRequestTime = std::max(nRequestTime + 120000, nNow);
         if (it != mapAlreadyAskedFor.end())
             mapAlreadyAskedFor.update(it, nRequestTime);
         else

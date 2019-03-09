@@ -3338,8 +3338,8 @@ uint256 CBlockIndex::GetBlockTrust() const
 void PushGetBlocks(CNode* pnode, CBlockIndex* pindexBegin, uint256 hashEnd)
 {
     // Filter out duplicate requests
-    if (pindexBegin == pnode->pindexLastGetBlocksBegin && hashEnd == pnode->hashLastGetBlocksEnd)
-        return;
+    //if (pindexBegin == pnode->pindexLastGetBlocksBegin && hashEnd == pnode->hashLastGetBlocksEnd)
+    //    return;
     pnode->pindexLastGetBlocksBegin = pindexBegin;
     pnode->hashLastGetBlocksEnd = hashEnd;
 
@@ -4003,9 +4003,10 @@ void static ProcessGetData(CNode* pfrom)
         vector<CBlock> vBlockPack;
         bool fBlockPack = (pfrom->nServices & NODE_BLOCKPACK);
         int nBlockPackCounter = 0;
-        int nCheckBlockPackSizeInterval = 1000;
+        int nCheckBlockPackSizeInterval = 100;
         CDataStream ssCheckBlockPack(SER_NETWORK, INIT_PROTO_VERSION);
         vector<uint256> vBlockHashesAlreadyQueued;
+        bool fWaitForBlockPack = false;
         
         while (it != pfrom->vRecvGetData.end()) {
             // Don't bother if send buffer is too full to respond anyway
@@ -4019,6 +4020,13 @@ void static ProcessGetData(CNode* pfrom)
 
                 if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK)
                 {
+                    int nBlockPackThrottle = GetArg("-blockpackthrottle", 5);
+                    if((GetTime() - pfrom->nLastBlockPackSentTime) < nBlockPackThrottle) 
+                    {
+                        fWaitForBlockPack = true;
+                        break;
+                    }
+                    
                     // Send block from disk
                     bool send = false;
                     map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(inv.hash);
@@ -4055,10 +4063,10 @@ void static ProcessGetData(CNode* pfrom)
                                 pfrom->vBlockInventorySent.push_back(inv.hash);
                             }
                             
-                            if(nBlockPackCounter % 1000 == 0)
+                            if(nBlockPackCounter % nCheckBlockPackSizeInterval == 0)
                             {
                                 ssCheckBlockPack << vBlockPack;
-                                bool fSizeReached = (ssCheckBlockPack.size() >= (SendBufferSize() * 90 / 100));
+                                bool fSizeReached = (ssCheckBlockPack.size() >= ((pfrom->nSendSize - SendBufferSize()) * 75 / 100)); // leave room in the send buffer for other things
                                 ssCheckBlockPack.clear();
                                 if(fSizeReached)
                                 {
@@ -4189,7 +4197,8 @@ void static ProcessGetData(CNode* pfrom)
                 map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(block.hashPrevBlock);
                 CBlockIndex* pblock = (*mi).second->pnext; // the last block in the blockpack
                 pblock = pblock->pnext; // the next block after the last block in the blockpack so far
-                while(pblock && l<1001)
+                int nBlockPackLimit = GetArg("-blockpacklimit", 500);
+                while(pblock && l<nBlockPackLimit)
                 {                                
                     if (!pblock || !pblock->IsInMainChain())
                         break;
@@ -4210,10 +4219,10 @@ void static ProcessGetData(CNode* pfrom)
                         pfrom->vBlockInventorySent.push_back(blockHash);
                     }
                     
-                    if(nBlockPackCounter % 500 == 0)
+                    if(nBlockPackCounter % nCheckBlockPackSizeInterval == 0)
                     {
                         ssCheckBlockPack << vBlockPack;
-                        bool fSizeReached = (ssCheckBlockPack.size() >= (SendBufferSize() * 90 / 100));
+                        bool fSizeReached = (ssCheckBlockPack.size() >= ((pfrom->nSendSize - SendBufferSize()) * 75 / 100)); // leave room in the send buffer for other things
                         ssCheckBlockPack.clear();
                         if(fSizeReached)
                         {
@@ -4228,9 +4237,13 @@ void static ProcessGetData(CNode* pfrom)
             }
             LogPrintf("BLOCKPACK: Pushing blockpack message for pack of %d blocks.\n", vBlockPack.size());
             pfrom->PushMessage("blockpack", vBlockPack);
+            pfrom->nTotalBlockPacksServed++;
+            pfrom->nLastBlockPackSentTime = GetTime();
         }
 
-        pfrom->vRecvGetData.erase(pfrom->vRecvGetData.begin(), it);
+        // If we are pausing to throttle blockpack sends, don't remove it from the receive data queue
+        if(!fWaitForBlockPack)
+            pfrom->vRecvGetData.erase(pfrom->vRecvGetData.begin(), it);
 
         if (!vNotFound.empty()) {
             // Let the peer know that we didn't find what it asked for, so it doesn't
@@ -4243,6 +4256,104 @@ void static ProcessGetData(CNode* pfrom)
             pfrom->PushMessage("notfound", vNotFound);
         }
     }
+}
+
+void ThreadBlockPack(CNode* pfrom, std::vector<CBlock> vBlockPack)
+{
+    // Make this thread recognisable as a blockpack thread
+    std::string s = "pepe-blkpk";
+    RenameThread(s.c_str());  
+
+    SetThreadPriority(THREAD_PRIORITY_NORMAL);
+
+    pfrom->fProcessingBlockPack = true;
+    LogPrintf("ThreadBlockPack: Starting\n");
+
+    int64_t nTimeStart = GetTime();
+    BOOST_FOREACH(CBlock block, vBlockPack)
+    {
+        boost::this_thread::interruption_point();
+        uint256 hashBlock = block.GetHash();
+
+        CInv inv(MSG_BLOCK, hashBlock);
+
+        pfrom->AddInventoryKnown(inv);
+
+        if (ProcessBlock(pfrom, &block))
+        {                
+            pfrom->tBlockRecved = GetTimeMillis();
+        }
+        if (block.nDoS) pfrom->Misbehaving(block.nDoS);
+        if (fSecMsgEnabled)
+            SecureMsgScanBlock(block);
+
+        pfrom->nTotalBlocksQueued--;
+    }
+    pfrom->nBlockPacksWaiting--;
+    int nTimeElapsed = GetTime() - nTimeStart;
+    LogPrintf("ThreadBlockPack: Processed BLOCKPACK with %d blocks in %ds.\n", vBlockPack.size(), nTimeElapsed);
+    PushGetBlocks(pfrom, GetpindexBest(), uint256(0));
+    MilliSleep(500);        
+    int nQueueSize = 0;
+    uint256 lastBlockHash;
+    {
+        LOCK(pfrom->cs_blockqueue);
+        nQueueSize = pfrom->mapBlockPackQueue.size();
+    }
+    while(nQueueSize > 0)
+    {
+        boost::this_thread::interruption_point();
+        // there's queued block packs to process
+        std::vector<CBlock> vBlockPackQ;
+        {
+            LOCK(pfrom->cs_blockqueue);        
+            int nQueueNo = pfrom->mapBlockPackQueue.begin()->first;        
+            CDataStream ssCheckBlockPack(SER_NETWORK, INIT_PROTO_VERSION);
+            ssCheckBlockPack = pfrom->mapBlockPackQueue.begin()->second;
+            ssCheckBlockPack >> vBlockPackQ;            
+            pfrom->mapBlockPackQueue.erase(nQueueNo); // remove it
+            nQueueSize = pfrom->mapBlockPackQueue.size();
+        }
+
+        int64_t nTimeStart = GetTime();
+        BOOST_FOREACH(CBlock block, vBlockPackQ)
+        {
+            boost::this_thread::interruption_point();
+            uint256 hashBlock = block.GetHash();
+
+            CInv inv(MSG_BLOCK, hashBlock);
+
+            pfrom->AddInventoryKnown(inv);
+
+            if (ProcessBlock(pfrom, &block))
+            {                
+                pfrom->tBlockRecved = GetTimeMillis();
+                lastBlockHash = hashBlock;
+            }
+            if (block.nDoS) pfrom->Misbehaving(block.nDoS);
+            if (fSecMsgEnabled)
+                SecureMsgScanBlock(block);
+
+            pfrom->nTotalBlocksQueued--;
+        }
+        int nTimeElapsed = GetTime() - nTimeStart;
+        LogPrintf("ThreadBlockPack: Processed BLOCKPACK with %d blocks in %ds.\n", vBlockPack.size(), nTimeElapsed);
+        pfrom->nBlockPacksWaiting--;
+        PushGetBlocks(pfrom, GetpindexBest(), uint256(0));
+        MilliSleep(500);        
+    }
+
+    if(!pfrom->fDisconnect)
+    {
+        //ask for another blockpack    
+        LogPrintf("ThreadBlockPack: Asking for another blockpack from peer.\n");             
+        PushGetBlocks(pfrom, GetpindexBest(), uint256(0));        
+    }
+    else
+    {
+        LogPrintf("ThreadBlockPack: pfrom disconnected while processing BLOCKPACK.\n");
+    }    
+    pfrom->fProcessingBlockPack = false;
 }
 
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived)
@@ -4460,24 +4571,44 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     else if (strCommand == "blockpack")
     {
         vector<CBlock> vBlockPack;
-        vRecv >> vBlockPack;
-        
-        LOCK(cs_main);
-        BOOST_FOREACH(CBlock block, vBlockPack)
+        vRecv >> vBlockPack;        
+        pfrom->nLastBlockPackTime = GetTime();
+        pfrom->nLastBlockPackSize = vBlockPack.size();
+        pfrom->nBlockPackCount++;
+        pfrom->nBlockPacksWaiting++;
+        pfrom->nTotalBlocksQueued += vBlockPack.size();
+        LogPrint("blockpack", "ProcessMessage: Received BLOCKPACK with %d blocks. Queue: %d\n", vBlockPack.size(), pfrom->nBlockPacksWaiting);
+
+        // ask for continuation
+        LogPrint("blockpack", "ProcessMessage: Asking for BLOCKPACK continuation.\n");
+        if(pfrom->nBlockPacksWaiting < 20)
+        {            
+            CBlock lastBlock = vBlockPack[vBlockPack.size() - 1];            
+            CBlockIndex* idx = new CBlockIndex(0, 0, lastBlock);            
+            uint256 lasthash = lastBlock.GetHash();            
+            idx->phashBlock = &lasthash;            
+            PushGetBlocks(pfrom, idx, uint256(0));
+        }
+
+        int height = nBestHeight;
+        int total = pfrom->nTotalBlocksQueued;
+        LogPrintf("BLOCKPACK: %d blocks %d/%d\n", vBlockPack.size(), height, total);                
+        if(pfrom->fProcessingBlockPack)
+        {                        
+            LogPrint("blockpack", "ProcessMessage: Queueing BLOCKPACK.\n");
+            int nQueueNo = pfrom->nBlockPackCount;
+            CDataStream ssBlockPack(SER_NETWORK, INIT_PROTO_VERSION);
+            ssBlockPack << vBlockPack;
+            LOCK(pfrom->cs_blockqueue);
+            pfrom->mapBlockPackQueue.insert(make_pair(nQueueNo, ssBlockPack));            
+            LogPrint("blockpack", "ProcessMessage: Queued BLOCKPACK with %d blocks from %s.\n", vBlockPack.size(), pfrom->addr.ToString());
+        }
+        else
         {
-            uint256 hashBlock = block.GetHash();
-            
-            CInv inv(MSG_BLOCK, hashBlock);
-
-            pfrom->AddInventoryKnown(inv);
-
-            if (ProcessBlock(pfrom, &block))
-            {
-                pfrom->tBlockRecved = GetTimeMillis();
-            }
-            if (block.nDoS) pfrom->Misbehaving(block.nDoS);
-            if (fSecMsgEnabled)
-                SecureMsgScanBlock(block);
+            // start the blockpack thread
+            pfrom->fProcessingBlockPack = true;
+            LogPrintf("ProcessMessage: Starting BLOCKPACK handler thread.\n");
+            threadGroup.create_thread(boost::bind(&ThreadBlockPack, pfrom, vBlockPack));
         }
     }
 
@@ -4888,8 +5019,11 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         {
             pfrom->fDisconnect = true;        
         }
-        else if(!fLiteMode && !IsSyncing())
-        {           
+        else if(!fLiteMode)
+        {
+            if(IsSyncing())
+                return true;
+            
             if (fSecMsgEnabled)
                 SecureMsgReceiveData(pfrom, strCommand, vRecv);
 
@@ -5091,10 +5225,11 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         //    return true;
 
         // Start block sync
-     /*   if (pto->fStartSync && !fImporting && !fReindex) {
+        if (pto->fStartSync && !fImporting && !fReindex) {
             pto->fStartSync = false;
             PushGetBlocks(pto, pindexBest, uint256(0));
-        }*/
+            pfrom->tGetblocks = GetTimeMillis();
+        }
 
         // Resend wallet transactions that haven't gotten in a block yet
         // Except during reindex, importing and IBD, when old wallet
@@ -5244,30 +5379,37 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         vector<CInv> vGetData;
         int64_t nNow = GetTime();
         CTxDB txdb("r");
-        while (!pto->fDisconnect && !pto->mapAskFor.empty() && (*pto->mapAskFor.begin()).first <= nNow)
+        while (!pto->fDisconnect && !pto->mapAskFor.empty() && (*pto->mapAskFor.begin()).first <= nNow && ((GetTime() - pto->nLastGetData) > 5))
         {
             const CInv& inv = (*pto->mapAskFor.begin()).second;
             if (!AlreadyHave(txdb, inv))
             {
-                if (fDebug)
-                    LogPrint("net", "sending getdata: %s\n", inv.ToString());
-                vGetData.push_back(inv);
-                if (!pto->tGetdataBlock)
-                    pto->tGetdataBlock = GetTimeMillis();
-                if (vGetData.size() >= 1000)
+                //if (fDebug)
+                //    LogPrint("net", "adding to vgetdata: %s\n", inv.ToString());
+                if(std::find(pto->vAlreadyAskedForHash.begin(), pto->vAlreadyAskedForHash.end(), inv.hash) == pto->vAlreadyAskedForHash.end())
                 {
-                    pto->PushMessage("getdata", vGetData);
-                    vGetData.clear();
+                    vGetData.push_back(inv);
+                    pto->vAlreadyAskedForHash.push_back(inv.hash);
+                    if (!pto->tGetdataBlock)
+                        pto->tGetdataBlock = GetTimeMillis();
+                    if (vGetData.size() >= 5000)
+                    {
+                        LogPrint("net", "SendMessages: vgetdata bigger than 5000, sending getdata now.\n");
+                        pto->PushMessage("getdata", vGetData);
+                        pto->nLastGetData = GetTime();
+                        vGetData.clear();
+                    }
                 }
             }
             else 
             {
                 //If we're not going to ask, don't expect a response.
-                LogPrint("net", "SendMessages -- GETDATA -- already have inv = %s peer=%s\n", inv.ToString(), pto->addr.ToString());
-pto->setAskFor.erase(inv.hash);                
+                LogPrint("net", "SendMessages -- GETDATA -- already have inv = %s peer=%s vAlreadyAskedForHash.size:%d\n", inv.ToString(), pto->addr.ToString(), pto->vAlreadyAskedForHash.size());
+                //pto->setAskFor.erase(inv.hash);                
             }
             pto->mapAskFor.erase(pto->mapAskFor.begin());
         }
+        
         if (!vGetData.empty())
         {
             pto->PushMessage("getdata", vGetData);

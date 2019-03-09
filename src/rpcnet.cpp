@@ -94,6 +94,12 @@ Value getpeerinfo(const Array& params, bool fHelp)
         obj.push_back(Pair("startingheight", stats.nStartingHeight));
         obj.push_back(Pair("banscore", stats.nMisbehavior));
         obj.push_back(Pair("syncnode", stats.fSyncNode));
+        obj.push_back(Pair("totalblockpacksserved", stats.nTotalBlockPacksServed));
+        obj.push_back(Pair("lastblockpacktime", DateTimeStrFormat("%x %H:%M:%S", stats.nLastBlockPackSentTime)));
+        obj.push_back(Pair("lastblockpacktime", DateTimeStrFormat("%x %H:%M:%S", stats.nLastBlockPackTime)));
+        obj.push_back(Pair("lastblockpacksize", stats.nLastBlockPackSize));
+        obj.push_back(Pair("blockpacksinqueue", stats.nBlockPacksWaiting));
+        obj.push_back(Pair("totalblocksqueued", stats.nTotalBlocksQueued));
 
         ret.push_back(obj);
     }

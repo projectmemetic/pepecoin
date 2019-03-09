@@ -312,6 +312,11 @@ std::string HelpMessage()
     strUsage += _(" Seeding Options:") + "\n";
     strUsage += "  -blockservelimit=<n>        " + _("Number of blocks to send in response to getblocks (default: 500).  You can help seed the network and make syncing faster for users by increasing this number.  The number should be within the maxsendbuffer size, based on average serialized block size.  A maxsendbuffer of 32000 (32MB) should support a setting of 25000 as it will fill up the buffer and then stream it out.") + "\n";
     
+    strUsage += "\n" + _("BlockPack Options:") + "\n";
+    strUsage += "  -blockpackthrottle=<n>      " + _("Seconds to wait in between sending consecutive blockpacks. (Default: 5)") + "\n";
+    strUsage += "  -blockservelimit=<n>        " + _("Max number of block inventory hashes to send in response to getblocks. (Default: 500)") + "\n";
+    strUsage += "  -blockpacklimit=<n>         " + _("Max number of blocks to send in a blockpack. Clips at the capacity of the send buffer. (Default: 500)") + "\n";
+    
     return strUsage;
 }
 

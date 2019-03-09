@@ -530,6 +530,13 @@ void CNode::copyStats(CNodeStats &stats)
     X(nMisbehavior);
     X(nSendBytes);
     X(nRecvBytes);
+    X(nBlockPackCount);
+    X(nLastBlockPackTime);
+    X(nLastBlockPackSize);
+    X(nTotalBlocksQueued);
+    X(nBlockPacksWaiting);
+    X(nLastBlockPackSentTime);
+    X(nTotalBlockPacksServed);
     stats.fSyncNode = (this == pnodeSync);   
 
     // It is common for nodes with good ping times to suddenly become lagged,
@@ -1457,7 +1464,7 @@ bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOu
 
     // if we are trying to sync but the sync peer hasn't responded and started the sync
     // drop it so we can open a connection to a new sync peer
-   /* DropNonRespondingSyncPeer();
+    DropNonRespondingSyncPeer();
 
     // if we are syncing and if we already have an active sync node, don't open more connections
     bool bAlreadySyncing = false;
@@ -1470,7 +1477,7 @@ bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOu
         }
     }
     if(bAlreadySyncing)
-        return false;*/
+        return false;
 
     CNode* pnode = ConnectNode(addrConnect, strDest);
     boost::this_thread::interruption_point();
