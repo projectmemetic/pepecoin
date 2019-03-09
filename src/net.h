@@ -127,6 +127,7 @@ extern CCriticalSection cs_vNodes;
 extern std::map<CInv, CDataStream> mapRelay;
 extern std::deque<std::pair<int64_t, CInv> > vRelayExpiration;
 extern CCriticalSection cs_mapRelay;
+extern CCriticalSection cs_mapalreadyaskedfor;
 extern limitedmap<uint256, int64_t> mapAlreadyAskedFor;
 
 extern std::vector<std::string> vAddedNodes;
@@ -538,7 +539,7 @@ public:
         // Each retry is 2 minutes after the last
         nRequestTime = std::max(nRequestTime + 2 * 60 * 1000000, nNow);
         mapAskFor.insert(std::make_pair(nRequestTime, inv));*/
-        LOCK(cs_askfor);
+        LOCK2(cs_askfor, cs_alreadyaskedfor);
        if (mapAskFor.size() > MAPASKFOR_MAX_SZ)// || setAskFor.size() > SETASKFOR_MAX_SZ) 
        {
             int64_t nNow = GetTime();
