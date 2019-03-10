@@ -4206,7 +4206,10 @@ void static ProcessGetData(CNode* pfrom)
                     uint256 blockHash = pblock->GetBlockHash();
                     
                     if(std::find(pfrom->vBlockInventorySent.begin(), pfrom->vBlockInventorySent.end(), blockHash) != pfrom->vBlockInventorySent.end())
+                    {
+                        pblock = pblock->pnext;
                         continue;
+                    }
                     
                     if(std::find(vBlockHashesAlreadyQueued.begin(), vBlockHashesAlreadyQueued.end(), blockHash) == vBlockHashesAlreadyQueued.end())
                     {
