@@ -4851,7 +4851,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         //LogPrint("net", "received block %s\n", hashBlock.ToString());
 
         CInv inv(MSG_BLOCK, hashBlock);
-
+        LOCK(pfrom->cs_inventory);
+        if (pfrom->setInventoryKnown.count(inv)) // we already got this block from them
+            pfrom->Misbehaving(1);
+            
         pfrom->AddInventoryKnown(inv);
 
         int timetodownload = GetTimeMillis() - pfrom->tBlockRecved/1000;
