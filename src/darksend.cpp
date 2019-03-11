@@ -53,6 +53,8 @@ int RequestedMasterNodeList = 0;
 void ProcessMessageDarksend(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
 {
     if(fLiteMode) return; //disable all darksend/masternode related functionality
+    
+    if(!pfrom->CanRelay()) return;  // we haven't gotten their version yet
 
     if (strCommand == "dsf") { //DarkSend Final tx
         if (pfrom->nVersion < darkSendPool.MIN_PEER_PROTO_VERSION) {
@@ -1527,7 +1529,7 @@ bool CDarkSendPool::DoAutomaticDenominating(bool fDryRun, bool ready)
 
                         vecMasternodesUsed.push_back(dsq.vin);
                         sessionDenom = dsq.nDenom;
-
+                        if(!pnode->CanRelay()) continue;
                         pnode->PushMessage("dsa", sessionDenom, txCollateral);
                         LogPrintf("DoAutomaticDenominating --- connected (from queue), sending dsa for %d %d - %s\n", sessionDenom, GetDenominationsByAmount(sessionTotalValue), pnode->addr.ToString().c_str());
                         strAutoDenomResult = "";
@@ -1592,7 +1594,7 @@ bool CDarkSendPool::DoAutomaticDenominating(bool fDryRun, bool ready)
                     std::vector<int64_t> vecAmounts;
                     pwalletMain->ConvertList(vCoins, vecAmounts);
                     sessionDenom = GetDenominationsByAmounts(vecAmounts);
-
+                    if(!pnode->CanRelay()) continue;
                     pnode->PushMessage("dsa", sessionDenom, txCollateral);
                     LogPrintf("DoAutomaticDenominating --- connected, sending dsa for %d - denom %d\n", sessionDenom, GetDenominationsByAmount(sessionTotalValue));
                     strAutoDenomResult = "";
@@ -2088,6 +2090,7 @@ bool CDarksendQueue::Relay()
     LOCK(cs_vNodes);
     BOOST_FOREACH(CNode* pnode, vNodes){
         // always relay to everyone
+        if(!pnode->CanRelay()) continue;
         pnode->PushMessage("dsq", (*this));
     }
 
@@ -2178,8 +2181,10 @@ void ThreadCheckDarkSendPool()
                                 if(fDebug) LogPrintf("Sending masternode entry - %s \n", mn.addr.ToString().c_str());
                                             
                             {
-                                BOOST_FOREACH(CNode* pnode, vNodes) {
-                                        pnode->PushMessage("dsee", mn.vin, mn.addr, mn.sig, mn.now, mn.pubkey, mn.pubkey2, count, i, mn.lastTimeSeen, mn.protocolVersion);
+                                BOOST_FOREACH(CNode* pnode, vNodes) 
+                                {
+                                    if(!pnode->CanRelay()) continue;
+                                    pnode->PushMessage("dsee", mn.vin, mn.addr, mn.sig, mn.now, mn.pubkey, mn.pubkey2, count, i, mn.lastTimeSeen, mn.protocolVersion);
                                 }
                             }   
                         }

@@ -301,22 +301,29 @@ std::string HelpMessage()
         "  -nosmsg                                  " + _("Disable secure messaging.") + "\n" +
         "  -debugsmsg                               " + _("Log extra debug messages.") + "\n" +
         "  -smsgscanchain                           " + _("Scan the block chain for public key addresses on startup.") + "\n";
+    
     strUsage += "\n" + _("Additional PepeCoin options:") + "\n";
     strUsage += _(" Staking Options:") + "\n";
     strUsage += "  -blockthrottle=<n>          " + _("Milliseconds to wait after finding a stake block before broadcasting (default: 5000)") + "\n";
+    
     strUsage += _(" Multicore Message Handling:") + "\n";
     strUsage += "  -messagecorelimit=<n>       " + _("Limit number of cores to use for message handling threads, the default is more than most systems to allow use of all cores by default (default: 64)") + "\n";
+    
     strUsage += _(" LevelDb Options:") + "\n";
     strUsage += "  -leveldbbloomfilter=<n>     " + _("Bits to use in bloom filter (default: 32)") + "\n";
     strUsage += "  -writecache=<n>             " + _("Write cache in MB, improve performance/disk io but higher values can result in longer recovery time after a crash. (Default: 16)") + "\n";
     strUsage += "  -leveldbmaxopenfiles=<n>    " + _("Max open files at a time for leveldb.  Can improve performance as block index/tx index grows, but your OS may have a limit. (Default:1000)") + "\n";
-    strUsage += "  -leveldbcache-<n>           " + _("Size in MB of the database that leveldb will cache in memory.  Can result in dramatic performance improvement at the expense of RAM usage.  (Default: 100)") + "\n";
+    strUsage += "  -leveldbcache=<n>           " + _("Size in MB of the database that leveldb will cache in memory.  Can result in dramatic performance improvement at the expense of RAM usage.  (Default: 100)") + "\n";
+    
+    strUsage += _(" Network Options:") + "\n";
+    strUsage += "  -relayversiondelay=<n>      " + _("Number of seconds to wait after pushing version message to new connection before starting to relay dsee/dseep messages. (Default: 60)") + "\n";
+    strUsage += "  -versionallowance=<n>       " + _("Number of seconds of allowance to accept messages without a version from the peer to give a chance to catch up in case flooded with toad msgs. (Default: 60)") + "\n";
+    
     strUsage += _(" Seeding Options:") + "\n";
     strUsage += "  -blockservelimit=<n>        " + _("Number of blocks to send in response to getblocks (default: 500).  You can help seed the network and make syncing faster for users by increasing this number.  The number should be within the maxsendbuffer size, based on average serialized block size.  A maxsendbuffer of 32000 (32MB) should support a setting of 25000 as it will fill up the buffer and then stream it out.") + "\n";
     
     strUsage += "\n" + _("BlockPack Options:") + "\n";
     strUsage += "  -blockpackthrottle=<n>      " + _("Seconds to wait in between sending consecutive blockpacks. (Default: 5)") + "\n";
-    strUsage += "  -blockservelimit=<n>        " + _("Max number of block inventory hashes to send in response to getblocks. (Default: 500)") + "\n";
     strUsage += "  -blockpacklimit=<n>         " + _("Max number of blocks to send in a blockpack. Clips at the capacity of the send buffer. (Default: 500)") + "\n";
     
     return strUsage;

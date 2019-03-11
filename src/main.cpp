@@ -1866,8 +1866,8 @@ bool IsInitialBlockDownload()
     //LOCK(cs_main);
     if (GetpindexBest() == NULL || nBestHeight < Checkpoints::GetTotalBlocksEstimate())
         return true;
-    static int64_t nLastUpdate;
-    static CBlockIndex* pindexLastBest;
+    static boost::atomic<int64_t> nLastUpdate;
+    static boost::atomic<CBlockIndex*> pindexLastBest;
     if (GetpindexBest() != pindexLastBest)
     {
         pindexLastBest = GetpindexBest();
@@ -4490,8 +4490,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             AddTimeData(pfrom->addr, nTime);
     }
 
-
-    else if (pfrom->nVersion == 0)
+    // add an allowance buffer here in case the node is flooded with dsee's/masternode messages and we connected while they have a mass relay in progress
+    // give them a chance to catch up before we tag them as misbehaving
+    else if (pfrom->nVersion == 0 && (GetTime() - pfrom->nTimeConnected) > GetArg("-versionallowance", 60)) 
     {
         // Must have a version message before anything else
         pfrom->Misbehaving(1);

@@ -241,6 +241,7 @@ public:
 class CNode
 {
 public:
+    boost::atomic<int64_t> nVersionSentTime;
     CCriticalSection cs_askfor;
     int64_t nLastBlockPackSentTime = 0;
     boost::atomic<int> nTotalBlockPacksServed;
@@ -362,6 +363,7 @@ public:
 
     CNode(SOCKET hSocketIn, CAddress addrIn, std::string addrNameIn = "", bool fInboundIn=false) : ssSend(SER_NETWORK, INIT_PROTO_VERSION), setAddrKnown(5000)
     {
+        nVersionSentTime = 0;
         nLastGetData = 0;
         fProcessingBlockPack = false;
         nTotalBlockPacksServed = 0;
@@ -442,6 +444,12 @@ public:
     {
         //assert(nRefCount >= 0);
         return nRefCount;
+    }
+    
+    bool CanRelay()
+    {
+        int nVersionRelayDelay = GetArg("-relayversiondelay", 60);
+        return (nVersion > 0) && ((GetTime() - nVersionSentTime) > nVersionRelayDelay); // wait configured seconds (default 60) after connection and version message pushed before relaying dsee/dseep/etc.
     }
 
     // requires LOCK(cs_vRecvMsg)
@@ -877,7 +885,10 @@ inline void RelayInventory(const CInv& inv)
         BOOST_FOREACH(CNode* pnode, vNodes)
         {
             if(pnode)
+            {
+                if(!pnode->CanRelay()) continue;
                 pnode->PushInventory(inv);
+            }
         }
     }
 }

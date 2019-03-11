@@ -49,11 +49,15 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
 {
     if(fLiteMode) return;
     
+    if(!pfrom->CanRelay()) return;  // We haven't gotten their version yet
+    
+    bool fIsInitialDownload = IsInitialBlockDownload();
+    if(fIsInitialDownload || IsSyncing()) return;
+    
     if (strCommand == "dsee") { //DarkSend Election Entry
         if(fLiteMode) return; //disable all darksend/masternode related functionality
-
-        bool fIsInitialDownload = IsInitialBlockDownload();
-        if(fIsInitialDownload || IsSyncing()) return;
+        
+        LOCK(cs_masternodes); // take lock earlier to protect setKnownMnMsgs as well
 
         CTxIn vin;
         CService addr;
@@ -129,7 +133,6 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
         
 
         //search existing masternode list, this is where we update existing masternodes with new dsee broadcasts
-	LOCK(cs_masternodes);
         BOOST_FOREACH(CMasterNode& mn, vecMasternodes) {
             if(mn.vin.prevout == vin.prevout) {
                 // count == -1 when it's a new entry
@@ -222,6 +225,8 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
         bool fIsInitialDownload = IsInitialBlockDownload();
         if(fIsInitialDownload || IsSyncing()) return;
 
+        LOCK(cs_masternodes); // take lock earlier to protect setKnownMnMsgs as well
+        
         CTxIn vin;
         vector<unsigned char> vchSig;
         int64_t sigTime;
@@ -252,7 +257,6 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
         }
 
         // see if we have this masternode
-	LOCK(cs_masternodes);
         BOOST_FOREACH(CMasterNode& mn, vecMasternodes) {
             if(mn.vin.prevout == vin.prevout) {
             	// LogPrintf("dseep - Found corresponding mn for vin: %s\n", vin.ToString().c_str());
@@ -305,6 +309,8 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
         CTxIn vin;
         vRecv >> vin;
 
+        LOCK(cs_masternodes); // take lock earlier to protect askedForMasternodeList as well
+        
         if(vin == CTxIn()) { //only should ask for this once
             //local network
             //Note tor peers show up as local proxied addrs //if(!pfrom->addr.IsRFC1918())//&& !Params().MineBlocksOnDemand())
@@ -325,7 +331,7 @@ void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream
             //}
         } //else, asking for a specific node which is ok
 
-	LOCK(cs_masternodes);
+	
         int count = vecMasternodes.size();
         int i = 0;
 
@@ -871,6 +877,7 @@ void CMasternodePayments::Relay(CMasternodePaymentWinner& winner)
         vInv.push_back(inv);
         LOCK(cs_vNodes);
         BOOST_FOREACH(CNode* pnode, vNodes){
+            if(!node->CanRelay()) continue;
             pnode->PushMessage("inv", vInv);
         }
     }
@@ -878,7 +885,7 @@ void CMasternodePayments::Relay(CMasternodePaymentWinner& winner)
 
 void CMasternodePayments::Sync(CNode* node)
 {
-    
+    if(!node->CanRelay()) return;
     int a = 0;
     BOOST_FOREACH(CMasternodePaymentWinner& winner, vWinning)
         if(winner.nBlockHeight >= GetpindexBest()->nHeight-10 && winner.nBlockHeight <= GetpindexBest()->nHeight + 20)
