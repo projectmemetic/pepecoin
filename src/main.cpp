@@ -4851,28 +4851,28 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         //LogPrint("net", "received block %s\n", hashBlock.ToString());
 
         CInv inv(MSG_BLOCK, hashBlock);
-        LOCK(pfrom->cs_inventory);
-        if (pfrom->setInventoryKnown.count(inv)) // we already got this block from them
-            pfrom->Misbehaving(1);
-            
-        pfrom->AddInventoryKnown(inv);
-
-        int timetodownload = GetTimeMillis() - pfrom->tBlockRecved/1000;
-        if (timetodownload > 1000)
-            LogPrint("net", "received block %s (%u bytes, %us, %uB/s) peer=%d\n",
-              inv.hash.ToString(), size, timetodownload / 1000, size * 1000 / timetodownload, pfrom->id);
-        else
-            LogPrint("net", "received block %s (%u bytes) peer=%d\n", inv.hash.ToString(), size, pfrom->id);
-
-        LOCK(cs_main);
-
-        if (ProcessBlock(pfrom, &block))
+        
+        if (!pfrom->setInventoryKnown.count(inv)) // we already got this block from them
         {
-            pfrom->tBlockRecved = GetTimeMillis();
+            pfrom->AddInventoryKnown(inv);
+
+            int timetodownload = GetTimeMillis() - pfrom->tBlockRecved/1000;
+            if (timetodownload > 1000)
+                LogPrint("net", "received block %s (%u bytes, %us, %uB/s) peer=%d\n",
+                inv.hash.ToString(), size, timetodownload / 1000, size * 1000 / timetodownload, pfrom->id);
+            else
+                LogPrint("net", "received block %s (%u bytes) peer=%d\n", inv.hash.ToString(), size, pfrom->id);
+
+            LOCK(cs_main);
+
+            if (ProcessBlock(pfrom, &block))
+            {
+                pfrom->tBlockRecved = GetTimeMillis();
+            }
+            if (block.nDoS) pfrom->Misbehaving(block.nDoS);
+            if (fSecMsgEnabled)
+                SecureMsgScanBlock(block);
         }
-        if (block.nDoS) pfrom->Misbehaving(block.nDoS);
-        if (fSecMsgEnabled)
-            SecureMsgScanBlock(block);
     }
 
     // This asymmetric behavior for inbound and outbound connections was introduced
