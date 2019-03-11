@@ -173,6 +173,8 @@ public:
 
     void SetNull()
     {
+        nCachedBalance = 0;
+        fCachedBalanceNeedsUpdating = true;
         nWalletVersion = FEATURE_BASE;
         nWalletMaxVersion = FEATURE_BASE;
         fFileBacked = false;
