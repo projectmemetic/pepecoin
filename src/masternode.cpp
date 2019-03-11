@@ -877,7 +877,7 @@ void CMasternodePayments::Relay(CMasternodePaymentWinner& winner)
         vInv.push_back(inv);
         LOCK(cs_vNodes);
         BOOST_FOREACH(CNode* pnode, vNodes){
-            if(!node->CanRelay()) continue;
+            if(!pnode->CanRelay()) continue;
             pnode->PushMessage("inv", vInv);
         }
     }
