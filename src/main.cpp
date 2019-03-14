@@ -3370,30 +3370,6 @@ void PushGetBlocksFromTip(CNode* pnode)
     }
 }
 
-// PushGetBlocks from either the best block we have or,
-// if we have blockpacks queued up from the node, from the last
-// block in the last blockpack we've received so far
-// To avoid re-requesting duplicate block inventory
-void PushGetBlocksFromTip(CNode* pnode)
-{
-    CBlockIndex* pindexBegin = GetpindexBest();
-    if(pnode->mapBlockPackQueue.size() > 0)
-    {
-        CDataStream ssBlockPack(SER_NETWORK, INIT_PROTO_VERSION);
-        std::vector<CBlock> vBlockPackQ;
-        ssBlockPack = pnode->mapBlockPackQueue.rbegin()->second;
-        ssBlockPack >> vBlockPackQ;
-        uint256 hash = vBlockPackQ.rbegin().GetHash();
-        CBlockIndex* idx = new CBlockIndex(0, 0, lastBlock); 
-        idx->phashBlock = &hash;
-        PushGetBlocks(pnode, idx, uint256(0));
-    }
-    else
-    {
-        PushGetBlocks(pnode, pindexBegin, uint256(0));
-    }
-}
-
 void PushGetBlocks(CNode* pnode, CBlockIndex* pindexBegin, uint256 hashEnd)
 {
     // Filter out duplicate requests
