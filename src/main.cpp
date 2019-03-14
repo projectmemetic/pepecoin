@@ -3345,7 +3345,7 @@ uint256 CBlockIndex::GetBlockTrust() const
 void PushGetBlocksFromTip(CNode* pnode)
 {
     CBlockIndex* pindexBegin = GetpindexBest();
-    LOCK(pfrom->cs_blockqueue);
+    LOCK(pnode->cs_blockqueue);
     if(pnode->mapBlockPackQueue.size() > 0)
     {
         CDataStream ssBlockPack(SER_NETWORK, INIT_PROTO_VERSION);
