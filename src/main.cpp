@@ -42,6 +42,9 @@ using namespace boost;
 // Global state
 //
 
+CCriticalSection cs_pushgetblocks;
+std::map<uint256, int64_t> mapPushedGetBlocks;
+
 CCriticalSection cs_setpwalletRegistered;
 set<CWallet*> setpwalletRegistered;
 
@@ -3335,11 +3338,89 @@ uint256 CBlockIndex::GetBlockTrust() const
     return ((CBigNum(1)<<256) / (bnTarget+1)).getuint256();
 }
 
+// PushGetBlocks from either the best block we have or,
+// if we have blockpacks queued up from the node, from the last
+// block in the last blockpack we've received so far
+// To avoid re-requesting duplicate block inventory
+void PushGetBlocksFromTip(CNode* pnode)
+{
+    CBlockIndex* pindexBegin = GetpindexBest();
+    if(pnode->mapBlockPackQueue.size() > 0)
+    {
+        std::vector<CBlock> vBlockPackQ = mapBlockPackQueue.rbegin()->second;
+        if(!vBlockPackQ.empty())
+        {
+            CBlock lastBlock = vBlockPackQ.back();
+            uint256 hash = lastBlock.GetHash();
+            CBlockIndex* idx = new CBlockIndex(0, 0, lastBlock); 
+            idx->phashBlock = &hash;
+            PushGetBlocks(pnode, idx, uint256(0));
+        }
+        else
+        {
+            PushGetBlocks(pnode, pindexBegin, uint256(0));
+        }
+    }
+    else
+    {
+        PushGetBlocks(pnode, pindexBegin, uint256(0));
+    }
+}
+
+// PushGetBlocks from either the best block we have or,
+// if we have blockpacks queued up from the node, from the last
+// block in the last blockpack we've received so far
+// To avoid re-requesting duplicate block inventory
+void PushGetBlocksFromTip(Cnode* pnode)
+{
+    CBlockIndex* pindexBegin = GetpindexBest();
+    if(pnode->mapBlockPackQueue.size() > 0)
+    {
+        CDataStream ssBlockPack(SER_NETWORK, INIT_PROTO_VERSION);
+        std::vector<CBlock> vBlockPackQ;
+        ssBlockPack = pnode->mapBlockPackQueue.rbegin()->second;
+        ssBlockPack >> vBlockPackQ;
+        uint256 hash = vBlockPackQ.rbegin().GetHash();
+        CBlockIndex* idx = new CBlockIndex(0, 0, lastBlock); 
+        idx->phashBlock = &hash;
+        PushGetBlocks(pnode, idx, uint256(0));
+    }
+    else
+    {
+        PushGetBlocks(pnode, pindexBegin, uint256(0));
+    }
+}
+
 void PushGetBlocks(CNode* pnode, CBlockIndex* pindexBegin, uint256 hashEnd)
 {
     // Filter out duplicate requests
-    //if (pindexBegin == pnode->pindexLastGetBlocksBegin && hashEnd == pnode->hashLastGetBlocksEnd)
-    //    return;
+    // This de-deuplicates requests for the same set of block inventory to multiple nodes
+    // So that we don't get flooded with blocks we already have if we are catching up but
+    // connected to more than 1 node.
+    int nSyncTimeout = GetArg("-synctimeout", 60);
+    int64_t nPushGetBlocksTime = GetTime();
+    LOCK(cs_pushgetblocks);
+    
+    if(mapPushedGetBlocks.find(pindexBegin->GetBlockHash()) != mapPushedGetBlocks.end())
+    {
+        int64_t nPushedGetBlocksTime = mapPushedGetBlocks[pindexBegin->GetBlockHash()];
+        // if the last time we requested inventory starting at this blockhash is not beyond the sync timeout,
+        // don't send it again yet
+        if(nPushedGetBlocksTime + nSyncTimeout >= nPushGetBlocksTime)
+        {
+            return;
+        }
+        else
+        {
+            // update the time
+            mapPushedGetBlocks[pindexBegin->GetBlockHash()] = nPushGetBlocksTime;
+        }
+    }
+    else
+    {
+        mapPushedGetBlocks.insert(make_pair(pindexBegin->GetBlockHash(), nPushGetBlocksTime));
+    }
+    
     pnode->pindexLastGetBlocksBegin = pindexBegin;
     pnode->hashLastGetBlocksEnd = hashEnd;
 
@@ -4296,7 +4377,7 @@ void ThreadBlockPack(CNode* pfrom, std::vector<CBlock> vBlockPack)
     pfrom->nBlockPacksWaiting--;
     int nTimeElapsed = GetTime() - nTimeStart;
     LogPrintf("ThreadBlockPack: Processed BLOCKPACK with %d blocks in %ds.\n", vBlockPack.size(), nTimeElapsed);
-    PushGetBlocks(pfrom, GetpindexBest(), uint256(0));
+    PushGetBlocksFromTip(pfrom);
     MilliSleep(500);        
     int nQueueSize = 0;
     uint256 lastBlockHash;
@@ -4344,7 +4425,7 @@ void ThreadBlockPack(CNode* pfrom, std::vector<CBlock> vBlockPack)
         int nTimeElapsed = GetTime() - nTimeStart;
         LogPrintf("ThreadBlockPack: Processed BLOCKPACK with %d blocks in %ds.\n", vBlockPack.size(), nTimeElapsed);
         pfrom->nBlockPacksWaiting--;
-        PushGetBlocks(pfrom, GetpindexBest(), uint256(0));
+        PushGetBlocksFromTip(pfrom);
         MilliSleep(500);        
     }
 
@@ -4352,7 +4433,7 @@ void ThreadBlockPack(CNode* pfrom, std::vector<CBlock> vBlockPack)
     {
         //ask for another blockpack    
         LogPrintf("ThreadBlockPack: Asking for another blockpack from peer.\n");             
-        PushGetBlocks(pfrom, GetpindexBest(), uint256(0));        
+        PushGetBlocksFromTip(pfrom);
     }
     else
     {
@@ -4472,7 +4553,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         {
             pfrom->fStartSync = true;
             nAskedForBlocks++;            
-            PushGetBlocks(pfrom, GetpindexBest(), uint256(0));
+            PushGetBlocksFromTip(pfrom);
             pfrom->tGetblocks = GetTimeMillis();
         }
         //---
@@ -5240,7 +5321,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         // Start block sync
         if (pto->fStartSync && !fImporting && !fReindex) {
             pto->fStartSync = false;
-            PushGetBlocks(pto, pindexBest, uint256(0));
+            PushGetBlocksFromTip(pto);
             pto->tGetblocks = GetTimeMillis();
         }
 

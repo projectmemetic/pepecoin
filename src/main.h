@@ -159,6 +159,8 @@ inline int64_t GetMNCollateral(int nHeight) { return 15000; }  // 15k PEPE / MEM
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
 extern CTxMemPool mempool;
+extern CCriticalSection cs_pushgetblocks;
+extern std::map<uint256, int64_t> mapPushedGetBlocks;
 extern std::map<uint256, CBlockIndex*> mapBlockIndex;
 extern std::map<uint256, CPepeMessage> mapPepeMessages;
 extern std::set<std::pair<COutPoint, unsigned int> > setStakeSeen;
@@ -222,6 +224,7 @@ void RegisterNodeSignals(CNodeSignals& nodeSignals);
 /** Unregister a network node */
 void UnregisterNodeSignals(CNodeSignals& nodeSignals);
 
+void PushGetBlocksFromTip(CNode* pnode);
 void PushGetBlocks(CNode* pnode, CBlockIndex* pindexBegin, uint256 hashEnd);
 
 bool ProcessBlock(CNode* pfrom, CBlock* pblock);
@@ -945,7 +948,7 @@ public:
 
         // Flush stdio buffers and commit to disk before returning
         fflush(fileout);
-        if (!IsInitialBlockDownload() || (nBestHeight+1) % 500 == 0)
+        if (!IsInitialBlockDownload() || (nBestHeight+1) % 5000 == 0)
             FileCommit(fileout);
 
         return true;
