@@ -3347,7 +3347,10 @@ void PushGetBlocksFromTip(CNode* pnode)
     CBlockIndex* pindexBegin = GetpindexBest();
     if(pnode->mapBlockPackQueue.size() > 0)
     {
-        std::vector<CBlock> vBlockPackQ = mapBlockPackQueue.rbegin()->second;
+        CDataStream ssBlockPack(SER_NETWORK, INIT_PROTO_VERSION);
+        std::vector<CBlock> vBlockPackQ;
+        ssBlockPack = pnode->mapBlockPackQueue.rbegin()->second;
+        ssBlockPack >> vBlockPackQ;
         if(!vBlockPackQ.empty())
         {
             CBlock lastBlock = vBlockPackQ.back();
@@ -3371,7 +3374,7 @@ void PushGetBlocksFromTip(CNode* pnode)
 // if we have blockpacks queued up from the node, from the last
 // block in the last blockpack we've received so far
 // To avoid re-requesting duplicate block inventory
-void PushGetBlocksFromTip(Cnode* pnode)
+void PushGetBlocksFromTip(CNode* pnode)
 {
     CBlockIndex* pindexBegin = GetpindexBest();
     if(pnode->mapBlockPackQueue.size() > 0)
