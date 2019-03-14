@@ -469,6 +469,12 @@ bool AppInit2(boost::thread_group& threadGroup)
     {
         fDebugSmsg = GetBoolArg("-debugsmsg", false);
     }
+    
+    //lite mode disables all Masternode and Darksend related functionality
+    fLiteMode = GetBoolArg("-nomntesting", false);
+    if(IsInitialBlockDownload())
+        fLiteMode = true;
+    
     if (fLiteMode)
         fNoSmsg = true;
     else
@@ -1054,8 +1060,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         nInstantXDepth = 0;
     }
 
-    //lite mode disables all Masternode and Darksend related functionality
-    fLiteMode = GetBoolArg("-nomntesting", false);
+    
     if(fMasterNode && fLiteMode){
         return InitError("You can not start a masternode in nomntesting mode, formally known as litemode");
     }

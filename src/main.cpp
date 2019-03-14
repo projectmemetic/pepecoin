@@ -3345,6 +3345,7 @@ uint256 CBlockIndex::GetBlockTrust() const
 void PushGetBlocksFromTip(CNode* pnode)
 {
     CBlockIndex* pindexBegin = GetpindexBest();
+    LOCK(pfrom->cs_blockqueue);
     if(pnode->mapBlockPackQueue.size() > 0)
     {
         CDataStream ssBlockPack(SER_NETWORK, INIT_PROTO_VERSION);
@@ -3376,7 +3377,7 @@ void PushGetBlocks(CNode* pnode, CBlockIndex* pindexBegin, uint256 hashEnd)
     // This de-deuplicates requests for the same set of block inventory to multiple nodes
     // So that we don't get flooded with blocks we already have if we are catching up but
     // connected to more than 1 node.
-    int nSyncTimeout = GetArg("-synctimeout", 60);
+    int nSyncTimeout = GetArg("-synctimeout", 180);
     int64_t nPushGetBlocksTime = GetTime();
     LOCK(cs_pushgetblocks);
     

@@ -34,7 +34,7 @@ extern unsigned int nMessageCores;
 /** Time between pings automatically sent out for latency probing and keepalive (in seconds). */
 static const int PING_INTERVAL = 5 * 60;
 /** Time after which to disconnect, after waiting for a ping response (or inactivity). */
-static const int TIMEOUT_INTERVAL = 60 * 60;
+static const int TIMEOUT_INTERVAL = 20 * 60;
 
 /** Minimum time between warnings printed to log. */
 static const int WARNING_INTERVAL = 10 * 60;
@@ -47,8 +47,8 @@ static const size_t MAPASKFOR_MAX_SZ = MAX_INV_SZ;
 /** The maximum number of entries in setAskFor (larger due to getdata latency)*/
 static const size_t SETASKFOR_MAX_SZ = 2 * MAX_INV_SZ;
 
-inline unsigned int ReceiveFloodSize() { return 1000*GetArg("-maxreceivebuffer", 10*1000); }
-inline unsigned int SendBufferSize() { return 1000*GetArg("-maxsendbuffer", 2*1000); }
+inline unsigned int ReceiveFloodSize() { return 1000*GetArg("-maxreceivebuffer", 32*1000); }
+inline unsigned int SendBufferSize() { return 1000*GetArg("-maxsendbuffer", 10*1000); }
 
 void RemoveAskFor(const uint256& hash);
 void AddOneShot(std::string strDest);
